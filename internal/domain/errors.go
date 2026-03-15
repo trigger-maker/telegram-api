@@ -1,97 +1,99 @@
 package domain
 
 import (
-"errors"
-"fmt"
+	"errors"
+	"fmt"
 )
 
 var (
-// Errores de Usuario
-ErrUserNotFound       = errors.New("usuario no encontrado")
-ErrUserAlreadyExists  = errors.New("el usuario ya existe")
-ErrEmailAlreadyExists = errors.New("el email ya está registrado")
-ErrInvalidCredentials = errors.New("credenciales inválidas")
-ErrUserInactive       = errors.New("usuario desactivado")
+	// User errors
+	ErrUserNotFound       = errors.New("user not found")
+	ErrUserAlreadyExists  = errors.New("user already exists")
+	ErrEmailAlreadyExists = errors.New("email already registered")
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrUserInactive       = errors.New("user deactivated")
 
-// Errores de Autenticación
-ErrInvalidToken   = errors.New("token inválido")
-ErrTokenExpired   = errors.New("token expirado")
-ErrTokenRevoked   = errors.New("token revocado")
-ErrUnauthorized   = errors.New("no autorizado")
-ErrForbidden      = errors.New("acceso denegado")
+	// Authentication errors
+	ErrInvalidToken = errors.New("invalid token")
+	ErrTokenExpired = errors.New("token expired")
+	ErrTokenRevoked = errors.New("token revoked")
+	ErrUnauthorized = errors.New("unauthorized")
+	ErrForbidden    = errors.New("access denied")
 
-// Errores de Sesión Telegram
-ErrSessionNotFound         = errors.New("sesión no encontrada")
-ErrSessionAlreadyExists    = errors.New("ya existe una sesión con este número")
-ErrSessionNotActive        = errors.New("sesión no activa")
-ErrSessionNotAuthenticated = errors.New("sesión no autenticada")
-ErrSessionInactive         = errors.New("sesión inactiva")
-ErrInvalidPhoneNumber      = errors.New("número de teléfono inválido")
-ErrInvalidCode             = errors.New("código de verificación inválido")
-ErrCodeExpired             = errors.New("código de verificación expirado")
-ErrPasswordRequired        = errors.New("se requiere contraseña 2FA")
-ErrInvalidPassword         = errors.New("contraseña 2FA incorrecta")
-ErrTelegramError           = errors.New("error de Telegram")
-ErrTelegramFloodWait       = errors.New("demasiados intentos, espere")
+	// Telegram session errors
+	ErrSessionNotFound         = errors.New("session not found")
+	ErrSessionAlreadyExists    = errors.New("session already exists for this number")
+	ErrSessionNotActive        = errors.New("session not active")
+	ErrSessionNotAuthenticated = errors.New("session not authenticated")
+	ErrSessionInactive         = errors.New("session inactive")
+	ErrInvalidPhoneNumber      = errors.New("invalid phone number")
+	ErrInvalidCode             = errors.New("invalid verification code")
+	ErrCodeExpired             = errors.New("verification code expired")
+	ErrPasswordRequired        = errors.New("2FA password required")
+	ErrInvalidPassword         = errors.New("invalid 2FA password")
+	ErrAlreadyAuthenticated     = errors.New("session already authenticated")
+	ErrTelegramError           = errors.New("Telegram error")
+	ErrTelegramFloodWait       = errors.New("too many attempts, please wait")
+	ErrTDataInvalid            = errors.New("invalid tdata files")
 
-// Errores de Mensajes
-ErrMessageNotFound   = errors.New("mensaje no encontrado")
-ErrChatNotFound      = errors.New("chat no encontrado")
-ErrPeerNotFound      = errors.New("destinatario no encontrado")
-ErrMediaNotSupported = errors.New("tipo de media no soportado")
+	// Message errors
+	ErrMessageNotFound   = errors.New("message not found")
+	ErrChatNotFound      = errors.New("chat not found")
+	ErrPeerNotFound      = errors.New("recipient not found")
+	ErrMediaNotSupported = errors.New("media type not supported")
 
-// Errores de Validación
-ErrValidation   = errors.New("error de validación")
-ErrInvalidInput = errors.New("entrada inválida")
+	// Validation errors
+	ErrValidation   = errors.New("validation error")
+	ErrInvalidInput = errors.New("invalid input")
 
-// Errores de Sistema
-ErrInternal          = errors.New("error interno del servidor")
-ErrDatabase          = errors.New("error de base de datos")
-ErrCache             = errors.New("error de caché")
-ErrRateLimitExceeded = errors.New("límite de peticiones excedido")
+	// System errors
+	ErrInternal          = errors.New("internal server error")
+	ErrDatabase          = errors.New("database error")
+	ErrCache             = errors.New("cache error")
+	ErrRateLimitExceeded = errors.New("rate limit exceeded")
 )
 
 type AppError struct {
-Err     error
-Message string
-Code    string
-Status  int
-Details map[string]interface{}
+	Err     error
+	Message string
+	Code    string
+	Status  int
+	Details map[string]interface{}
 }
 
 type QRExpiredError struct {
-NewQR       string
-Attempt     int
-MaxAttempts int
-SessionID   string
-SessionName string
+	NewQR       string
+	Attempt     int
+	MaxAttempts int
+	SessionID   string
+	SessionName string
 }
 
 func (e *QRExpiredError) Error() string {
-return fmt.Sprintf("QR expirado. Intento %d/%d", e.Attempt, e.MaxAttempts)
+	return fmt.Sprintf("QR expired. Attempt %d/%d", e.Attempt, e.MaxAttempts)
 }
 
 func (e *AppError) Error() string {
-if e.Message != "" {
-return e.Message
-}
-return e.Err.Error()
+	if e.Message != "" {
+		return e.Message
+	}
+	return e.Err.Error()
 }
 
 func (e *AppError) Unwrap() error {
-return e.Err
+	return e.Err
 }
 
 func NewAppError(err error, message string, status int) *AppError {
-return &AppError{Err: err, Message: message, Status: status}
+	return &AppError{Err: err, Message: message, Status: status}
 }
 
 func (e *AppError) WithCode(code string) *AppError {
-e.Code = code
-return e
+	e.Code = code
+	return e
 }
 
 func (e *AppError) WithDetails(details map[string]interface{}) *AppError {
-e.Details = details
-return e
+	e.Details = details
+	return e
 }

@@ -53,17 +53,17 @@ func main() {
 	// ==================== DATABASE ====================
 	pool, err := pgxpool.New(ctx, cfg.Database.URL)
 	if err != nil {
-		logger.Fatal().Err(err).Msg("PostgreSQL conexión fallida")
+		logger.Fatal().Err(err).Msg("PostgreSQL connection failed")
 	}
 	defer pool.Close()
 
 	if err := pool.Ping(ctx); err != nil {
-		logger.Fatal().Err(err).Msg("PostgreSQL ping fallido")
+		logger.Fatal().Err(err).Msg("PostgreSQL ping failed")
 	}
-	logger.Info().Msg("✅ PostgreSQL conectado")
+	logger.Info().Msg("PostgreSQL connected")
 
 	if err := runMigrations(pool); err != nil {
-		logger.Fatal().Err(err).Msg("Migraciones fallidas")
+		logger.Fatal().Err(err).Msg("Migrations failed")
 	}
 
 	// ==================== REDIS ====================
@@ -74,9 +74,9 @@ func main() {
 	defer rdb.Close()
 
 	if err := rdb.Ping(ctx).Err(); err != nil {
-		logger.Fatal().Err(err).Msg("Redis ping fallido")
+		logger.Fatal().Err(err).Msg("Redis ping failed")
 	}
-	logger.Info().Msg("✅ Redis conectado")
+	logger.Info().Msg("Redis connected")
 
 	// ==================== REPOSITORIES ====================
 	userRepo := postgres.NewUserRepository(pool)
@@ -88,15 +88,16 @@ func main() {
 	// ==================== TELEGRAM ====================
 	tgManager, err := telegram.NewManager(cfg, sessionRepo)
 	if err != nil {
-		logger.Fatal().Err(err).Msg("Telegram Manager fallido")
+		logger.Fatal().Err(err).Msg("Telegram Manager failed")
 	}
 
 	sessionPool := telegram.NewSessionPool(tgManager, sessionRepo, webhookRepo)
+	tgManager.SetPool(sessionPool)
 
 	// ==================== SERVICES ====================
 	authService := service.NewAuthService(userRepo, tokenRepo, cacheRepo, cfg)
 	sessionService := service.NewSessionService(sessionRepo, userRepo, tgManager, cacheRepo, cfg)
-	messageService := service.NewMessageService(sessionRepo, cacheRepo, tgManager)
+	messageService := service.NewMessageService(sessionRepo, cacheRepo, tgManager, sessionPool)
 	chatService := service.NewChatService(sessionRepo, cacheRepo, tgManager, cfg)
 
 	// ==================== FIBER APP ====================
@@ -180,7 +181,7 @@ func main() {
 		Msg("🚀 Servidor iniciado")
 
 	if err := app.Listen(":" + port); err != nil {
-		logger.Fatal().Err(err).Msg("Servidor fallido")
+		logger.Fatal().Err(err).Msg("Server failed")
 	}
 }
 
@@ -196,7 +197,7 @@ func runMigrations(pool *pgxpool.Pool) error {
 	}
 
 	if len(files) == 0 {
-		logger.Warn().Msg("⚠️ No se encontraron archivos de migración")
+		logger.Warn().Msg("No migration files found")
 		return nil
 	}
 
@@ -206,14 +207,14 @@ func runMigrations(pool *pgxpool.Pool) error {
 	for _, f := range files {
 		schema, err := os.ReadFile(f)
 		if err != nil {
-			logger.Error().Err(err).Str("file", f).Msg("Error leyendo migración")
+			logger.Error().Err(err).Str("file", f).Msg("Error reading migration")
 			return err
 		}
 		if _, err := pool.Exec(ctx, string(schema)); err != nil {
-			logger.Error().Err(err).Str("file", f).Msg("Error ejecutando migración")
+			logger.Error().Err(err).Str("file", f).Msg("Error executing migration")
 			return err
 		}
-		logger.Info().Str("file", filepath.Base(f)).Msg("✅ Migración aplicada")
+		logger.Info().Str("file", filepath.Base(f)).Msg("Migration applied")
 	}
 	return nil
 }

@@ -39,10 +39,10 @@ func (h *AuthHandler) RegisterRoutes(r fiber.Router) {
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var req domain.CreateUserRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(NewErrorResponse("INVALID_BODY", "Cuerpo inválido"))
+		return c.Status(400).JSON(NewErrorResponse(400, "Invalid body"))
 	}
 	if errs := ValidateStruct(&req); errs != nil {
-		return c.Status(400).JSON(Response{Success: false, Error: &ErrorResponse{Code: "VALIDATION", Details: errs}})
+		return c.Status(422).JSON(Response{Success: false, Error: &ErrorResponse{Code: 422, Details: errs}})
 	}
 	user, err := h.auth.Register(c.Context(), &req)
 	if err != nil {
@@ -64,7 +64,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var req domain.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(NewErrorResponse("INVALID_BODY", "Cuerpo inválido"))
+		return c.Status(400).JSON(NewErrorResponse(400, "Invalid body"))
 	}
 	resp, err := h.auth.Login(c.Context(), &req, c.IP(), c.Get("User-Agent"))
 	if err != nil {
@@ -88,7 +88,7 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 		RefreshToken string `json:"refresh_token"`
 	}
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(NewErrorResponse("INVALID_BODY", "Cuerpo inválido"))
+		return c.Status(400).JSON(NewErrorResponse(400, "Invalid body"))
 	}
 	resp, err := h.auth.RefreshTokens(c.Context(), req.RefreshToken, c.IP(), c.Get("User-Agent"))
 	if err != nil {
@@ -129,7 +129,7 @@ func (h *AuthHandler) Me(c *fiber.Ctx) error {
 	userID, _ := middleware.GetUserID(c)
 	user, err := h.auth.GetUserByID(c.Context(), userID)
 	if err != nil {
-		return c.Status(404).JSON(NewErrorResponse("NOT_FOUND", "Usuario no encontrado"))
+		return c.Status(404).JSON(NewErrorResponse(404, "User not found"))
 	}
 	return c.JSON(NewSuccessResponse(user.ToUserInfo()))
 }
@@ -137,12 +137,12 @@ func (h *AuthHandler) Me(c *fiber.Ctx) error {
 func handleErr(c *fiber.Ctx, err error) error {
 	switch err {
 	case domain.ErrUserAlreadyExists, domain.ErrEmailAlreadyExists:
-		return c.Status(409).JSON(NewErrorResponse("CONFLICT", err.Error()))
+		return c.Status(409).JSON(NewErrorResponse(409, err.Error()))
 	case domain.ErrInvalidCredentials, domain.ErrInvalidToken, domain.ErrTokenExpired:
-		return c.Status(401).JSON(NewErrorResponse("UNAUTHORIZED", err.Error()))
+		return c.Status(401).JSON(NewErrorResponse(401, err.Error()))
 	case domain.ErrUserInactive:
-		return c.Status(403).JSON(NewErrorResponse("FORBIDDEN", err.Error()))
+		return c.Status(403).JSON(NewErrorResponse(403, err.Error()))
 	default:
-		return c.Status(500).JSON(NewErrorResponse("INTERNAL", "Error interno"))
+		return c.Status(500).JSON(NewErrorResponse(500, "Internal error"))
 	}
 }

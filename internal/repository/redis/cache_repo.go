@@ -14,11 +14,11 @@ import (
 
 // Prefijos de claves para organización
 const (
-	PrefixSession     = "session:"      // Sesiones de usuario (JWT blacklist)
-	PrefixRateLimit   = "rate:"         // Rate limiting
-	PrefixTelegram    = "tg:session:"   // Datos temporales de sesión Telegram
-	PrefixVerifyCode  = "verify:"       // Códigos de verificación temporales
-	PrefixCache       = "cache:"        // Caché general
+	PrefixSession    = "session:"    // Sesiones de usuario (JWT blacklist)
+	PrefixRateLimit  = "rate:"       // Rate limiting
+	PrefixTelegram   = "tg:session:" // Datos temporales de sesión Telegram
+	PrefixVerifyCode = "verify:"     // Códigos de verificación temporales
+	PrefixCache      = "cache:"      // Caché general
 )
 
 // CacheRepository implementa domain.CacheRepository usando Redis
@@ -41,7 +41,7 @@ func (r *CacheRepository) Set(ctx context.Context, key string, value interface{}
 	case []byte:
 		strValue = string(v)
 	default:
-		return fmt.Errorf("tipo no soportado para Set: use SetJSON para objetos")
+		return fmt.Errorf("unsupported type for Set: use SetJSON for objects")
 	}
 
 	ttl := time.Duration(ttlSeconds) * time.Second
@@ -57,7 +57,7 @@ func (r *CacheRepository) Get(ctx context.Context, key string) (string, error) {
 	val, err := r.client.Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return "", nil // Key no existe, retornar vacío
+			return "", nil // Key does not exist, return empty
 		}
 		return "", wrapRedisError(err, "get")
 	}
@@ -89,7 +89,7 @@ func (r *CacheRepository) Exists(ctx context.Context, key string) (bool, error) 
 func (r *CacheRepository) SetJSON(ctx context.Context, key string, value interface{}, ttlSeconds int) error {
 	data, err := json.Marshal(value)
 	if err != nil {
-		return fmt.Errorf("error serializando JSON: %w", err)
+		return fmt.Errorf("error serializing JSON: %w", err)
 	}
 
 	ttl := time.Duration(ttlSeconds) * time.Second
@@ -105,13 +105,13 @@ func (r *CacheRepository) GetJSON(ctx context.Context, key string, dest interfac
 	val, err := r.client.Get(ctx, key).Bytes()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return domain.ErrCache // Key no existe
+			return domain.ErrCache // Key does not exist
 		}
 		return wrapRedisError(err, "getJSON")
 	}
 
 	if err := json.Unmarshal(val, dest); err != nil {
-		return fmt.Errorf("error deserializando JSON: %w", err)
+		return fmt.Errorf("error deserializing JSON: %w", err)
 	}
 	return nil
 }
@@ -124,7 +124,7 @@ func (r *CacheRepository) IncrementRateLimit(ctx context.Context, key string, wi
 	// Incrementar contador
 	incr := pipe.Incr(ctx, key)
 
-	// Establecer TTL solo si es la primera vez (key nueva)
+	// Set TTL only if first time (new key)
 	pipe.Expire(ctx, key, time.Duration(windowSeconds)*time.Second)
 
 	_, err := pipe.Exec(ctx)
@@ -147,7 +147,7 @@ func (r *CacheRepository) GetRateLimitCount(ctx context.Context, key string) (in
 	return val, nil
 }
 
-// SetWithNX guarda solo si la clave no existe (útil para locks)
+// SetWithNX saves only if key does not exist (useful for locks)
 func (r *CacheRepository) SetWithNX(ctx context.Context, key string, value interface{}, ttlSeconds int) (bool, error) {
 	ttl := time.Duration(ttlSeconds) * time.Second
 	ok, err := r.client.SetNX(ctx, key, value, ttl).Result()
@@ -166,7 +166,7 @@ func (r *CacheRepository) GetTTL(ctx context.Context, key string) (time.Duration
 	return ttl, nil
 }
 
-// ScanKeys busca claves por patrón (usar con cuidado en producción)
+// ScanKeys searches keys by pattern (use with caution in production)
 func (r *CacheRepository) ScanKeys(ctx context.Context, pattern string, count int64) ([]string, error) {
 	var keys []string
 	var cursor uint64
@@ -186,31 +186,31 @@ func (r *CacheRepository) ScanKeys(ctx context.Context, pattern string, count in
 	return keys, nil
 }
 
-// BlacklistToken añade un token a la blacklist (para logout)
+// BlacklistToken adds a token to blacklist (for logout)
 func (r *CacheRepository) BlacklistToken(ctx context.Context, tokenID string, ttlSeconds int) error {
 	key := PrefixSession + "blacklist:" + tokenID
 	return r.Set(ctx, key, "1", ttlSeconds)
 }
 
-// IsTokenBlacklisted verifica si un token está en la blacklist
+// IsTokenBlacklisted checks if a token is in blacklist
 func (r *CacheRepository) IsTokenBlacklisted(ctx context.Context, tokenID string) (bool, error) {
 	key := PrefixSession + "blacklist:" + tokenID
 	return r.Exists(ctx, key)
 }
 
-// StoreTelegramCode almacena temporalmente un código de verificación
+// StoreTelegramCode temporarily stores a verification code
 func (r *CacheRepository) StoreTelegramCode(ctx context.Context, sessionID string, codeHash string, ttlSeconds int) error {
 	key := PrefixVerifyCode + sessionID
 	return r.Set(ctx, key, codeHash, ttlSeconds)
 }
 
-// GetTelegramCode obtiene el hash del código de verificación
+// GetTelegramCode gets verification code hash
 func (r *CacheRepository) GetTelegramCode(ctx context.Context, sessionID string) (string, error) {
 	key := PrefixVerifyCode + sessionID
 	return r.Get(ctx, key)
 }
 
-// Health verifica la conectividad con Redis
+// Health checks Redis connectivity
 func (r *CacheRepository) Health(ctx context.Context) error {
 	_, err := r.client.Ping(ctx).Result()
 	if err != nil {
@@ -219,7 +219,7 @@ func (r *CacheRepository) Health(ctx context.Context) error {
 	return nil
 }
 
-// wrapRedisError envuelve errores de Redis
+// wrapRedisError wraps Redis errors
 func wrapRedisError(err error, operation string) error {
 	if err == nil {
 		return nil

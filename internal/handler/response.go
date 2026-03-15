@@ -4,7 +4,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// Response representa la respuesta estándar de la API
+// Response represents the standard API response
 type Response struct {
 	Success bool           `json:"success"`
 	Data    interface{}    `json:"data,omitempty"`
@@ -12,14 +12,14 @@ type Response struct {
 	Meta    *MetaResponse  `json:"meta,omitempty"`
 }
 
-// ErrorResponse representa un error de la API
+// ErrorResponse represents an API error
 type ErrorResponse struct {
-	Code    string      `json:"code"`
+	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Details interface{} `json:"details,omitempty"`
 }
 
-// MetaResponse representa metadatos de paginación
+// MetaResponse represents pagination metadata
 type MetaResponse struct {
 	Page       int   `json:"page,omitempty"`
 	PerPage    int   `json:"per_page,omitempty"`
@@ -27,16 +27,16 @@ type MetaResponse struct {
 	TotalPages int   `json:"total_pages,omitempty"`
 }
 
-// ValidationError representa un error de validación individual
+// ValidationError represents an individual validation error
 type ValidationError struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
 }
 
-// Validador global
+// Global validator
 var validate = validator.New()
 
-// ValidateStruct valida una estructura y retorna errores formateados
+// ValidateStruct validates a struct and returns formatted errors
 func ValidateStruct(s interface{}) []ValidationError {
 	err := validate.Struct(s)
 	if err == nil {
@@ -53,31 +53,31 @@ func ValidateStruct(s interface{}) []ValidationError {
 	return errors
 }
 
-// getValidationMessage retorna mensaje legible para cada tipo de validación
+// getValidationMessage returns a readable message for each validation type
 func getValidationMessage(e validator.FieldError) string {
 	switch e.Tag() {
 	case "required":
-		return "Este campo es requerido"
+		return "This field is required"
 	case "email":
-		return "Debe ser un email válido"
+		return "Must be a valid email"
 	case "min":
-		return "Debe tener al menos " + e.Param() + " caracteres"
+		return "Must be at least " + e.Param() + " characters"
 	case "max":
-		return "No debe exceder " + e.Param() + " caracteres"
+		return "Must not exceed " + e.Param() + " characters"
 	case "alphanum":
-		return "Solo debe contener letras y números"
+		return "Must contain only letters and numbers"
 	case "uuid":
-		return "Debe ser un UUID válido"
+		return "Must be a valid UUID"
 	case "e164":
-		return "Debe ser un número de teléfono válido (formato E.164)"
+		return "Must be a valid phone number (E.164 format)"
 	case "len":
-		return "Debe tener exactamente " + e.Param() + " caracteres"
+		return "Must be exactly " + e.Param() + " characters"
 	default:
-		return "Valor inválido"
+		return "Invalid value"
 	}
 }
 
-// NewSuccessResponse crea una respuesta exitosa
+// NewSuccessResponse creates a success response
 func NewSuccessResponse(data interface{}) Response {
 	return Response{
 		Success: true,
@@ -85,8 +85,8 @@ func NewSuccessResponse(data interface{}) Response {
 	}
 }
 
-// NewErrorResponse crea una respuesta de error
-func NewErrorResponse(code, message string) Response {
+// NewErrorResponse creates an error response
+func NewErrorResponse(code int, message string) Response {
 	return Response{
 		Success: false,
 		Error: &ErrorResponse{
@@ -96,7 +96,7 @@ func NewErrorResponse(code, message string) Response {
 	}
 }
 
-// NewPaginatedResponse crea una respuesta paginada
+// NewPaginatedResponse creates a paginated response
 func NewPaginatedResponse(data interface{}, page, perPage int, total int64) Response {
 	totalPages := int(total) / perPage
 	if int(total)%perPage > 0 {

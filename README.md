@@ -5,87 +5,87 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-0.1.0-blue.svg)](https://github.com/ghmedinac/telegram-api)
 
-API REST multi-sesión para Telegram usando MTProto. Gestiona múltiples cuentas de Telegram, envía mensajes masivos y recibe eventos en tiempo real via webhooks.
+Multi-session REST API for Telegram using MTProto. Manages multiple Telegram accounts, sends bulk messages, and receives real-time events via webhooks.
 
-## 📋 Características
+## 📋 Features
 
-- ✅ **Multi-sesión** - Gestiona múltiples cuentas de Telegram simultáneamente
-- ✅ **Autenticación JWT** - Registro, login, refresh tokens
-- ✅ **Auth Telegram** - Via SMS o código QR con regeneración automática
-- ✅ **Mensajería** - Texto, fotos, videos, audio, documentos
-- ✅ **Envío masivo** - Bulk messaging con delay configurable
-- ✅ **Webhooks** - Recibe eventos en tiempo real (mensajes, estados, etc)
-- ✅ **Chats & Contactos** - Lista diálogos, historial, contactos
-- ✅ **Cifrado AES-256** - Datos sensibles cifrados
-- ✅ **Rate limiting** - Protección contra flood
-- ✅ **Documentación** - Swagger UI, ReDoc, Postman Collection
+- ✅ **Multi-session** - Manage multiple Telegram accounts simultaneously
+- ✅ **JWT Authentication** - Registration, login, refresh tokens
+- ✅ **Telegram Auth** - Via SMS or QR code with automatic regeneration
+- ✅ **Messaging** - Text, photos, videos, audio, documents
+- ✅ **Bulk Messaging** - Bulk messaging with configurable delay
+- ✅ **Webhooks** - Receive real-time events (messages, statuses, etc)
+- ✅ **Chats & Contacts** - List dialogs, history, contacts
+- ✅ **AES-256 Encryption** - Sensitive data encrypted
+- ✅ **Rate Limiting** - Flood protection
+- ✅ **Documentation** - Swagger UI, ReDoc, Postman Collection
 
-## 📚 Documentación
+## 📚 Documentation
 
-| URL | Descripción |
+| URL | Description |
 |-----|-------------|
-| [http://localhost:7789/docs/](http://localhost:7789/docs/) | **Swagger UI** - Documentación interactiva |
-| [http://localhost:7789/redoc](http://localhost:7789/redoc) | **ReDoc** - Documentación elegante |
-| [http://localhost:7789/health](http://localhost:7789/health) | Health check + versión |
+| [http://localhost:7789/docs/](http://localhost:7789/docs/) | **Swagger UI** - Interactive documentation |
+| [http://localhost:7789/redoc](http://localhost:7789/redoc) | **ReDoc** - Elegant documentation |
+| [http://localhost:7789/health](http://localhost:7789/health) | Health check + version |
 
-## 🏗️ Arquitectura
+## 🏗️ Architecture
 
 ```
 telegram-api/
-├── cmd/api/main.go              # Punto de entrada
+├── cmd/api/main.go              # Entry point
 ├── internal/
-│   ├── config/                  # Configuración
-│   ├── domain/                  # Entidades y DTOs
-│   ├── handler/                 # Controladores HTTP (Fiber)
+│   ├── config/                  # Configuration
+│   ├── domain/                  # Entities and DTOs
+│   ├── handler/                 # HTTP controllers (Fiber)
 │   ├── middleware/              # JWT, CORS, Logger, RateLimit
 │   ├── repository/
-│   │   ├── postgres/            # Repositorios PostgreSQL
-│   │   └── redis/               # Cache Redis
-│   ├── service/                 # Lógica de negocio
-│   └── telegram/                # Cliente MTProto (gotd/td)
-├── pkg/                         # Paquetes reutilizables
+│   │   ├── postgres/            # PostgreSQL repositories
+│   │   └── redis/               # Redis cache
+│   ├── service/                 # Business logic
+│   └── telegram/                # MTProto client (gotd/td)
+├── pkg/                         # Reusable packages
 ├── db/migrations/               # SQL migrations
 ├── docs/                        # Swagger, ReDoc, Postman
 └── docker-compose.yml
 ```
 
-## 🚀 Instalación
+## 🚀 Installation
 
-### Requisitos
+### Requirements
 - Go 1.23+
 - PostgreSQL 16+
 - Redis 7+
-- Docker (recomendado)
+- Docker (recommended)
 
-### Opción 1: Docker (recomendado)
+### Option 1: Docker (recommended)
 
 ```bash
-# Clonar
+# Clone
 git clone https://github.com/ghmedinac/telegram-api.git
 cd telegram-api
 
-# Configurar
+# Configure
 cp .env.example .env
-# Editar .env con tus valores
+# Edit .env with your values
 
-# Ejecutar todo
+# Run everything
 docker-compose up -d
 
-# Ver logs
+# View logs
 docker-compose logs -f api
 ```
 
-### Opción 2: Local
+### Option 2: Local
 
 ```bash
-# Iniciar solo DB y Redis
+# Start only DB and Redis
 docker-compose up -d postgres redis
 
-# Compilar y ejecutar
+# Build and run
 go build ./cmd/api && ./api
 ```
 
-### Opción 3: Desde Docker Hub
+### Option 3: From Docker Hub
 
 ```bash
 docker pull ghmedinac/telegram-api:latest
@@ -95,12 +95,12 @@ docker run -d \
   -p 7789:8080 \
   -e DB_URL="postgres://user:pass@host:5432/db" \
   -e REDIS_ADDR="redis:6379" \
-  -e JWT_SECRET="tu_secret_32_chars" \
-  -e ENCRYPTION_KEY="tu_key_32_chars!!" \
+  -e JWT_SECRET="your_secret_32_chars" \
+  -e ENCRYPTION_KEY="your_key_32_chars!!" \
   ghmedinac/telegram-api:latest
 ```
 
-## ⚙️ Configuración
+## ⚙️ Configuration
 
 ```env
 # API
@@ -115,185 +115,185 @@ DB_URL=postgres://admin:password123@localhost:5432/telegram_db?sslmode=disable
 REDIS_ADDR=localhost:6379
 REDIS_PASSWORD=
 
-# JWT (mínimo 32 caracteres)
-JWT_SECRET=tu_jwt_secret_muy_largo_y_seguro!
+# JWT (minimum 32 characters)
+JWT_SECRET=your_very_long_and_secure_jwt_secret!
 JWT_EXPIRY=24h
 
-# Cifrado (exactamente 32 caracteres)
-ENCRYPTION_KEY=clave_32_caracteres_exactos!!
+# Encryption (exactly 32 characters)
+ENCRYPTION_KEY=exactly_32_characters_key!!
 ```
 
 ## 📖 Endpoints
 
-### 🔐 Autenticación
+### 🔐 Authentication
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/auth/register` | Registrar usuario |
+| POST | `/api/v1/auth/register` | Register user |
 | POST | `/api/v1/auth/login` | Login → JWT |
-| POST | `/api/v1/auth/refresh` | Renovar token |
-| POST | `/api/v1/auth/logout` | Cerrar sesión |
-| GET | `/api/v1/auth/me` | Usuario actual |
+| POST | `/api/v1/auth/refresh` | Refresh token |
+| POST | `/api/v1/auth/logout` | Logout |
+| GET | `/api/v1/auth/me` | Current user |
 
-### 📱 Sesiones Telegram
+### 📱 Telegram Sessions
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/sessions` | Crear sesión (SMS/QR) |
-| GET | `/api/v1/sessions` | Listar sesiones |
-| GET | `/api/v1/sessions/:id` | Obtener sesión |
-| POST | `/api/v1/sessions/:id/verify` | Verificar código SMS |
-| DELETE | `/api/v1/sessions/:id` | Eliminar sesión |
+| POST | `/api/v1/sessions` | Create session (SMS/QR) |
+| GET | `/api/v1/sessions` | List sessions |
+| GET | `/api/v1/sessions/:id` | Get session |
+| POST | `/api/v1/sessions/:id/verify` | Verify SMS code |
+| DELETE | `/api/v1/sessions/:id` | Delete session |
 
-### 💬 Mensajes
+### 💬 Messages
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/sessions/:id/messages/text` | Enviar texto |
-| POST | `/api/v1/sessions/:id/messages/photo` | Enviar foto |
-| POST | `/api/v1/sessions/:id/messages/video` | Enviar video |
-| POST | `/api/v1/sessions/:id/messages/audio` | Enviar audio |
-| POST | `/api/v1/sessions/:id/messages/file` | Enviar archivo |
-| POST | `/api/v1/sessions/:id/messages/bulk` | Envío masivo |
-| GET | `/api/v1/messages/:jobId/status` | Estado envío |
+| POST | `/api/v1/sessions/:id/messages/text` | Send text |
+| POST | `/api/v1/sessions/:id/messages/photo` | Send photo |
+| POST | `/api/v1/sessions/:id/messages/video` | Send video |
+| POST | `/api/v1/sessions/:id/messages/audio` | Send audio |
+| POST | `/api/v1/sessions/:id/messages/file` | Send file |
+| POST | `/api/v1/sessions/:id/messages/bulk` | Bulk send |
+| GET | `/api/v1/messages/:jobId/status` | Send status |
 
-### 📋 Chats & Contactos
+### 📋 Chats & Contacts
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/sessions/:id/chats` | Listar chats |
-| GET | `/api/v1/sessions/:id/chats/:chatId` | Info de chat |
-| GET | `/api/v1/sessions/:id/chats/:chatId/history` | Historial |
-| GET | `/api/v1/sessions/:id/contacts` | Listar contactos |
-| POST | `/api/v1/sessions/:id/resolve` | Resolver @username |
+| GET | `/api/v1/sessions/:id/chats` | List chats |
+| GET | `/api/v1/sessions/:id/chats/:chatId` | Chat info |
+| GET | `/api/v1/sessions/:id/chats/:chatId/history` | History |
+| GET | `/api/v1/sessions/:id/contacts` | List contacts |
+| POST | `/api/v1/sessions/:id/resolve` | Resolve @username |
 
 ### 🔔 Webhooks
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/sessions/:id/webhook` | Configurar webhook |
-| GET | `/api/v1/sessions/:id/webhook` | Obtener config |
-| DELETE | `/api/v1/sessions/:id/webhook` | Eliminar |
-| POST | `/api/v1/sessions/:id/webhook/start` | Iniciar escucha |
-| POST | `/api/v1/sessions/:id/webhook/stop` | Detener escucha |
-| GET | `/api/v1/pool/status` | Estado del pool |
+| POST | `/api/v1/sessions/:id/webhook` | Configure webhook |
+| GET | `/api/v1/sessions/:id/webhook` | Get config |
+| DELETE | `/api/v1/sessions/:id/webhook` | Delete |
+| POST | `/api/v1/sessions/:id/webhook/start` | Start listening |
+| POST | `/api/v1/sessions/:id/webhook/stop` | Stop listening |
+| GET | `/api/v1/pool/status` | Pool status |
 
-## 🔐 Flujos de Autenticación
+## 🔐 Authentication Flows
 
-### Flujo SMS
+### SMS Flow
 
 ```bash
-# 1. Crear sesión
+# 1. Create session
 curl -X POST http://localhost:7789/api/v1/sessions \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "phone": "+573001234567",
     "api_id": 12345678,
-    "api_hash": "tu_api_hash",
-    "session_name": "mi_cuenta"
+    "api_hash": "your_api_hash",
+    "session_name": "my_account"
   }'
 
-# 2. Verificar código SMS
+# 2. Verify SMS code
 curl -X POST http://localhost:7789/api/v1/sessions/{id}/verify \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"code": "12345"}'
 ```
 
-### Flujo QR
+### QR Flow
 
 ```bash
-# 1. Crear sesión QR
+# 1. Create QR session
 curl -X POST http://localhost:7789/api/v1/sessions \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
     "api_id": 12345678,
-    "api_hash": "tu_api_hash",
+    "api_hash": "your_api_hash",
     "auth_method": "qr",
-    "session_name": "mi_cuenta_qr"
+    "session_name": "my_qr_account"
   }'
-# Respuesta incluye qr_image_base64
+# Response includes qr_image_base64
 
-# El QR se regenera automáticamente (máx 3 intentos)
+# QR regenerates automatically (max 3 attempts)
 ```
 
-## 📤 Envío de Mensajes
+## 📤 Sending Messages
 
 ```bash
-# Texto simple
+# Simple text
 curl -X POST http://localhost:7789/api/v1/sessions/{id}/messages/text \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{"to": "@username", "text": "Hola!"}'
+  -d '{"to": "@username", "text": "Hello!"}'
 
-# Con foto
+# With photo
 curl -X POST http://localhost:7789/api/v1/sessions/{id}/messages/photo \
-  -d '{"to": "@username", "photo_url": "https://...", "caption": "Mira!"}'
+  -d '{"to": "@username", "photo_url": "https://...", "caption": "Look!"}'
 
-# Masivo
+# Bulk
 curl -X POST http://localhost:7789/api/v1/sessions/{id}/messages/bulk \
   -d '{
     "recipients": ["@user1", "@user2", "+57300..."],
-    "text": "Mensaje para todos",
+    "text": "Message for everyone",
     "delay_ms": 3000
   }'
 ```
 
-## 🔔 Configurar Webhook
+## 🔔 Configure Webhook
 
 ```bash
-# Configurar URL
+# Configure URL
 curl -X POST http://localhost:7789/api/v1/sessions/{id}/webhook \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
-    "url": "https://tu-servidor.com/webhook",
-    "secret": "mi_secret",
+    "url": "https://your-server.com/webhook",
+    "secret": "my_secret",
     "events": ["message.new", "user.online"]
   }'
 
-# Iniciar escucha
+# Start listening
 curl -X POST http://localhost:7789/api/v1/sessions/{id}/webhook/start
 ```
 
-### Eventos disponibles:
-- `message.new` - Nuevo mensaje
-- `message.edit` - Mensaje editado
-- `message.delete` - Mensaje eliminado
-- `user.online` - Usuario conectado
-- `user.offline` - Usuario desconectado
-- `user.typing` - Usuario escribiendo
-- `session.started` - Sesión iniciada
-- `session.stopped` - Sesión detenida
-- `session.error` - Error en sesión
+### Available events:
+- `message.new` - New message
+- `message.edit` - Message edited
+- `message.delete` - Message deleted
+- `user.online` - User online
+- `user.offline` - User offline
+- `user.typing` - User typing
+- `session.started` - Session started
+- `session.stopped` - Session stopped
+- `session.error` - Session error
 
 ## 🐳 Deploy
 
 ```bash
-# Desplegar nueva versión
+# Deploy new version
 ./deploy.sh 0.1.0
 
-# El script:
-# 1. Detiene contenedor actual
-# 2. Reconstruye imagen
-# 3. Sube a Docker Hub
-# 4. Inicia nuevo contenedor
-# 5. Verifica health
+# The script:
+# 1. Stops current container
+# 2. Rebuilds image
+# 3. Pushes to Docker Hub
+# 4. Starts new container
+# 5. Verifies health
 ```
 
-## 📝 Obtener API ID de Telegram
+## 📝 Get Telegram API ID
 
-1. Ir a https://my.telegram.org
-2. Iniciar sesión con tu número
-3. Ir a "API development tools"
-4. Crear nueva aplicación
-5. Copiar `api_id` y `api_hash`
+1. Go to https://my.telegram.org
+2. Login with your number
+3. Go to "API development tools"
+4. Create new application
+5. Copy `api_id` and `api_hash`
 
-## 🛠️ Desarrollo
+## 🛠️ Development
 
 ```bash
-# Regenerar Swagger
+# Regenerate Swagger
 swag init -g cmd/api/main.go -o docs
 
-# Generar colección Postman
+# Generate Postman collection
 ./generate-postman.sh
 
 # Tests
@@ -303,26 +303,26 @@ go test ./...
 go build ./cmd/api
 ```
 
-## 📚 Stack Tecnológico
+## 📚 Tech Stack
 
-| Tecnología | Uso |
+| Technology | Usage |
 |------------|-----|
-| [Go 1.23](https://golang.org) | Lenguaje |
-| [Fiber v2](https://gofiber.io) | Framework HTTP |
-| [gotd/td](https://github.com/gotd/td) | Cliente Telegram MTProto |
-| [pgx v5](https://github.com/jackc/pgx) | Driver PostgreSQL |
-| [go-redis v9](https://github.com/redis/go-redis) | Cliente Redis |
-| [zerolog](https://github.com/rs/zerolog) | Logger estructurado |
-| [swaggo](https://github.com/swaggo/swag) | Documentación OpenAPI |
+| [Go 1.23](https://golang.org) | Language |
+| [Fiber v2](https://gofiber.io) | HTTP Framework |
+| [gotd/td](https://github.com/gotd/td) | Telegram MTProto Client |
+| [pgx v5](https://github.com/jackc/pgx) | PostgreSQL Driver |
+| [go-redis v9](https://github.com/redis/go-redis) | Redis Client |
+| [zerolog](https://github.com/rs/zerolog) | Structured Logger |
+| [swaggo](https://github.com/swaggo/swag) | OpenAPI Documentation |
 
-## 📄 Licencia
+## 📄 License
 
-MIT License - ver [LICENSE](LICENSE)
+MIT License - see [LICENSE](LICENSE)
 
-## 👤 Autor
+## 👤 Author
 
 **ghmedinac** - [GitHub](https://github.com/ghmedinac)
 
 ---
 
-⭐ Si te resulta útil, dale una estrella al repo!
+⭐ If you find it useful, give the repo a star!

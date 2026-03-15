@@ -1,203 +1,203 @@
-# 🚀 Guía de Despliegue - Telegram API
+# 🚀 Deployment Guide - Telegram API
 
-## 📋 Prerrequisitos
+## 📋 Prerequisites
 
-- Docker instalado
-- Docker Compose (sin guión: `docker compose`)
-- Cuenta en Docker Hub (opcional, para push)
+- Docker installed
+- Docker Compose (without dash: `docker compose`)
+- Docker Hub account (optional, for push)
 
-## ⚡ Deploy Rápido
+## ⚡ Quick Deploy
 
-### 1. Configurar variables de entorno
+### 1. Set up environment variables
 
 ```bash
-export JWT_SECRET="tu_jwt_secret_de_minimo_32_caracteres"
-export ENCRYPTION_KEY="clave_de_32_caracteres_exactos!!"
+export JWT_SECRET="your_jwt_secret_at_least_32_characters"
+export ENCRYPTION_KEY="exactly_32_characters_key!!"
 ```
 
-### 2. Ejecutar deploy
+### 2. Run deploy
 
 ```bash
 ./deploy-dev.sh [version]
 
-# Ejemplos:
-./deploy-dev.sh           # Usa versión 0.1.0 por defecto
-./deploy-dev.sh 0.2.0     # Especifica versión
+# Examples:
+./deploy-dev.sh           # Uses version 0.1.0 by default
+./deploy-dev.sh 0.2.0     # Specifies version
 ```
 
-## 🎯 Modos de Desarrollo
+## 🎯 Development Modes
 
-El script te preguntará qué estás desarrollando:
+The script will ask you what you're developing:
 
 ### 1️⃣ Backend (Go API)
-- Construye solo la imagen del backend
-- Despliega: PostgreSQL + Redis + Backend
-- Puerto: 7789
+- Builds only the backend image
+- Deploys: PostgreSQL + Redis + Backend
+- Port: 7789
 
 ```bash
 ./deploy-dev.sh
-# Selecciona: 1) Backend
+# Select: 1) Backend
 ```
 
 ### 2️⃣ Frontend (React)
-- Construye solo la imagen del frontend
-- Despliega: PostgreSQL + Redis + Backend + Frontend
-- Puerto: 3000
+- Builds only the frontend image
+- Deploys: PostgreSQL + Redis + Backend + Frontend
+- Port: 3000
 
 ```bash
 ./deploy-dev.sh
-# Selecciona: 2) Frontend
+# Select: 2) Frontend
 ```
 
-### 3️⃣ Full Stack (Ambos)
-- Construye backend y frontend
-- Despliega todo el stack
-- Puertos: 3000 (frontend), 7789 (backend)
+### 3️⃣ Full Stack (Both)
+- Builds backend and frontend
+- Deploys entire stack
+- Ports: 3000 (frontend), 7789 (backend)
 
 ```bash
 ./deploy-dev.sh
-# Selecciona: 3) Ambos
+# Select: 3) Both
 ```
 
-### 4️⃣ Solo Infraestructura
-- No construye imágenes
-- Despliega solo PostgreSQL + Redis
-- Útil para desarrollo local sin Docker
+### 4️⃣ Infrastructure Only
+- Doesn't build images
+- Deploys only PostgreSQL + Redis
+- Useful for local development without Docker
 
 ```bash
 ./deploy-dev.sh
-# Selecciona: 4) Solo infraestructura
+# Select: 4) Infrastructure only
 ```
 
-## 🔄 Flujo de Trabajo
+## 🔄 Workflow
 
-### Desarrollo Backend
+### Backend Development
 
 ```bash
-# 1. Modificar código backend
+# 1. Modify backend code
 vim cmd/api/main.go
 
-# 2. Desplegar
+# 2. Deploy
 ./deploy-dev.sh 0.1.1
-# Selecciona: 1) Backend
+# Select: 1) Backend
 
-# 3. Ver logs
+# 3. View logs
 docker compose logs -f api
 ```
 
-### Desarrollo Frontend
+### Frontend Development
 
 ```bash
-# 1. Modificar código frontend
+# 1. Modify frontend code
 vim frontend/src/pages/dashboard/DashboardPage.tsx
 
-# 2. Desplegar
+# 2. Deploy
 ./deploy-dev.sh 0.1.1
-# Selecciona: 2) Frontend
+# Select: 2) Frontend
 
-# 3. Ver logs
+# 3. View logs
 docker compose logs -f frontend
 ```
 
-### Desarrollo Full Stack
+### Full Stack Development
 
 ```bash
-# 1. Modificar backend y frontend
+# 1. Modify backend and frontend
 vim cmd/api/main.go
 vim frontend/src/App.tsx
 
-# 2. Desplegar ambos
+# 2. Deploy both
 ./deploy-dev.sh 0.1.2
-# Selecciona: 3) Ambos
+# Select: 3) Both
 
-# 3. Ver logs de todo
+# 3. View all logs
 docker compose logs -f
 ```
 
-## 🏷️ Versionado
+## 🏷️ Versioning
 
-El script usa **semantic versioning**:
+The script uses **semantic versioning**:
 
 ```bash
-# Desarrollo inicial
+# Initial development
 ./deploy-dev.sh 0.1.0
 
-# Correcciones de bugs
+# Bug fixes
 ./deploy-dev.sh 0.1.1
 ./deploy-dev.sh 0.1.2
 
-# Nuevas características
+# New features
 ./deploy-dev.sh 0.2.0
 ./deploy-dev.sh 0.3.0
 
-# Versión estable
+# Stable version
 ./deploy-dev.sh 1.0.0
 ```
 
-### Imágenes en Docker Hub
+### Images on Docker Hub
 
-El script crea tags:
+The script creates tags:
 - `ghmedinac/telegram-api:latest`
 - `ghmedinac/telegram-api:0.1.0`
 - `ghmedinac/telegram-frontend:latest`
 - `ghmedinac/telegram-frontend:0.1.0`
 
-## 📦 Lo que hace el script
+## 📦 What the script does
 
-1. **Detecta el modo de desarrollo** (backend/frontend/fullstack/infra)
-2. **Verifica variables de entorno** requeridas
-3. **Detiene servicios antiguos** según el modo
-4. **Construye solo las imágenes necesarias**
+1. **Detects development mode** (backend/frontend/fullstack/infra)
+2. **Verifies required environment variables**
+3. **Stops old services** based on mode
+4. **Builds only necessary images**
    - Backend: `docker compose build --no-cache api`
    - Frontend: `docker compose build --no-cache frontend`
-5. **Crea tags de versión**
-   - `latest` y `version` específica
-6. **Pregunta si quieres hacer push** a Docker Hub
-7. **Despliega solo los servicios necesarios**
-8. **Muestra logs y estado**
+5. **Creates version tags**
+   - `latest` and specific `version`
+6. **Asks if you want to push** to Docker Hub
+7. **Deploys only necessary services**
+8. **Shows logs and status**
 
-## 🛠️ Comandos Docker Compose
+## 🛠️ Docker Compose Commands
 
-### Ver servicios
+### View services
 ```bash
 docker compose ps
 ```
 
-### Ver logs
+### View logs
 ```bash
-# Todos
+# All
 docker compose logs -f
 
-# Solo uno
+# Single service
 docker compose logs -f api
 docker compose logs -f frontend
 docker compose logs -f postgres
 docker compose logs -f redis
 ```
 
-### Reiniciar servicios
+### Restart services
 ```bash
-# Todos
+# All
 docker compose restart
 
-# Solo uno
+# Single service
 docker compose restart api
 docker compose restart frontend
 ```
 
-### Detener
+### Stop
 ```bash
-# Detener sin borrar
+# Stop without deleting
 docker compose stop
 
-# Detener y eliminar contenedores
+# Stop and remove containers
 docker compose down
 
-# Detener y eliminar TODO (⚠️ incluyendo volúmenes)
+# Stop and remove EVERYTHING (⚠️ including volumes)
 docker compose down -v
 ```
 
-### Reconstruir manualmente
+### Manual rebuild
 ```bash
 # Backend
 docker compose build --no-cache api
@@ -205,145 +205,145 @@ docker compose build --no-cache api
 # Frontend
 docker compose build --no-cache frontend
 
-# Ambos
+# Both
 docker compose build --no-cache
 ```
 
 ## 🐛 Troubleshooting
 
 ### Error: "docker-compose: command not found"
-Usa `docker compose` (sin guión):
+Use `docker compose` (without dash):
 ```bash
 docker compose --version
 ```
 
-### Frontend no se actualiza
+### Frontend doesn't update
 ```bash
-# Reconstruir sin caché
+# Rebuild without cache
 docker compose build --no-cache frontend
 docker compose up -d frontend
 
-# Limpiar cache del navegador
+# Clear browser cache
 Ctrl + Shift + R
 ```
 
-### Backend no conecta a DB
+### Backend doesn't connect to DB
 ```bash
-# Verificar PostgreSQL
+# Check PostgreSQL
 docker compose logs postgres
 
-# Verificar variables de entorno
+# Check environment variables
 docker compose exec api env | grep DB_URL
 ```
 
-### Limpiar todo y empezar de cero
+### Clean everything and start from scratch
 ```bash
-# Detener y eliminar TODO
+# Stop and remove EVERYTHING
 docker compose down -v
 
-# Limpiar imágenes antiguas
+# Clean old images
 docker image prune -a
 
-# Volver a desplegar
+# Redeploy
 ./deploy-dev.sh
 ```
 
-## 📊 Monitoreo
+## 📊 Monitoring
 
-### Estado de contenedores
+### Container status
 ```bash
 docker compose ps
 ```
 
-### Recursos utilizados
+### Resources used
 ```bash
 docker stats
 ```
 
-### Inspeccionar un contenedor
+### Inspect a container
 ```bash
 docker compose exec api sh
 docker compose exec frontend sh
 ```
 
-### Ver healthchecks
+### View healthchecks
 ```bash
 docker inspect telegram_api_app | grep -A 10 Health
 docker inspect telegram_frontend | grep -A 10 Health
 ```
 
-## 🔐 Seguridad
+## 🔐 Security
 
-### Variables sensibles
+### Sensitive variables
 
-**NUNCA** commitear estas variables:
+**NEVER** commit these variables:
 ```bash
 JWT_SECRET
 ENCRYPTION_KEY
 ```
 
-Usar archivo `.env` (ya está en `.gitignore`):
+Use `.env` file (already in `.gitignore`):
 ```bash
 # .env
-JWT_SECRET=tu_secreto_super_seguro_de_32_caracteres_minimo
-ENCRYPTION_KEY=clave_de_exactamente_32_caracteres!!
+JWT_SECRET=your_super_secure_secret_at_least_32_chars
+ENCRYPTION_KEY=exactly_32_characters_key!!
 ```
 
-Cargar automáticamente:
+Load automatically:
 ```bash
 source .env
 ./deploy-dev.sh
 ```
 
-## 🚀 Deploy a Producción
+## 🚀 Production Deploy
 
-### 1. Build local
+### 1. Local build
 ```bash
 ./deploy-dev.sh 1.0.0
-# Selecciona: 3) Ambos
+# Select: 3) Both
 # Push: y (yes)
 ```
 
-### 2. En servidor de producción
+### 2. On production server
 ```bash
-# Pull de imágenes
+# Pull images
 docker pull ghmedinac/telegram-api:1.0.0
 docker pull ghmedinac/telegram-frontend:1.0.0
 
-# Configurar variables
+# Configure variables
 export JWT_SECRET="..."
 export ENCRYPTION_KEY="..."
 
-# Desplegar
+# Deploy
 docker compose up -d
 ```
 
-## 📝 Notas
+## 📝 Notes
 
-- El script usa `docker compose` (sin guión)
-- Solo reconstruye lo que estás desarrollando
-- Maneja versionado automáticamente
-- Pregunta antes de hacer push a Docker Hub
-- Muestra logs relevantes según el modo
-- Colores y formato amigable en terminal
+- The script uses `docker compose` (without dash)
+- Only rebuilds what you're developing
+- Handles versioning automatically
+- Asks before pushing to Docker Hub
+- Shows relevant logs based on mode
+- Friendly colors and formatting in terminal
 
-## 🎯 Workflow Recomendado
+## 🎯 Recommended Workflow
 
 ```bash
-# 1. Desarrollo local
+# 1. Local development
 ./deploy-dev.sh 0.1.0
-# Modo: según lo que estés modificando
+# Mode: depending on what you're modifying
 
 # 2. Testing
-# Probar la aplicación
+# Test the application
 
-# 3. Incrementar versión
+# 3. Increment version
 ./deploy-dev.sh 0.1.1
 
-# 4. Push a Docker Hub cuando esté listo
-# El script preguntará: y/N
+# 4. Push to Docker Hub when ready
+# The script will ask: y/N
 
-# 5. Repetir hasta versión estable
+# 5. Repeat until stable version
 ./deploy-dev.sh 1.0.0
 ```
 

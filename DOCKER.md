@@ -1,135 +1,135 @@
 # 🐳 Docker Deployment Guide
 
-Guía completa para desplegar el stack completo de Telegram API con Docker.
+Complete guide to deploy the full Telegram API stack with Docker.
 
-## 📦 Stack Completo
+## 📦 Full Stack
 
 ```
 ┌─────────────────────────────────────────┐
 │         Frontend (React + Nginx)        │
 │           http://localhost:3000         │
 └────────────────┬────────────────────────┘
-                 │
+                  │
 ┌────────────────▼────────────────────────┐
 │          Backend API (Go)               │
 │           http://localhost:7789         │
 └────────────┬──────────────┬─────────────┘
-             │              │
+              │              │
 ┌────────────▼────┐  ┌──────▼─────────────┐
 │   PostgreSQL    │  │      Redis         │
 │  localhost:5649 │  │  localhost:7954    │
 └─────────────────┘  └────────────────────┘
 ```
 
-## 🚀 Despliegue Rápido
+## 🚀 Quick Deploy
 
-### 1. Configurar variables de entorno
+### 1. Set up environment variables
 
 ```bash
-# Exportar variables requeridas
-export JWT_SECRET="tu_jwt_secret_de_minimo_32_caracteres_seguros"
-export ENCRYPTION_KEY="clave_de_32_caracteres_exactos!!"
+# Export required variables
+export JWT_SECRET="your_jwt_secret_at_least_32_secure_characters"
+export ENCRYPTION_KEY="exactly_32_characters_key!!"
 ```
 
-### 2. Desplegar stack completo
+### 2. Deploy full stack
 
 ```bash
-# Usando el script automatizado
+# Using automated script
 ./docker-deploy.sh
 
-# O manualmente
+# Or manually
 docker-compose up -d --build
 ```
 
-## 📋 Servicios
+## 📋 Services
 
 ### PostgreSQL
-- **Puerto:** 5649 (externo) → 5432 (interno)
-- **Usuario:** admin
+- **Port:** 5649 (external) → 5432 (internal)
+- **User:** admin
 - **Password:** password123
 - **Database:** telegram_db
 - **Healthcheck:** `pg_isready`
 
 ### Redis
-- **Puerto:** 7954 (externo) → 6379 (interno)
-- **Persistencia:** AOF habilitada
+- **Port:** 7954 (external) → 6379 (internal)
+- **Persistence:** AOF enabled
 - **Healthcheck:** `redis-cli ping`
 
 ### Backend API (Go)
-- **Puerto:** 7789 (externo) → 8080 (interno)
-- **Imagen:** `ghmedinac/telegram-api:latest`
+- **Port:** 7789 (external) → 8080 (internal)
+- **Image:** `ghmedinac/telegram-api:latest`
 - **Healthcheck:** `wget http://localhost:8080/health`
-- **Depende de:** PostgreSQL, Redis
+- **Depends on:** PostgreSQL, Redis
 
 ### Frontend (React)
-- **Puerto:** 3000 (externo) → 80 (interno)
-- **Imagen:** `ghmedinac/telegram-frontend:latest`
-- **Servidor:** Nginx
+- **Port:** 3000 (external) → 80 (internal)
+- **Image:** `ghmedinac/telegram-frontend:latest`
+- **Server:** Nginx
 - **Healthcheck:** `wget http://localhost/`
-- **Depende de:** Backend API
+- **Depends on:** Backend API
 
-## 🛠️ Comandos Útiles
+## 🛠️ Useful Commands
 
-### Ver logs
+### View logs
 ```bash
-# Todos los servicios
+# All services
 docker-compose logs -f
 
-# Un servicio específico
+# Specific service
 docker-compose logs -f frontend
 docker-compose logs -f api
 docker-compose logs -f postgres
 docker-compose logs -f redis
 ```
 
-### Verificar estado
+### Check status
 ```bash
 docker-compose ps
 ```
 
-### Reiniciar servicios
+### Restart services
 ```bash
-# Todos
+# All
 docker-compose restart
 
-# Uno específico
+# Specific one
 docker-compose restart frontend
 ```
 
-### Detener servicios
+### Stop services
 ```bash
-# Detener sin eliminar volúmenes
+# Stop without deleting volumes
 docker-compose down
 
-# Detener y eliminar volúmenes (⚠️ borra datos)
+# Stop and delete volumes (⚠️ deletes data)
 docker-compose down -v
 ```
 
-### Reconstruir imágenes
+### Rebuild images
 ```bash
-# Sin caché
+# Without cache
 docker-compose build --no-cache
 
-# Solo un servicio
+# Single service
 docker-compose build --no-cache frontend
 ```
 
-### Ejecutar comandos en contenedores
+### Execute commands in containers
 ```bash
-# Shell en el frontend
+# Shell in frontend
 docker exec -it telegram_frontend sh
 
-# Shell en el backend
+# Shell in backend
 docker exec -it telegram_api_app sh
 
-# Conectar a PostgreSQL
+# Connect to PostgreSQL
 docker exec -it tg_postgres psql -U admin -d telegram_db
 
-# Conectar a Redis
+# Connect to Redis
 docker exec -it tg_redis redis-cli
 ```
 
-## 🔒 Variables de Entorno
+## 🔒 Environment Variables
 
 ### Backend API
 ```bash
@@ -144,121 +144,121 @@ JWT_EXPIRY=24h
 ENCRYPTION_KEY=${ENCRYPTION_KEY}
 ```
 
-## 📊 Monitoreo
+## 📊 Monitoring
 
-### Verificar salud de servicios
+### Check service health
 ```bash
-# Ver healthchecks
+# View healthchecks
 docker-compose ps
 
-# Inspeccionar un contenedor
+# Inspect a container
 docker inspect telegram_frontend | grep -A 10 Health
 ```
 
-### Recursos utilizados
+### Resources used
 ```bash
 docker stats
 ```
 
 ## 🐛 Troubleshooting
 
-### Frontend no carga
+### Frontend doesn't load
 ```bash
-# Verificar logs
+# Check logs
 docker-compose logs frontend
 
-# Verificar que el backend esté disponible
+# Verify backend is available
 docker exec -it telegram_frontend wget -O- http://api:8080/health
 ```
 
-### Backend no conecta a la DB
+### Backend doesn't connect to DB
 ```bash
-# Verificar PostgreSQL
+# Check PostgreSQL
 docker exec -it tg_postgres pg_isready -U admin -d telegram_db
 
-# Ver logs del backend
+# Check backend logs
 docker-compose logs api
 ```
 
 ### Redis connection refused
 ```bash
-# Verificar Redis
+# Check Redis
 docker exec -it tg_redis redis-cli ping
 
-# Ver logs
+# Check logs
 docker-compose logs redis
 ```
 
-### Reconstruir desde cero
+### Rebuild from scratch
 ```bash
-# Detener todo y limpiar
+# Stop everything and clean
 docker-compose down -v
 docker system prune -a
 
-# Volver a construir
+# Rebuild
 ./docker-deploy.sh
 ```
 
-## 🚀 Deploy a Producción
+## 🚀 Production Deploy
 
-### 1. Subir imágenes a Docker Hub
+### 1. Upload images to Docker Hub
 
 ```bash
-# Login en Docker Hub
+# Login to Docker Hub
 docker login
 
-# Build y push
+# Build and push
 docker-compose build
 docker-compose push
 ```
 
-### 2. En el servidor de producción
+### 2. On production server
 
 ```bash
-# Clonar repositorio
-git clone https://github.com/tu-usuario/telegram-api.git
+# Clone repository
+git clone https://github.com/your-user/telegram-api.git
 cd telegram-api
 
-# Configurar variables
+# Configure variables
 export JWT_SECRET="..."
 export ENCRYPTION_KEY="..."
 
-# Desplegar
+# Deploy
 ./docker-deploy.sh
 ```
 
-## 📁 Volúmenes Persistentes
+## 📁 Persistent Volumes
 
-Los datos se persisten en volúmenes Docker:
+Data is persisted in Docker volumes:
 
-- `postgres_data` - Base de datos PostgreSQL
-- `redis_data` - Datos de Redis (AOF)
+- `postgres_data` - PostgreSQL database
+- `redis_data` - Redis data (AOF)
 
 ### Backup
 ```bash
 # PostgreSQL
 docker exec tg_postgres pg_dump -U admin telegram_db > backup.sql
 
-# Restaurar
+# Restore
 docker exec -i tg_postgres psql -U admin telegram_db < backup.sql
 ```
 
-## 🔄 Actualizar versiones
+## 🔄 Update Versions
 
 ```bash
-# Pull de nuevas imágenes
+# Pull new images
 docker-compose pull
 
-# Recrear contenedores
+# Recreate containers
 docker-compose up -d --force-recreate
 
-# O usar el script
+# Or use the script
 ./docker-deploy.sh 0.2.0
 ```
 
-## 📝 Notas
+## 📝 Notes
 
-- El frontend hace proxy al backend a través de Nginx (ver `frontend/nginx.conf`)
-- Los healthchecks aseguran que los servicios dependan correctamente
-- Las imágenes usan multi-stage builds para optimizar tamaño
-- Frontend usa Node 22 Alpine + Nginx Alpine (muy ligero)
+- Frontend proxies to backend through Nginx (see `frontend/nginx.conf`)
+- Healthchecks ensure services depend correctly
+- Images use multi-stage builds to optimize size
+- Frontend uses Node 22 Alpine + Nginx Alpine (very lightweight)

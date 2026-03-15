@@ -66,7 +66,7 @@ func (r *RefreshTokenRepository) Create(ctx context.Context, token *domain.Refre
 		token.CreatedAt,
 	)
 	if err != nil {
-		return wrapDBError(err, "crear refresh token")
+		return wrapDBError(err, "create refresh token")
 	}
 	return nil
 }
@@ -90,7 +90,7 @@ func (r *RefreshTokenRepository) GetByTokenHash(ctx context.Context, tokenHash s
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrInvalidToken
 		}
-		return nil, wrapDBError(err, "obtener token por hash")
+		return nil, wrapDBError(err, "get token by hash")
 	}
 
 	if ipAddr != nil {
@@ -104,7 +104,7 @@ func (r *RefreshTokenRepository) GetByTokenHash(ctx context.Context, tokenHash s
 func (r *RefreshTokenRepository) Revoke(ctx context.Context, id uuid.UUID) error {
 	result, err := r.pool.Exec(ctx, queryRevokeToken, id, time.Now())
 	if err != nil {
-		return wrapDBError(err, "revocar token")
+		return wrapDBError(err, "revoke token")
 	}
 	if result.RowsAffected() == 0 {
 		return domain.ErrInvalidToken
@@ -116,7 +116,7 @@ func (r *RefreshTokenRepository) Revoke(ctx context.Context, id uuid.UUID) error
 func (r *RefreshTokenRepository) RevokeAllForUser(ctx context.Context, userID uuid.UUID) error {
 	_, err := r.pool.Exec(ctx, queryRevokeAllUserTokens, userID, time.Now())
 	if err != nil {
-		return wrapDBError(err, "revocar todos los tokens del usuario")
+		return wrapDBError(err, "revoke all user tokens")
 	}
 	return nil
 }
@@ -125,7 +125,7 @@ func (r *RefreshTokenRepository) RevokeAllForUser(ctx context.Context, userID uu
 func (r *RefreshTokenRepository) DeleteExpired(ctx context.Context) (int64, error) {
 	result, err := r.pool.Exec(ctx, queryDeleteExpiredTokens, time.Now())
 	if err != nil {
-		return 0, wrapDBError(err, "eliminar tokens expirados")
+		return 0, wrapDBError(err, "delete expired tokens")
 	}
 	return result.RowsAffected(), nil
 }
@@ -134,7 +134,7 @@ func (r *RefreshTokenRepository) DeleteExpired(ctx context.Context) (int64, erro
 func (r *RefreshTokenRepository) GetActiveByUserID(ctx context.Context, userID uuid.UUID) ([]*domain.RefreshToken, error) {
 	rows, err := r.pool.Query(ctx, queryGetActiveTokensByUser, userID, time.Now())
 	if err != nil {
-		return nil, wrapDBError(err, "obtener tokens activos")
+		return nil, wrapDBError(err, "get active tokens")
 	}
 	defer rows.Close()
 
@@ -154,7 +154,7 @@ func (r *RefreshTokenRepository) GetActiveByUserID(ctx context.Context, userID u
 			&token.CreatedAt,
 		)
 		if err != nil {
-			return nil, wrapDBError(err, "escanear token")
+			return nil, wrapDBError(err, "scan token")
 		}
 
 		if ipAddr != nil {
@@ -164,7 +164,7 @@ func (r *RefreshTokenRepository) GetActiveByUserID(ctx context.Context, userID u
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, wrapDBError(err, "iterar tokens")
+		return nil, wrapDBError(err, "iterate tokens")
 	}
 
 	return tokens, nil
@@ -175,7 +175,7 @@ func (r *RefreshTokenRepository) CountActiveByUserID(ctx context.Context, userID
 	var count int64
 	err := r.pool.QueryRow(ctx, queryCountActiveTokensByUser, userID, time.Now()).Scan(&count)
 	if err != nil {
-		return 0, wrapDBError(err, "contar tokens activos")
+		return 0, wrapDBError(err, "count active tokens")
 	}
 	return count, nil
 }

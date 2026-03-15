@@ -1,166 +1,166 @@
 # Telegram API Manager - Frontend
 
-Interfaz moderna y minimalista para gestionar sesiones de Telegram, construida con React 19, TypeScript, Tailwind CSS y TanStack Query.
+Modern and minimalist interface for managing Telegram sessions, built with React 19, TypeScript, Tailwind CSS, and TanStack Query.
 
-## Caracteristicas
+## Features
 
-- **UI Moderna** - Diseno minimalista con Tailwind CSS y componentes personalizados
-- **Modo Oscuro/Claro** - Tema automatico persistente con soporte del sistema
-- **Responsive** - Disenado mobile-first con sidebar colapsable
-- **Performance** - Optimizado con TanStack Query y lazy loading
-- **Autenticacion** - JWT con rutas protegidas y refresh automatico
-- **TypeScript** - Type-safe en toda la aplicacion
-- **Vite 7** - Build rapido y HMR instantaneo
-- **Toast Notifications** - Sistema de notificaciones contextual
-- **File Upload** - Soporte para imagenes, videos, audio y archivos
+- **Modern UI** - Minimalist design with Tailwind CSS and custom components
+- **Dark/Light Mode** - Persistent automatic theme with system support
+- **Responsive** - Mobile-first design with collapsible sidebar
+- **Performance** - Optimized with TanStack Query and lazy loading
+- **Authentication** - JWT with protected routes and automatic refresh
+- **TypeScript** - Type-safe throughout the application
+- **Vite 7** - Fast build and instant HMR
+- **Toast Notifications** - Contextual notification system
+- **File Upload** - Support for images, videos, audio, and files
 
-## Arquitectura
+## Architecture
 
 ```
 src/
 ├── api/                    # API clients (axios)
-│   ├── client.ts               # Cliente HTTP configurado con interceptors
-│   ├── auth.api.ts             # Endpoints de autenticacion
-│   ├── sessions.api.ts         # Endpoints de sesiones Telegram
-│   ├── messages.api.ts         # Endpoints de mensajes (text, photo, video, audio, file, bulk)
-│   ├── chats.api.ts            # Endpoints de chats y contactos
-│   └── webhooks.api.ts         # Endpoints de webhooks
+│   ├── client.ts               # HTTP client configured with interceptors
+│   ├── auth.api.ts             # Authentication endpoints
+│   ├── sessions.api.ts         # Telegram session endpoints
+│   ├── messages.api.ts         # Message endpoints (text, photo, video, audio, file, bulk)
+│   ├── chats.api.ts            # Chats and contacts endpoints
+│   └── webhooks.api.ts         # Webhook endpoints
 │
-├── components/             # Componentes reutilizables
+├── components/             # Reusable components
 │   ├── common/                 # UI Components
-│   │   ├── Alert.tsx               # Alertas (success, error, warning, info)
-│   │   ├── Badge.tsx               # Badges con variantes
-│   │   ├── Button.tsx              # Botones (primary, secondary, danger, ghost)
-│   │   ├── Card.tsx                # Tarjetas con hover opcional
-│   │   ├── FileUpload.tsx          # Upload de archivos con preview
-│   │   ├── Input.tsx               # Inputs con label y error
-│   │   ├── Modal.tsx               # Modal responsive con sizes
-│   │   └── Tabs.tsx                # Sistema de tabs
+│   │   ├── Alert.tsx               # Alerts (success, error, warning, info)
+│   │   ├── Badge.tsx               # Badges with variants
+│   │   ├── Button.tsx              # Buttons (primary, secondary, danger, ghost)
+│   │   ├── Card.tsx                # Cards with optional hover
+│   │   ├── FileUpload.tsx          # File upload with preview
+│   │   ├── Input.tsx               # Inputs with label and error
+│   │   ├── Modal.tsx               # Responsive modal with sizes
+│   │   └── Tabs.tsx                # Tab system
 │   ├── layout/                 # Layout Components
-│   │   ├── Header.tsx              # Header con busqueda y user menu
-│   │   ├── Layout.tsx              # Layout principal con sidebar
-│   │   └── Sidebar.tsx             # Sidebar colapsable con navegacion
+│   │   ├── Header.tsx              # Header with search and user menu
+│   │   ├── Layout.tsx              # Main layout with sidebar
+│   │   └── Sidebar.tsx             # Collapsible sidebar with navigation
 │   └── sessions/               # Session Components
-│       ├── CreateSessionModal.tsx  # Modal crear sesion (SMS/QR)
-│       ├── QRCodeModal.tsx         # Modal para escanear QR
-│       ├── SessionCard.tsx         # Tarjeta de sesion
-│       └── VerifyCodeModal.tsx     # Modal verificar codigo SMS
+│       ├── CreateSessionModal.tsx  # Create session modal (SMS/QR)
+│       ├── QRCodeModal.tsx         # Modal to scan QR
+│       ├── SessionCard.tsx         # Session card
+│       └── VerifyCodeModal.tsx     # Verify SMS code modal
 │
 ├── contexts/               # React Contexts
-│   ├── AuthContext.tsx         # Estado de autenticacion global
-│   ├── ThemeContext.tsx        # Tema oscuro/claro
-│   └── ToastContext.tsx        # Sistema de notificaciones toast
+│   ├── AuthContext.tsx         # Global authentication state
+│   ├── ThemeContext.tsx        # Dark/light theme
+│   └── ToastContext.tsx        # Toast notification system
 │
 ├── hooks/                  # Custom hooks
 │   ├── index.ts                # Re-exports
-│   ├── useSessions.ts          # CRUD de sesiones con TanStack Query
-│   ├── useMessages.ts          # Envio de mensajes (todos los tipos)
-│   └── useChats.ts             # Chats, historial y contactos
+│   ├── useSessions.ts          # Session CRUD with TanStack Query
+│   ├── useMessages.ts          # Message sending (all types)
+│   └── useChats.ts             # Chats, history, and contacts
 │
-├── pages/                  # Paginas principales
-│   ├── auth/                   # Autenticacion
-│   │   ├── LoginPage.tsx           # Login con diseno split
-│   │   └── RegisterPage.tsx        # Registro de usuarios
+├── pages/                  # Main pages
+│   ├── auth/                   # Authentication
+│   │   ├── LoginPage.tsx           # Login with split design
+│   │   └── RegisterPage.tsx        # User registration
 │   ├── dashboard/              # Dashboard
-│   │   ├── DashboardPage.tsx       # Vista principal con stats
+│   │   ├── DashboardPage.tsx       # Main view with stats
 │   │   └── components/
-│   │       └── SessionList.tsx     # Lista de sesiones
-│   ├── messages/               # Mensajeria
-│   │   ├── MessagesPage.tsx        # Pagina de envio de mensajes
+│   │       └── SessionList.tsx     # Session list
+│   ├── messages/               # Messaging
+│   │   ├── MessagesPage.tsx        # Message sending page
 │   │   └── components/
-│   │       ├── SendTextForm.tsx        # Enviar texto
-│   │       ├── SendPhotoForm.tsx       # Enviar foto
-│   │       ├── SendVideoForm.tsx       # Enviar video
-│   │       ├── SendAudioForm.tsx       # Enviar audio
-│   │       ├── SendFileForm.tsx        # Enviar archivo
-│   │       └── SendBulkForm.tsx        # Envio masivo
+│   │       ├── SendTextForm.tsx        # Send text
+│   │       ├── SendPhotoForm.tsx       # Send photo
+│   │       ├── SendVideoForm.tsx       # Send video
+│   │       ├── SendAudioForm.tsx       # Send audio
+│   │       ├── SendFileForm.tsx        # Send file
+│   │       └── SendBulkForm.tsx        # Bulk send
 │   ├── chats/                  # Chats
-│   │   ├── ChatsPage.tsx           # Vista de chats
+│   │   ├── ChatsPage.tsx           # Chats view
 │   │   └── components/
-│   │       ├── ChatList.tsx            # Lista de chats
-│   │       └── ChatView.tsx            # Vista de conversacion
-│   ├── contacts/               # Contactos
-│   │   └── ContactsPage.tsx        # Lista de contactos
+│   │       ├── ChatList.tsx            # Chat list
+│   │       └── ChatView.tsx            # Conversation view
+│   ├── contacts/               # Contacts
+│   │   └── ContactsPage.tsx        # Contact list
 │   ├── webhooks/               # Webhooks
-│   │   └── WebhooksPage.tsx        # Configuracion de webhooks
-│   ├── profile/                # Perfil
-│   │   └── ProfilePage.tsx         # Perfil de usuario
-│   └── settings/               # Configuracion
-│       └── SettingsPage.tsx        # Ajustes de la app
+│   │   └── WebhooksPage.tsx        # Webhook configuration
+│   ├── profile/                # Profile
+│   │   └── ProfilePage.tsx         # User profile
+│   └── settings/               # Settings
+│       └── SettingsPage.tsx        # App settings
 │
-├── routes/                 # Configuracion de rutas
-│   ├── ProtectedRoute.tsx      # HOC para rutas protegidas
-│   └── index.tsx               # Definicion de todas las rutas
+├── routes/                 # Route configuration
+│   ├── ProtectedRoute.tsx      # HOC for protected routes
+│   └── index.tsx               # All routes definition
 │
 ├── types/                  # TypeScript types
-│   ├── auth.types.ts           # Tipos de autenticacion
-│   ├── session.types.ts        # Tipos de sesiones
-│   └── api.types.ts            # Tipos genericos de API
+│   ├── auth.types.ts           # Authentication types
+│   ├── session.types.ts        # Session types
+│   └── api.types.ts            # Generic API types
 │
-├── config/                 # Configuracion
-│   └── constants.ts            # URLs, eventos webhook, tipos de archivo
+├── config/                 # Configuration
+│   └── constants.ts            # URLs, webhook events, file types
 │
-├── utils/                  # Utilidades
-│   └── upload.ts               # Validacion y procesamiento de archivos
+├── utils/                  # Utilities
+│   └── upload.ts               # File validation and processing
 │
-└── styles/                 # Estilos globales
-    └── index.css               # Tailwind + animaciones custom
+└── styles/                 # Global styles
+    └── index.css               # Tailwind + custom animations
 ```
 
-## Instalacion
+## Installation
 
-### Requisitos
+### Requirements
 
 - Node.js 18+
 - pnpm 8+
 
-### 1. Instalar dependencias
+### 1. Install dependencies
 
 ```bash
 cd frontend
 pnpm install
 ```
 
-### 2. Configurar variables de entorno
+### 2. Configure environment variables
 
 ```bash
 cp .env.example .env
 ```
 
-Editar `.env`:
+Edit `.env`:
 
 ```env
 VITE_API_URL=/api/v1
 ```
 
-### 3. Ejecutar en desarrollo
+### 3. Run in development
 
 ```bash
 pnpm dev
 ```
 
-La aplicacion estara disponible en `http://localhost:3000`
+The application will be available at `http://localhost:3000`
 
-### 4. Build para produccion
+### 4. Build for production
 
 ```bash
 pnpm build
 ```
 
-Los archivos compilados estaran en `/dist`
+Compiled files will be in `/dist`
 
-## Scripts Disponibles
+## Available Scripts
 
 ```bash
-pnpm dev        # Iniciar servidor de desarrollo
-pnpm build      # Compilar para produccion (tsc + vite build)
-pnpm preview    # Preview del build de produccion
-pnpm lint       # Ejecutar ESLint
+pnpm dev        # Start development server
+pnpm build      # Build for production (tsc + vite build)
+pnpm preview    # Preview production build
+pnpm lint       # Run ESLint
 ```
 
-## Dependencias Principales
+## Main Dependencies
 
-| Paquete | Version | Proposito |
+| Package | Version | Purpose |
 |---------|---------|-----------|
 | React | 19.x | UI Library |
 | TypeScript | 5.x | Type Safety |
@@ -171,14 +171,14 @@ pnpm lint       # Ejecutar ESLint
 | Tailwind CSS | 4.x | Styling |
 | Lucide React | 0.x | Icons |
 
-## Componentes UI
+## UI Components
 
 ### Button
 ```tsx
 <Button variant="primary" isLoading={false} fullWidth>
   Click me
 </Button>
-// Variantes: primary, secondary, danger, ghost
+// Variants: primary, secondary, danger, ghost
 ```
 
 ### Input
@@ -203,12 +203,12 @@ pnpm lint       # Ejecutar ESLint
 <Alert variant="success">
   Success message
 </Alert>
-// Variantes: success, error, warning, info
+// Variants: success, error, warning, info
 ```
 
 ### Modal
 ```tsx
-<Modal isOpen={open} onClose={close} title="Titulo" size="lg">
+<Modal isOpen={open} onClose={close} title="Title" size="lg">
   Content
 </Modal>
 // Sizes: sm, md, lg, xl
@@ -220,7 +220,7 @@ pnpm lint       # Ejecutar ESLint
   type="image"
   value={url}
   onChange={setUrl}
-  label="Imagen"
+  label="Image"
 />
 // Types: image, video, audio, file
 ```
@@ -228,64 +228,64 @@ pnpm lint       # Ejecutar ESLint
 ### Toast (via context)
 ```tsx
 const toast = useToast()
-toast.success('Titulo', 'Mensaje')
-toast.error('Error', 'Descripcion')
-toast.info('Info', 'Mensaje informativo')
-toast.warning('Advertencia', 'Ten cuidado')
+toast.success('Title', 'Message')
+toast.error('Error', 'Description')
+toast.info('Info', 'Informational message')
+toast.warning('Warning', 'Be careful')
 ```
 
-## Autenticacion
+## Authentication
 
-El sistema usa JWT tokens con refresh tokens:
+The system uses JWT tokens with refresh tokens:
 
-1. **Login/Register** - POST `/api/v1/auth/login` o `/api/v1/auth/register`
-2. **Tokens guardados** en `localStorage`
-3. **Auto-refresh** cuando el token esta por expirar
-4. **Rutas protegidas** con `ProtectedRoute`
-5. **Interceptor axios** anade token automaticamente
+1. **Login/Register** - POST `/api/v1/auth/login` or `/api/v1/auth/register`
+2. **Tokens saved** in `localStorage`
+3. **Auto-refresh** when token is about to expire
+4. **Protected routes** with `ProtectedRoute`
+5. **Axios interceptor** adds token automatically
 
 ## API Integration
 
 ### Interceptors
 
-- **Request**: Anade token JWT automaticamente a todas las peticiones
-- **Response**: Maneja errores globalmente, redirige al login si 401
+- **Request**: Adds JWT token automatically to all requests
+- **Response**: Handles errors globally, redirects to login if 401
 
 ### TanStack Query
 
-Todas las peticiones usan hooks personalizados con cache:
+All requests use custom hooks with cache:
 
 ```tsx
 import { useSessions, useCreateSession } from '@/hooks'
 
-// Query con cache
+// Query with cache
 const { data, isLoading, error, refetch } = useSessions()
 
 // Mutation
 const createSession = useCreateSession()
 createSession.mutate(data, {
-  onSuccess: () => toast.success('Exito', 'Sesion creada'),
+  onSuccess: () => toast.success('Success', 'Session created'),
   onError: (err) => toast.error('Error', err.message)
 })
 ```
 
-## Paginas Disponibles
+## Available Pages
 
-| Ruta | Pagina | Descripcion |
+| Route | Page | Description |
 |------|--------|-------------|
-| `/login` | LoginPage | Inicio de sesion |
-| `/register` | RegisterPage | Registro de usuario |
-| `/dashboard` | DashboardPage | Panel principal con sesiones |
-| `/messages/:sessionId` | MessagesPage | Envio de mensajes |
-| `/chats/:sessionId` | ChatsPage | Ver chats y conversaciones |
-| `/contacts/:sessionId` | ContactsPage | Lista de contactos |
-| `/webhooks/:sessionId` | WebhooksPage | Configurar webhooks |
-| `/profile` | ProfilePage | Perfil de usuario |
-| `/settings` | SettingsPage | Configuracion de la app |
+| `/login` | LoginPage | Login |
+| `/register` | RegisterPage | User registration |
+| `/dashboard` | DashboardPage | Main panel with sessions |
+| `/messages/:sessionId` | MessagesPage | Send messages |
+| `/chats/:sessionId` | ChatsPage | View chats and conversations |
+| `/contacts/:sessionId` | ContactsPage | Contact list |
+| `/webhooks/:sessionId` | WebhooksPage | Configure webhooks |
+| `/profile` | ProfilePage | User profile |
+| `/settings` | SettingsPage | App settings |
 
-## Tema Oscuro/Claro
+## Dark/Light Theme
 
-El tema se guarda automaticamente en `localStorage` y respeta las preferencias del sistema:
+The theme is automatically saved in `localStorage` and respects system preferences:
 
 ```tsx
 import { useTheme } from '@/contexts'
@@ -296,51 +296,51 @@ const { theme, toggleTheme } = useTheme()
 
 ## Responsive Design
 
-Disenado mobile-first con breakpoints de Tailwind:
+Designed mobile-first with Tailwind breakpoints:
 
-- `sm`: 640px - Moviles grandes
+- `sm`: 640px - Large mobile
 - `md`: 768px - Tablets
 - `lg`: 1024px - Desktop
-- `xl`: 1280px - Desktop grande
+- `xl`: 1280px - Large desktop
 
-El sidebar se colapsa automaticamente en pantallas pequenas.
+The sidebar automatically collapses on small screens.
 
 ## Webhooks
 
-Eventos disponibles para configurar:
+Available events to configure:
 
-- `new_message` - Nuevo mensaje recibido
-- `message_edited` - Mensaje editado
-- `message_deleted` - Mensaje eliminado
-- `user_status` - Cambio de estado de usuario
-- `user_typing` - Usuario escribiendo
-- `chat_action` - Acciones en chat
+- `new_message` - New message received
+- `message_edited` - Message edited
+- `message_deleted` - Message deleted
+- `user_status` - User status change
+- `user_typing` - User typing
+- `chat_action` - Chat actions
 
-## Estructura de Archivos Upload
+## Upload File Structure
 
 ```
 /uploads/
-├── images/     # Imagenes (jpg, png, gif, webp)
+├── images/     # Images (jpg, png, gif, webp)
 ├── videos/     # Videos (mp4, webm, mov)
 ├── audio/      # Audio (mp3, ogg, wav)
-└── files/      # Documentos (pdf, doc, docx, txt)
+└── files/      # Documents (pdf, doc, docx, txt)
 ```
 
-Limites de tamano:
-- Imagenes: 10MB
+Size limits:
+- Images: 10MB
 - Videos: 50MB
 - Audio: 20MB
-- Archivos: 50MB
+- Files: 50MB
 
-## Convenciones de Codigo
+## Code Conventions
 
 - **Components**: PascalCase (`LoginPage.tsx`)
-- **Hooks**: camelCase con prefijo `use` (`useSessions.ts`)
+- **Hooks**: camelCase with `use` prefix (`useSessions.ts`)
 - **Types**: PascalCase (`SessionStatus`, `AuthContextType`)
 - **Constants**: UPPER_SNAKE_CASE (`API_BASE_URL`)
 - **CSS Classes**: Tailwind utilities
-- **Archivos**: kebab-case para utils, PascalCase para componentes
+- **Files**: kebab-case for utils, PascalCase for components
 
-## Licencia
+## License
 
 MIT

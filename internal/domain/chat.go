@@ -120,7 +120,7 @@ type ChatsResponse struct {
 type ContactsResponse struct {
 	Contacts   []Contact `json:"contacts"`
 	TotalCount int       `json:"total_count"`
-	HasMore    bool      `json:"has_more"`    // Para paginación
+	HasMore    bool      `json:"has_more"` // Para paginación
 	FromCache  bool      `json:"from_cache,omitempty"`
 }
 

@@ -31,7 +31,7 @@ func (r *SessionRepository) Create(ctx context.Context, s *domain.TelegramSessio
 		s.ID, s.UserID, s.PhoneNumber, s.ApiID, s.ApiHashEncrypted,
 		s.SessionName, s.SessionData, s.AuthState, s.IsActive, s.CreatedAt, s.UpdatedAt,
 	)
-	return wrapDBError(err, "crear sesión")
+	return wrapDBError(err, "create session")
 }
 
 func (r *SessionRepository) Update(ctx context.Context, s *domain.TelegramSession) error {
@@ -45,7 +45,7 @@ func (r *SessionRepository) Update(ctx context.Context, s *domain.TelegramSessio
 		s.PhoneNumber, s.SessionData, s.AuthState, s.TelegramUserID,
 		s.TelegramUsername, s.IsActive, s.ID,
 	)
-	return wrapDBError(err, "actualizar sesión")
+	return wrapDBError(err, "update session")
 }
 
 func (r *SessionRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.TelegramSession, error) {
@@ -66,7 +66,7 @@ func (r *SessionRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.
 	if err != nil {
 		logger.Error().Err(err).Str("id", id.String()).Msg("Error GetByID")
 	}
-	return &s, wrapDBError(err, "obtener sesión")
+	return &s, wrapDBError(err, "get session")
 }
 
 func (r *SessionRepository) GetByPhone(ctx context.Context, phone string) (*domain.TelegramSession, error) {
@@ -84,7 +84,7 @@ func (r *SessionRepository) GetByPhone(ctx context.Context, phone string) (*doma
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, domain.ErrSessionNotFound
 	}
-	return &s, wrapDBError(err, "obtener sesión por phone")
+	return &s, wrapDBError(err, "get session by phone")
 }
 
 func (r *SessionRepository) GetByUserAndPhone(ctx context.Context, userID uuid.UUID, phone string) (*domain.TelegramSession, error) {
@@ -102,7 +102,7 @@ func (r *SessionRepository) GetByUserAndPhone(ctx context.Context, userID uuid.U
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, domain.ErrSessionNotFound
 	}
-	return &s, wrapDBError(err, "obtener sesión por user y phone")
+	return &s, wrapDBError(err, "get session by user and phone")
 }
 
 func (r *SessionRepository) ListByUserID(ctx context.Context, userID uuid.UUID) ([]domain.TelegramSession, error) {
@@ -115,7 +115,7 @@ func (r *SessionRepository) ListByUserID(ctx context.Context, userID uuid.UUID) 
 	rows, err := r.db.Query(ctx, query, userID)
 	if err != nil {
 		logger.Error().Err(err).Str("user_id", userID.String()).Msg("Error query ListByUserID")
-		return nil, wrapDBError(err, "listar sesiones")
+		return nil, wrapDBError(err, "list sessions")
 	}
 	defer rows.Close()
 
@@ -127,7 +127,41 @@ func (r *SessionRepository) ListByUserID(ctx context.Context, userID uuid.UUID) 
 			&s.SessionData, &s.AuthState, &s.TelegramUserID, &s.TelegramUsername, &s.IsActive, &s.CreatedAt, &s.UpdatedAt,
 		); err != nil {
 			logger.Error().Err(err).Msg("Error scan ListByUserID")
-			return nil, wrapDBError(err, "scan sesión")
+			return nil, wrapDBError(err, "scan session")
+		}
+		sessions = append(sessions, s)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, wrapDBError(err, "rows error")
+	}
+
+	return sessions, nil
+}
+
+func (r *SessionRepository) ListAllActive(ctx context.Context) ([]domain.TelegramSession, error) {
+	query := `
+		SELECT id, user_id, phone_number, api_id, api_hash_encrypted, session_name,
+			session_data, auth_state, COALESCE(telegram_user_id, 0), COALESCE(telegram_username, ''),
+			is_active, created_at, updated_at
+		FROM telegram_sessions WHERE is_active = true ORDER BY created_at DESC
+	`
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		logger.Error().Err(err).Msg("Error query ListAllActive")
+		return nil, wrapDBError(err, "list active sessions")
+	}
+	defer rows.Close()
+
+	var sessions []domain.TelegramSession
+	for rows.Next() {
+		var s domain.TelegramSession
+		if err := rows.Scan(
+			&s.ID, &s.UserID, &s.PhoneNumber, &s.ApiID, &s.ApiHashEncrypted, &s.SessionName,
+			&s.SessionData, &s.AuthState, &s.TelegramUserID, &s.TelegramUsername, &s.IsActive, &s.CreatedAt, &s.UpdatedAt,
+		); err != nil {
+			logger.Error().Err(err).Msg("Error scan ListAllActive")
+			return nil, wrapDBError(err, "scan session")
 		}
 		sessions = append(sessions, s)
 	}
@@ -143,7 +177,19 @@ func (r *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `DELETE FROM telegram_sessions WHERE id = $1`
 	result, err := r.db.Exec(ctx, query, id)
 	if err != nil {
-		return wrapDBError(err, "eliminar sesión")
+		return wrapDBError(err, "delete session")
+	}
+	if result.RowsAffected() == 0 {
+		return domain.ErrSessionNotFound
+	}
+	return nil
+}
+
+func (r *SessionRepository) UpdateSessionData(sessionID string, data []byte) error {
+	query := `UPDATE telegram_sessions SET session_data = $1, updated_at = NOW() WHERE id = $2`
+	result, err := r.db.Exec(context.Background(), query, data, sessionID)
+	if err != nil {
+		return wrapDBError(err, "update session data")
 	}
 	if result.RowsAffected() == 0 {
 		return domain.ErrSessionNotFound

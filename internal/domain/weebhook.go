@@ -10,18 +10,18 @@ import (
 // ==================== WEBHOOK CONFIG ====================
 
 type WebhookConfig struct {
-	ID           uuid.UUID  `json:"id"`
-	SessionID    uuid.UUID  `json:"session_id"`
-	URL          string     `json:"url"`
-	Secret       string     `json:"secret,omitempty"`       // Para firmar requests
-	Events       []string   `json:"events"`                 // Tipos de eventos a enviar
-	IsActive     bool       `json:"is_active"`
-	MaxRetries   int        `json:"max_retries"`
-	TimeoutMs    int        `json:"timeout_ms"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
-	LastErrorAt  *time.Time `json:"last_error_at,omitempty"`
-	LastError    string     `json:"last_error,omitempty"`
+	ID          uuid.UUID  `json:"id"`
+	SessionID   uuid.UUID  `json:"session_id"`
+	URL         string     `json:"url"`
+	Secret      string     `json:"secret,omitempty"` // Para firmar requests
+	Events      []string   `json:"events"`           // Tipos de eventos a enviar
+	IsActive    bool       `json:"is_active"`
+	MaxRetries  int        `json:"max_retries"`
+	TimeoutMs   int        `json:"timeout_ms"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	LastErrorAt *time.Time `json:"last_error_at,omitempty"`
+	LastError   string     `json:"last_error,omitempty"`
 }
 
 // ==================== EVENT TYPES ====================
@@ -29,16 +29,16 @@ type WebhookConfig struct {
 type EventType string
 
 const (
-	EventNewMessage      EventType = "message.new"
-	EventEditMessage     EventType = "message.edit"
-	EventDeleteMessage   EventType = "message.delete"
-	EventUserOnline      EventType = "user.online"
-	EventUserOffline     EventType = "user.offline"
-	EventUserTyping      EventType = "user.typing"
-	EventChatAction      EventType = "chat.action"
-	EventSessionStarted  EventType = "session.started"
-	EventSessionStopped  EventType = "session.stopped"
-	EventSessionError    EventType = "session.error"
+	EventNewMessage     EventType = "message.new"
+	EventEditMessage    EventType = "message.edit"
+	EventDeleteMessage  EventType = "message.delete"
+	EventUserOnline     EventType = "user.online"
+	EventUserOffline    EventType = "user.offline"
+	EventUserTyping     EventType = "user.typing"
+	EventChatAction     EventType = "chat.action"
+	EventSessionStarted EventType = "session.started"
+	EventSessionStopped EventType = "session.stopped"
+	EventSessionError   EventType = "session.error"
 )
 
 // AllEvents lista todos los eventos disponibles
@@ -68,15 +68,15 @@ type WebhookEvent struct {
 // ==================== EVENT DATA STRUCTS ====================
 
 type MessageEventData struct {
-	MessageID   int64     `json:"message_id"`
-	ChatID      int64     `json:"chat_id"`
-	ChatType    string    `json:"chat_type"`    // private, group, channel
-	FromID      int64     `json:"from_id"`
-	FromName    string    `json:"from_name"`
-	Text        string    `json:"text,omitempty"`
-	MediaType   string    `json:"media_type,omitempty"` // photo, video, audio, document
-	ReplyToID   int64     `json:"reply_to_id,omitempty"`
-	Date        time.Time `json:"date"`
+	MessageID int64     `json:"message_id"`
+	ChatID    int64     `json:"chat_id"`
+	ChatType  string    `json:"chat_type"` // private, group, channel
+	FromID    int64     `json:"from_id"`
+	FromName  string    `json:"from_name"`
+	Text      string    `json:"text,omitempty"`
+	MediaType string    `json:"media_type,omitempty"` // photo, video, audio, document
+	ReplyToID int64     `json:"reply_to_id,omitempty"`
+	Date      time.Time `json:"date"`
 }
 
 type UserStatusEventData struct {

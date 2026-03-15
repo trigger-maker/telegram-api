@@ -12,7 +12,7 @@ func wrapDBError(err error, op string) error {
 		return nil
 	}
 
-	// Loggear SIEMPRE el error original
+	// Always log the original error
 	if pgErr, ok := err.(*pgconn.PgError); ok {
 		logger.Error().
 			Err(err).
@@ -23,7 +23,7 @@ func wrapDBError(err error, op string) error {
 			Str("pg_constraint", pgErr.ConstraintName).
 			Str("pg_table", pgErr.TableName).
 			Str("pg_column", pgErr.ColumnName).
-			Msg("❌ Error PostgreSQL")
+			Msg("PostgreSQL error")
 
 		switch pgErr.Code {
 		case "23505": // unique_violation
@@ -33,17 +33,17 @@ func wrapDBError(err error, op string) error {
 			if pgErr.ConstraintName == "users_email_key" {
 				return domain.ErrEmailAlreadyExists
 			}
-			// Cualquier otra violación única
+			// Any other unique violation
 			logger.Warn().
 				Str("constraint", pgErr.ConstraintName).
-				Msg("⚠️ Violación de constraint único no manejada")
+				Msg("Unhandled unique constraint violation")
 		}
 	} else {
-		// Error no-PostgreSQL
+		// Non-PostgreSQL error
 		logger.Error().
 			Err(err).
 			Str("operation", op).
-			Msg("❌ Error de base de datos (no-PG)")
+			Msg("Database error (non-PG)")
 	}
 
 	return domain.ErrDatabase

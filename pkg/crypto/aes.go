@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	ErrInvalidKey        = errors.New("clave de encriptación inválida")
-	ErrDecryptionFailed  = errors.New("fallo al desencriptar datos")
+	ErrInvalidKey         = errors.New("clave de encriptación inválida")
+	ErrDecryptionFailed   = errors.New("fallo al desencriptar datos")
 	ErrCiphertextTooShort = errors.New("texto cifrado muy corto")
 )
 

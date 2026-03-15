@@ -76,7 +76,7 @@ func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 		user.UpdatedAt,
 	)
 	if err != nil {
-		return wrapDBError(err, "crear usuario")
+		return wrapDBError(err, "create user")
 	}
 	return nil
 }
@@ -99,7 +99,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Use
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrUserNotFound
 		}
-		return nil, wrapDBError(err, "obtener usuario por ID")
+		return nil, wrapDBError(err, "get user by ID")
 	}
 	return user, nil
 }
@@ -122,7 +122,7 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*d
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrUserNotFound
 		}
-		return nil, wrapDBError(err, "obtener usuario por username")
+		return nil, wrapDBError(err, "get user by username")
 	}
 	return user, nil
 }
@@ -145,7 +145,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrUserNotFound
 		}
-		return nil, wrapDBError(err, "obtener usuario por email")
+		return nil, wrapDBError(err, "get user by email")
 	}
 	return user, nil
 }
@@ -161,7 +161,7 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 		time.Now(),
 	)
 	if err != nil {
-		return wrapDBError(err, "actualizar usuario")
+		return wrapDBError(err, "update user")
 	}
 	if result.RowsAffected() == 0 {
 		return domain.ErrUserNotFound
@@ -173,7 +173,7 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 func (r *UserRepository) UpdateLastLogin(ctx context.Context, id uuid.UUID) error {
 	_, err := r.pool.Exec(ctx, queryUpdateLastLogin, id, time.Now())
 	if err != nil {
-		return wrapDBError(err, "actualizar último login")
+		return wrapDBError(err, "update last login")
 	}
 	return nil
 }
@@ -182,7 +182,7 @@ func (r *UserRepository) UpdateLastLogin(ctx context.Context, id uuid.UUID) erro
 func (r *UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	result, err := r.pool.Exec(ctx, queryDeleteUser, id, time.Now())
 	if err != nil {
-		return wrapDBError(err, "eliminar usuario")
+		return wrapDBError(err, "delete user")
 	}
 	if result.RowsAffected() == 0 {
 		return domain.ErrUserNotFound
@@ -195,7 +195,7 @@ func (r *UserRepository) ExistsByUsername(ctx context.Context, username string) 
 	var exists bool
 	err := r.pool.QueryRow(ctx, queryExistsByUsername, username).Scan(&exists)
 	if err != nil {
-		return false, wrapDBError(err, "verificar existencia por username")
+		return false, wrapDBError(err, "check existence by username")
 	}
 	return exists, nil
 }
@@ -205,7 +205,7 @@ func (r *UserRepository) ExistsByEmail(ctx context.Context, email string) (bool,
 	var exists bool
 	err := r.pool.QueryRow(ctx, queryExistsByEmail, email).Scan(&exists)
 	if err != nil {
-		return false, wrapDBError(err, "verificar existencia por email")
+		return false, wrapDBError(err, "check existence by email")
 	}
 	return exists, nil
 }
@@ -214,7 +214,7 @@ func (r *UserRepository) ExistsByEmail(ctx context.Context, email string) (bool,
 func (r *UserRepository) UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error {
 	result, err := r.pool.Exec(ctx, queryUpdatePassword, id, passwordHash, time.Now())
 	if err != nil {
-		return wrapDBError(err, "actualizar contraseña")
+		return wrapDBError(err, "update password")
 	}
 	if result.RowsAffected() == 0 {
 		return domain.ErrUserNotFound

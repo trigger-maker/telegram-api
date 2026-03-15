@@ -1,4 +1,4 @@
-/// @file telegram-api/internal/domain/user.go
+// / @file telegram-api/internal/domain/user.go
 package domain
 
 import (

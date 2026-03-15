@@ -15,13 +15,16 @@ const (
 	SessionPasswordRequired SessionStatus = "password_required"
 	SessionAuthenticated    SessionStatus = "authenticated"
 	SessionFailed           SessionStatus = "failed"
+	SessionBanned           SessionStatus = "banned"
+	SessionFrozen           SessionStatus = "frozen"
 )
 
 type AuthMethod string
 
 const (
-	AuthMethodSMS AuthMethod = "sms"
-	AuthMethodQR  AuthMethod = "qr"
+	AuthMethodSMS  AuthMethod = "sms"
+	AuthMethodQR   AuthMethod = "qr"
+	AuthMethodTData AuthMethod = "tdata"
 )
 
 type TelegramSession struct {
@@ -34,6 +37,7 @@ type TelegramSession struct {
 	SessionName      string        `json:"session_name"`
 	SessionData      []byte        `json:"-"`
 	AuthState        SessionStatus `json:"auth_state"`
+	AuthMethod       AuthMethod    `json:"auth_method,omitempty"`
 	TelegramUserID   int64         `json:"telegram_user_id,omitempty"`
 	TelegramUsername string        `json:"telegram_username,omitempty"`
 	IsActive         bool          `json:"is_active"`
@@ -58,10 +62,10 @@ type Verify2FARequest struct {
 }
 
 type QRCodeResponse struct {
-	Token       string `json:"token"`
-	URL         string `json:"url"`
-	QRImageB64  string `json:"qr_image_base64"`
-	ExpiresIn   int    `json:"expires_in"`
+	Token      string `json:"token"`
+	URL        string `json:"url"`
+	QRImageB64 string `json:"qr_image_base64"`
+	ExpiresIn  int    `json:"expires_in"`
 }
 
 type SessionRepository interface {
@@ -72,4 +76,6 @@ type SessionRepository interface {
 	Update(ctx context.Context, session *TelegramSession) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	ListByUserID(ctx context.Context, userID uuid.UUID) ([]TelegramSession, error)
+	ListAllActive(ctx context.Context) ([]TelegramSession, error)
+	UpdateSessionData(sessionID string, data []byte) error
 }

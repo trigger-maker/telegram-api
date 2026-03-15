@@ -24,7 +24,7 @@ func JWTMiddleware(authService *service.AuthService) fiber.Handler {
 				"success": false,
 				"error": fiber.Map{
 					"code":    "MISSING_TOKEN",
-					"message": "Token de autorización requerido",
+					"message": "Authorization token required",
 				},
 			})
 		}
@@ -42,7 +42,7 @@ func JWTMiddleware(authService *service.AuthService) fiber.Handler {
 				"success": false,
 				"error": fiber.Map{
 					"code":    "INVALID_TOKEN",
-					"message": "Token inválido o expirado",
+					"message": "Invalid or expired token",
 				},
 			})
 		}
@@ -54,7 +54,7 @@ func JWTMiddleware(authService *service.AuthService) fiber.Handler {
 				"success": false,
 				"error": fiber.Map{
 					"code":    "INVALID_TOKEN",
-					"message": "Token malformado",
+					"message": "Malformed token",
 				},
 			})
 		}
@@ -75,7 +75,7 @@ func RequireRole(roles ...domain.Role) fiber.Handler {
 				"success": false,
 				"error": fiber.Map{
 					"code":    "FORBIDDEN",
-					"message": "Acceso denegado",
+					"message": "Access denied",
 				},
 			})
 		}
@@ -90,7 +90,7 @@ func RequireRole(roles ...domain.Role) fiber.Handler {
 			"success": false,
 			"error": fiber.Map{
 				"code":    "FORBIDDEN",
-				"message": "No tiene permisos para esta acción",
+				"message": "No permission for this action",
 			},
 		})
 	}
