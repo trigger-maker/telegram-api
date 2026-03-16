@@ -1,5 +1,3 @@
-version: "2"
-
 linters:
   enable:
     - gocyclo
@@ -17,11 +15,6 @@ linters:
     - gocognit
     - godot
     - gosec
-
-formatters:
-  enable:
-    - gofmt
-    - goimports
 
 linters-settings:
   gocyclo:
@@ -71,7 +64,6 @@ linters-settings:
     excludes:
       - G104
 
-formatters-settings:
   gofmt:
     simplify: true
 
@@ -90,7 +82,9 @@ run:
   go: "1.23"
   tests: true
   modules-download-mode: readonly
-  skip-dirs:
-    - frontend
-  skip-files:
-    - frontend/.*
+
+skip-dirs:
+  - frontend
+
+skip-files:
+  - frontend/.*
