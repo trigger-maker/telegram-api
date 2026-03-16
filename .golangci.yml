@@ -82,9 +82,7 @@ run:
   go: "1.23"
   tests: true
   modules-download-mode: readonly
-
-skip-dirs:
-  - frontend
-
-skip-files:
-  - frontend/.*
+  skip-dirs:
+    - frontend
+  skip-files:
+    - frontend/.*
