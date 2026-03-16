@@ -76,13 +76,11 @@ issues:
   max-same-issues: 0
   exclude-files:
     - frontend/node_modules/.*
+  exclude-dirs:
+    - frontend
 
 run:
   timeout: 5m
   go: "1.23"
   tests: true
   modules-download-mode: readonly
-  skip-dirs:
-    - frontend
-  skip-files:
-    - frontend/.*
