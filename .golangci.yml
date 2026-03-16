@@ -1,3 +1,5 @@
+version: "2"
+
 linters:
   enable:
     - gocyclo
@@ -16,7 +18,7 @@ linters:
     - godot
     - gosec
 
-linters-settings:
+linters_settings:
   gocyclo:
     min-complexity: 6
 
@@ -71,16 +73,13 @@ linters-settings:
     local-prefixes: github.com/your-org/telegram-api
 
 issues:
-  exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
-  exclude-files:
-    - frontend/node_modules/.*
-  exclude-dirs:
-    - frontend
+  exclude:
+    - "^frontend/"
 
 run:
   timeout: 5m
-  go: "1.25"
+  go: "1.24"
   tests: true
   modules-download-mode: readonly
