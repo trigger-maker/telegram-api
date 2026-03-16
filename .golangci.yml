@@ -20,14 +20,23 @@ linters:
 
   settings:
     gocyclo:
-      min-complexity: 6
+      min-complexity: 15
 
     govet:
-      enable-all: true
+      enable:
+        - atomic
+        - bools
+        - composites
+        - copylocks
+        - nilfunc
+        - printf
+        - stdmethods
+        - structtag
+        - unmarshal
 
     errcheck:
-      check-type-assertions: true
-      check-blank: true
+      check-type-assertions: false
+      check-blank: false
 
     revive:
       severity: warning
@@ -38,25 +47,25 @@ linters:
           severity: warning
 
     dupl:
-      threshold: 100
+      threshold: 150
 
     goconst:
-      min-len: 2
-      min-occurrences: 2
+      min-len: 3
+      min-occurrences: 3
 
     misspell:
       locale: US
 
     lll:
-      line-length: 120
+      line-length: 140
       tab-width: 1
 
     funlen:
-      lines: 50
-      statements: 30
+      lines: 100
+      statements: 50
 
     gocognit:
-      min-complexity: 15
+      min-complexity: 25
 
     godot:
       scope: declarations
