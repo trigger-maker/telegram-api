@@ -1,3 +1,4 @@
+// Package logger provides structured logging functionality using zerolog.
 package logger
 
 import (
@@ -9,14 +10,16 @@ import (
 	"github.com/rs/zerolog"
 )
 
+// Log is the global logger instance.
 var Log zerolog.Logger
 
+// Init initializes the global logger with the specified log level.
 func Init(level string) {
 	lvl := parseLevel(level)
 	env := os.Getenv("API_ENV")
 
 	// Formato del caller: [archivo:linea]
-	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
+	zerolog.CallerMarshalFunc = func(_ uintptr, file string, line int) string {
 		return filepath.Base(file) + ":" + itoa(line)
 	}
 
@@ -32,9 +35,11 @@ func Init(level string) {
 
 func itoa(i int) string {
 	if i < 10 {
-		return string(rune('0' + i))
+		// #nosec G115 -- i is guaranteed to be < 10, safe for byte conversion
+		return string([]byte{'0' + byte(i)})
 	}
-	return itoa(i/10) + string(rune('0'+i%10))
+	// #nosec G115 -- i%10 is guaranteed to be < 10, safe for byte conversion
+	return itoa(i/10) + string([]byte{'0' + byte(i%10)})
 }
 
 func parseLevel(level string) zerolog.Level {
@@ -54,8 +59,17 @@ func parseLevel(level string) zerolog.Level {
 	}
 }
 
+// Debug returns a debug level log event.
 func Debug() *zerolog.Event { return Log.Debug() }
-func Info() *zerolog.Event  { return Log.Info() }
-func Warn() *zerolog.Event  { return Log.Warn() }
+
+// Info returns an info level log event.
+func Info() *zerolog.Event { return Log.Info() }
+
+// Warn returns a warning level log event.
+func Warn() *zerolog.Event { return Log.Warn() }
+
+// Error returns an error level log event.
 func Error() *zerolog.Event { return Log.Error() }
+
+// Fatal returns a fatal level log event.
 func Fatal() *zerolog.Event { return Log.Fatal() }

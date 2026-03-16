@@ -12,14 +12,17 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// SessionRepository handles database operations for Telegram sessions.
 type SessionRepository struct {
 	db *pgxpool.Pool
 }
 
+// NewSessionRepository creates a new SessionRepository instance.
 func NewSessionRepository(db *pgxpool.Pool) *SessionRepository {
 	return &SessionRepository{db: db}
 }
 
+// Create inserts a new Telegram session into the database.
 func (r *SessionRepository) Create(ctx context.Context, s *domain.TelegramSession) error {
 	query := `
 		INSERT INTO telegram_sessions (
@@ -28,12 +31,13 @@ func (r *SessionRepository) Create(ctx context.Context, s *domain.TelegramSessio
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 	`
 	_, err := r.db.Exec(ctx, query,
-		s.ID, s.UserID, s.PhoneNumber, s.ApiID, s.ApiHashEncrypted,
+		s.ID, s.UserID, s.PhoneNumber, s.APIID, s.APIHashEncrypted,
 		s.SessionName, s.SessionData, s.AuthState, s.IsActive, s.CreatedAt, s.UpdatedAt,
 	)
 	return wrapDBError(err, "create session")
 }
 
+// Update updates an existing Telegram session in the database.
 func (r *SessionRepository) Update(ctx context.Context, s *domain.TelegramSession) error {
 	query := `
 		UPDATE telegram_sessions SET 
@@ -48,6 +52,7 @@ func (r *SessionRepository) Update(ctx context.Context, s *domain.TelegramSessio
 	return wrapDBError(err, "update session")
 }
 
+// GetByID retrieves a Telegram session by its ID.
 func (r *SessionRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.TelegramSession, error) {
 	query := `
 		SELECT id, user_id, phone_number, api_id, api_hash_encrypted, session_name, 
@@ -57,7 +62,7 @@ func (r *SessionRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.
 	`
 	var s domain.TelegramSession
 	err := r.db.QueryRow(ctx, query, id).Scan(
-		&s.ID, &s.UserID, &s.PhoneNumber, &s.ApiID, &s.ApiHashEncrypted, &s.SessionName,
+		&s.ID, &s.UserID, &s.PhoneNumber, &s.APIID, &s.APIHashEncrypted, &s.SessionName,
 		&s.SessionData, &s.AuthState, &s.TelegramUserID, &s.TelegramUsername, &s.IsActive, &s.CreatedAt, &s.UpdatedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -69,6 +74,7 @@ func (r *SessionRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.
 	return &s, wrapDBError(err, "get session")
 }
 
+// GetByPhone retrieves a Telegram session by phone number.
 func (r *SessionRepository) GetByPhone(ctx context.Context, phone string) (*domain.TelegramSession, error) {
 	query := `
 		SELECT id, user_id, phone_number, api_id, api_hash_encrypted, session_name,
@@ -78,7 +84,7 @@ func (r *SessionRepository) GetByPhone(ctx context.Context, phone string) (*doma
 	`
 	var s domain.TelegramSession
 	err := r.db.QueryRow(ctx, query, phone).Scan(
-		&s.ID, &s.UserID, &s.PhoneNumber, &s.ApiID, &s.ApiHashEncrypted, &s.SessionName,
+		&s.ID, &s.UserID, &s.PhoneNumber, &s.APIID, &s.APIHashEncrypted, &s.SessionName,
 		&s.SessionData, &s.AuthState, &s.TelegramUserID, &s.TelegramUsername, &s.IsActive, &s.CreatedAt, &s.UpdatedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -87,7 +93,12 @@ func (r *SessionRepository) GetByPhone(ctx context.Context, phone string) (*doma
 	return &s, wrapDBError(err, "get session by phone")
 }
 
-func (r *SessionRepository) GetByUserAndPhone(ctx context.Context, userID uuid.UUID, phone string) (*domain.TelegramSession, error) {
+// GetByUserAndPhone retrieves a Telegram session by user ID and phone number.
+func (r *SessionRepository) GetByUserAndPhone(
+	ctx context.Context,
+	userID uuid.UUID,
+	phone string,
+) (*domain.TelegramSession, error) {
 	query := `
 		SELECT id, user_id, phone_number, api_id, api_hash_encrypted, session_name,
 			session_data, auth_state, COALESCE(telegram_user_id, 0), COALESCE(telegram_username, ''),
@@ -96,7 +107,7 @@ func (r *SessionRepository) GetByUserAndPhone(ctx context.Context, userID uuid.U
 	`
 	var s domain.TelegramSession
 	err := r.db.QueryRow(ctx, query, userID, phone).Scan(
-		&s.ID, &s.UserID, &s.PhoneNumber, &s.ApiID, &s.ApiHashEncrypted, &s.SessionName,
+		&s.ID, &s.UserID, &s.PhoneNumber, &s.APIID, &s.APIHashEncrypted, &s.SessionName,
 		&s.SessionData, &s.AuthState, &s.TelegramUserID, &s.TelegramUsername, &s.IsActive, &s.CreatedAt, &s.UpdatedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -105,6 +116,7 @@ func (r *SessionRepository) GetByUserAndPhone(ctx context.Context, userID uuid.U
 	return &s, wrapDBError(err, "get session by user and phone")
 }
 
+// ListByUserID retrieves all Telegram sessions for a given user ID.
 func (r *SessionRepository) ListByUserID(ctx context.Context, userID uuid.UUID) ([]domain.TelegramSession, error) {
 	query := `
 		SELECT id, user_id, phone_number, api_id, api_hash_encrypted, session_name,
@@ -123,7 +135,7 @@ func (r *SessionRepository) ListByUserID(ctx context.Context, userID uuid.UUID) 
 	for rows.Next() {
 		var s domain.TelegramSession
 		if err := rows.Scan(
-			&s.ID, &s.UserID, &s.PhoneNumber, &s.ApiID, &s.ApiHashEncrypted, &s.SessionName,
+			&s.ID, &s.UserID, &s.PhoneNumber, &s.APIID, &s.APIHashEncrypted, &s.SessionName,
 			&s.SessionData, &s.AuthState, &s.TelegramUserID, &s.TelegramUsername, &s.IsActive, &s.CreatedAt, &s.UpdatedAt,
 		); err != nil {
 			logger.Error().Err(err).Msg("Error scan ListByUserID")
@@ -139,6 +151,7 @@ func (r *SessionRepository) ListByUserID(ctx context.Context, userID uuid.UUID) 
 	return sessions, nil
 }
 
+// ListAllActive retrieves all active Telegram sessions.
 func (r *SessionRepository) ListAllActive(ctx context.Context) ([]domain.TelegramSession, error) {
 	query := `
 		SELECT id, user_id, phone_number, api_id, api_hash_encrypted, session_name,
@@ -157,7 +170,7 @@ func (r *SessionRepository) ListAllActive(ctx context.Context) ([]domain.Telegra
 	for rows.Next() {
 		var s domain.TelegramSession
 		if err := rows.Scan(
-			&s.ID, &s.UserID, &s.PhoneNumber, &s.ApiID, &s.ApiHashEncrypted, &s.SessionName,
+			&s.ID, &s.UserID, &s.PhoneNumber, &s.APIID, &s.APIHashEncrypted, &s.SessionName,
 			&s.SessionData, &s.AuthState, &s.TelegramUserID, &s.TelegramUsername, &s.IsActive, &s.CreatedAt, &s.UpdatedAt,
 		); err != nil {
 			logger.Error().Err(err).Msg("Error scan ListAllActive")
@@ -173,6 +186,7 @@ func (r *SessionRepository) ListAllActive(ctx context.Context) ([]domain.Telegra
 	return sessions, nil
 }
 
+// Delete removes a Telegram session from the database.
 func (r *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `DELETE FROM telegram_sessions WHERE id = $1`
 	result, err := r.db.Exec(ctx, query, id)
@@ -185,6 +199,7 @@ func (r *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
+// UpdateSessionData updates the session data for a given session ID.
 func (r *SessionRepository) UpdateSessionData(sessionID string, data []byte) error {
 	query := `UPDATE telegram_sessions SET session_data = $1, updated_at = NOW() WHERE id = $2`
 	result, err := r.db.Exec(context.Background(), query, data, sessionID)

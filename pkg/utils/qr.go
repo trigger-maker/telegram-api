@@ -1,3 +1,4 @@
+// Package utils provides utility functions for QR code generation.
 package utils
 
 import (
@@ -9,6 +10,7 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
+// GenerateQRBase64 generates a QR code and returns it as a base64 encoded string.
 func GenerateQRBase64(content string) (string, error) {
 	qr, err := qrcode.New(content, qrcode.Medium)
 	if err != nil {
@@ -24,10 +26,12 @@ func GenerateQRBase64(content string) (string, error) {
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }
 
+// PrintQRToTerminal prints a QR code to the terminal.
 func PrintQRToTerminal(content string) {
 	PrintQRToTerminalWithName(content, "")
 }
 
+// PrintQRToTerminalWithName prints a QR code to the terminal with a session name.
 func PrintQRToTerminalWithName(content, sessionName string) {
 	qr, err := qrcode.New(content, qrcode.Low)
 	if err != nil {
@@ -51,9 +55,9 @@ func PrintQRToTerminalWithName(content, sessionName string) {
 	fmt.Println()
 }
 
-func truncate(s string, max int) string {
-	if len(s) <= max {
+func truncate(s string, maxLength int) string {
+	if len(s) <= maxLength {
 		return s
 	}
-	return s[:max-3] + "..."
+	return s[:maxLength-3] + "..."
 }

@@ -10,8 +10,12 @@ import (
 	"github.com/google/uuid"
 )
 
-// ResolvePeer resolves a username or phone to a peer with cache
-func (s *ChatService) ResolvePeer(ctx context.Context, userID, sessionID uuid.UUID, req domain.ResolveRequest) (*domain.ResolvedPeer, error) {
+// ResolvePeer resolves a username or phone to a peer with cache.
+func (s *ChatService) ResolvePeer(
+	ctx context.Context,
+	userID, sessionID uuid.UUID,
+	req domain.ResolveRequest,
+) (*domain.ResolvedPeer, error) {
 	sess, err := s.getValidSession(ctx, userID, sessionID)
 	if err != nil {
 		return nil, err

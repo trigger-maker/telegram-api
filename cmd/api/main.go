@@ -1,3 +1,4 @@
+// Package main provides the API server entry point.
 package main
 
 import (
@@ -25,7 +26,7 @@ import (
 	redisLib "github.com/redis/go-redis/v9"
 )
 
-// Version se inyecta en build time con -ldflags
+// Version se inyecta en build time con -ldflags.
 var Version = "0.1.1"
 
 // @title Telegram API
@@ -35,27 +36,13 @@ var Version = "0.1.1"
 // @BasePath /api/v1
 // @securityDefinitions.apikey BearerAuth
 // @in header
-// @name Authorization
-func main() {
-	_ = godotenv.Load()
-
-	cfg, err := config.Load()
-	if err != nil {
-		panic("config error: " + err.Error())
-	}
-
-	logger.Init(cfg.Log.Level)
-	logger.Info().Str("version", Version).Msg("🚀 Telegram API iniciando...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	// ==================== DATABASE ====================
+// @name Authorization.
+// setupDatabase initializes and connects to PostgreSQL database.
+func setupDatabase(ctx context.Context, cfg *config.Config) *pgxpool.Pool {
 	pool, err := pgxpool.New(ctx, cfg.Database.URL)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("PostgreSQL connection failed")
 	}
-	defer pool.Close()
 
 	if err := pool.Ping(ctx); err != nil {
 		logger.Fatal().Err(err).Msg("PostgreSQL ping failed")
@@ -66,26 +53,46 @@ func main() {
 		logger.Fatal().Err(err).Msg("Migrations failed")
 	}
 
-	// ==================== REDIS ====================
+	return pool
+}
+
+// setupRedis initializes and connects to Redis.
+func setupRedis(ctx context.Context, cfg *config.Config) *redisLib.Client {
 	rdb := redisLib.NewClient(&redisLib.Options{
 		Addr:     cfg.Redis.Addr,
 		Password: cfg.Redis.Password,
 	})
-	defer rdb.Close()
 
 	if err := rdb.Ping(ctx).Err(); err != nil {
 		logger.Fatal().Err(err).Msg("Redis ping failed")
 	}
 	logger.Info().Msg("Redis connected")
 
-	// ==================== REPOSITORIES ====================
-	userRepo := postgres.NewUserRepository(pool)
-	tokenRepo := postgres.NewRefreshTokenRepository(pool)
-	sessionRepo := postgres.NewSessionRepository(pool)
-	webhookRepo := postgres.NewWebhookRepository(pool)
-	cacheRepo := redis.NewCacheRepository(rdb)
+	return rdb
+}
 
-	// ==================== TELEGRAM ====================
+// setupRepositories initializes all repository instances.
+func setupRepositories(pool *pgxpool.Pool, rdb *redisLib.Client) (
+	userRepo *postgres.UserRepository,
+	tokenRepo *postgres.RefreshTokenRepository,
+	sessionRepo *postgres.SessionRepository,
+	webhookRepo *postgres.WebhookRepository,
+	cacheRepo *redis.CacheRepository,
+) {
+	userRepo = postgres.NewUserRepository(pool)
+	tokenRepo = postgres.NewRefreshTokenRepository(pool)
+	sessionRepo = postgres.NewSessionRepository(pool)
+	webhookRepo = postgres.NewWebhookRepository(pool)
+	cacheRepo = redis.NewCacheRepository(rdb)
+	return
+}
+
+// setupTelegram initializes Telegram manager and session pool.
+func setupTelegram(
+	cfg *config.Config,
+	sessionRepo *postgres.SessionRepository,
+	webhookRepo *postgres.WebhookRepository,
+) (*telegram.ClientManager, *telegram.SessionPool) {
 	tgManager, err := telegram.NewManager(cfg, sessionRepo)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Telegram Manager failed")
@@ -94,13 +101,34 @@ func main() {
 	sessionPool := telegram.NewSessionPool(tgManager, sessionRepo, webhookRepo)
 	tgManager.SetPool(sessionPool)
 
-	// ==================== SERVICES ====================
-	authService := service.NewAuthService(userRepo, tokenRepo, cacheRepo, cfg)
-	sessionService := service.NewSessionService(sessionRepo, userRepo, tgManager, cacheRepo, cfg)
-	messageService := service.NewMessageService(sessionRepo, cacheRepo, tgManager, sessionPool)
-	chatService := service.NewChatService(sessionRepo, cacheRepo, tgManager, cfg)
+	return tgManager, sessionPool
+}
 
-	// ==================== FIBER APP ====================
+// setupServices initializes all service instances.
+func setupServices(
+	userRepo *postgres.UserRepository,
+	tokenRepo *postgres.RefreshTokenRepository,
+	sessionRepo *postgres.SessionRepository,
+	_ *postgres.WebhookRepository,
+	cacheRepo *redis.CacheRepository,
+	tgManager *telegram.ClientManager,
+	sessionPool *telegram.SessionPool,
+	cfg *config.Config,
+) (
+	authService *service.AuthService,
+	sessionService *service.SessionService,
+	messageService *service.MessageService,
+	chatService *service.ChatService,
+) {
+	authService = service.NewAuthService(userRepo, tokenRepo, cacheRepo, cfg)
+	sessionService = service.NewSessionService(sessionRepo, userRepo, tgManager, cacheRepo, cfg)
+	messageService = service.NewMessageService(sessionRepo, cacheRepo, tgManager, sessionPool)
+	chatService = service.NewChatService(sessionRepo, cacheRepo, tgManager, cfg)
+	return
+}
+
+// setupFiberApp creates and configures the Fiber application.
+func setupFiberApp(sessionPool *telegram.SessionPool) *fiber.App {
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 		AppName:               "Telegram API v" + Version,
@@ -109,11 +137,8 @@ func main() {
 	app.Use(middleware.CORS())
 	app.Use(middleware.RequestLogger())
 
-	// ==================== DOCUMENTATION ====================
-	// Swagger UI
+	// Documentation
 	app.Get("/docs/*", swagger.HandlerDefault)
-
-	// ReDoc (documentación alternativa)
 	app.Get("/redoc", func(c *fiber.Ctx) error {
 		return c.SendFile("./docs/redoc.html")
 	})
@@ -139,35 +164,44 @@ func main() {
 		})
 	})
 
-	// ==================== ROUTES ====================
+	return app
+}
+
+// setupRoutes configures all application routes.
+func setupRoutes(
+	app *fiber.App,
+	authService *service.AuthService,
+	sessionService *service.SessionService,
+	messageService *service.MessageService,
+	chatService *service.ChatService,
+	webhookRepo *postgres.WebhookRepository,
+	sessionRepo *postgres.SessionRepository,
+	sessionPool *telegram.SessionPool,
+) {
 	api := app.Group("/api/v1")
 
-	// Auth (público)
 	authHandler := handler.NewAuthHandler(authService)
 	authHandler.RegisterRoutes(api)
 
-	// Protected routes
 	protected := api.Group("/", middleware.JWTMiddleware(authService))
 
-	// Sessions
 	sessionHandler := handler.NewSessionHandler(sessionService)
 	sessionHandler.RegisterRoutes(protected)
 
-	// Messages
 	messageHandler := handler.NewMessageHandler(messageService)
 	messageHandler.RegisterRoutes(protected)
 
-	// Chats & Contacts
 	chatHandler := handler.NewChatHandler(chatService)
 	chatHandler.RegisterRoutes(protected)
 
-	// Webhooks
 	webhookHandler := handler.NewWebhookHandler(webhookRepo, sessionRepo, sessionPool)
 	webhookHandler.RegisterRoutes(protected)
 
 	printRoutes(app)
+}
 
-	// ==================== START SERVER ====================
+// startServer starts the Fiber server.
+func startServer(app *fiber.App) {
 	port := os.Getenv("API_PORT")
 	if port == "" {
 		port = "8080"
@@ -183,6 +217,45 @@ func main() {
 	if err := app.Listen(":" + port); err != nil {
 		logger.Fatal().Err(err).Msg("Server failed")
 	}
+}
+
+func main() {
+	_ = godotenv.Load()
+
+	cfg, err := config.Load()
+	if err != nil {
+		panic("config error: " + err.Error())
+	}
+
+	logger.Init(cfg.Log.Level)
+	logger.Info().Str("version", Version).Msg("🚀 Telegram API iniciando...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pool := setupDatabase(ctx, cfg)
+	defer pool.Close()
+
+	rdb := setupRedis(ctx, cfg)
+	defer func() {
+		if err := rdb.Close(); err != nil {
+			logger.Error().Err(err).Msg("Redis close failed")
+		}
+	}()
+
+	userRepo, tokenRepo, sessionRepo, webhookRepo, cacheRepo := setupRepositories(pool, rdb)
+
+	tgManager, sessionPool := setupTelegram(cfg, sessionRepo, webhookRepo)
+
+	authService, sessionService, messageService, chatService := setupServices(
+		userRepo, tokenRepo, sessionRepo, webhookRepo, cacheRepo, tgManager, sessionPool, cfg,
+	)
+
+	app := setupFiberApp(sessionPool)
+
+	setupRoutes(app, authService, sessionService, messageService, chatService, webhookRepo, sessionRepo, sessionPool)
+
+	startServer(app)
 }
 
 func runMigrations(pool *pgxpool.Pool) error {
@@ -205,6 +278,7 @@ func runMigrations(pool *pgxpool.Pool) error {
 
 	ctx := context.Background()
 	for _, f := range files {
+		// #nosec G304 -- Reading migration files from trusted directory
 		schema, err := os.ReadFile(f)
 		if err != nil {
 			logger.Error().Err(err).Str("file", f).Msg("Error reading migration")

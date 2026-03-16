@@ -7,14 +7,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// WebhookHandler handles webhook-related HTTP requests
+// WebhookHandler handles webhook-related HTTP requests.
 type WebhookHandler struct {
 	webhookRepo domain.WebhookRepository
 	sessionRepo domain.SessionRepository
 	pool        telegram.SessionPoolInterface
 }
 
-// NewWebhookHandler creates a new WebhookHandler instance
+// NewWebhookHandler creates a new WebhookHandler instance.
 func NewWebhookHandler(
 	webhookRepo domain.WebhookRepository,
 	sessionRepo domain.SessionRepository,
@@ -27,7 +27,7 @@ func NewWebhookHandler(
 	}
 }
 
-// RegisterRoutes registers webhook routes
+// RegisterRoutes registers webhook routes.
 func (h *WebhookHandler) RegisterRoutes(r fiber.Router) {
 	wh := r.Group("/sessions/:id/webhook")
 	wh.Post("/", h.Configure)

@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// handleError handles chat-related errors
+// handleError handles chat-related errors.
 func (h *ChatHandler) handleError(c *fiber.Ctx, err error) error {
 	switch err {
 	case domain.ErrSessionNotFound:

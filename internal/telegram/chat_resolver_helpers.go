@@ -9,8 +9,14 @@ import (
 	"github.com/gotd/td/tg"
 )
 
-// parseDialog parses a Telegram dialog into domain Chat
-func (m *ClientManager) parseDialog(dialog *tg.Dialog, users map[int64]*tg.User, chats map[int64]*tg.Chat, channels map[int64]*tg.Channel, messages map[int]*tg.Message) *domain.Chat {
+// parseDialog parses a Telegram dialog into domain Chat.
+func (m *ClientManager) parseDialog(
+	dialog *tg.Dialog,
+	users map[int64]*tg.User,
+	chats map[int64]*tg.Chat,
+	channels map[int64]*tg.Channel,
+	messages map[int]*tg.Message,
+) *domain.Chat {
 	chat := &domain.Chat{
 		UnreadCount: dialog.UnreadCount,
 		IsPinned:    dialog.Pinned,
@@ -56,21 +62,21 @@ func (m *ClientManager) parseDialog(dialog *tg.Dialog, users map[int64]*tg.User,
 	return chat
 }
 
-// resolvePeerByID resolves a peer by ID
-func (m *ClientManager) resolvePeerByID(ctx context.Context, api *tg.Client, chatID int64) (tg.InputPeerClass, error) {
+// resolvePeerByID resolves a peer by ID.
+func (m *ClientManager) resolvePeerByID(_ context.Context, _ *tg.Client, chatID int64) (tg.InputPeerClass, error) {
 	if chatID > 0 {
 		return &tg.InputPeerUser{UserID: chatID}, nil
 	}
 
 	channelID := -chatID
 	if channelID > 1000000000000 {
-		channelID = channelID - 1000000000000
+		channelID -= 1000000000000
 	}
 
 	return &tg.InputPeerChannel{ChannelID: channelID}, nil
 }
 
-// buildUserMap builds a map of user ID to User
+// buildUserMap builds a map of user ID to User.
 func buildUserMap(users []tg.UserClass) map[int64]*tg.User {
 	m := make(map[int64]*tg.User)
 	for _, u := range users {
@@ -81,7 +87,7 @@ func buildUserMap(users []tg.UserClass) map[int64]*tg.User {
 	return m
 }
 
-// buildChatMaps builds maps of chat ID to Chat and channel ID to Channel
+// buildChatMaps builds maps of chat ID to Chat and channel ID to Channel.
 func buildChatMaps(chats []tg.ChatClass) (map[int64]*tg.Chat, map[int64]*tg.Channel) {
 	chatMap := make(map[int64]*tg.Chat)
 	channelMap := make(map[int64]*tg.Channel)
@@ -96,7 +102,7 @@ func buildChatMaps(chats []tg.ChatClass) (map[int64]*tg.Chat, map[int64]*tg.Chan
 	return chatMap, channelMap
 }
 
-// buildMessageMap builds a map of message ID to Message
+// buildMessageMap builds a map of message ID to Message.
 func buildMessageMap(messages []tg.MessageClass) map[int]*tg.Message {
 	m := make(map[int]*tg.Message)
 	for _, msg := range messages {
@@ -107,7 +113,7 @@ func buildMessageMap(messages []tg.MessageClass) map[int]*tg.Message {
 	return m
 }
 
-// parseMessage parses a Telegram message into domain ChatMessage
+// parseMessage parses a Telegram message into domain ChatMessage.
 func parseMessage(msg *tg.Message, users map[int64]*tg.User, chatID int64) domain.ChatMessage {
 	cm := domain.ChatMessage{
 		ID:         msg.ID,
@@ -155,7 +161,7 @@ func parseMessage(msg *tg.Message, users map[int64]*tg.User, chatID int64) domai
 	return cm
 }
 
-// parseUserStatus parses a user status into status string and last seen time
+// parseUserStatus parses a user status into status string and last seen time.
 func parseUserStatus(status tg.UserStatusClass) (string, *time.Time) {
 	switch s := status.(type) {
 	case *tg.UserStatusOnline:
@@ -174,7 +180,7 @@ func parseUserStatus(status tg.UserStatusClass) (string, *time.Time) {
 	}
 }
 
-// truncateString truncates a string to max length
+// truncateString truncates a string to max length.
 func truncateString(s string, maxLen int) string {
 	if len(s) <= maxLen {
 		return s

@@ -9,9 +9,9 @@ import (
 	"github.com/gotd/td/tg"
 )
 
-// registerHandlers registers event handlers for the session
+// registerHandlers registers event handlers for the session.
 func (p *SessionPool) registerHandlers(dispatcher tg.UpdateDispatcher, active *ActiveSession) {
-	dispatcher.OnNewMessage(func(ctx context.Context, e tg.Entities, update *tg.UpdateNewMessage) error {
+	dispatcher.OnNewMessage(func(_ context.Context, e tg.Entities, update *tg.UpdateNewMessage) error {
 		msg, ok := update.Message.(*tg.Message)
 		if !ok || msg.Out {
 			return nil
@@ -27,7 +27,7 @@ func (p *SessionPool) registerHandlers(dispatcher tg.UpdateDispatcher, active *A
 		return nil
 	})
 
-	dispatcher.OnEditMessage(func(ctx context.Context, e tg.Entities, update *tg.UpdateEditMessage) error {
+	dispatcher.OnEditMessage(func(_ context.Context, e tg.Entities, update *tg.UpdateEditMessage) error {
 		msg, ok := update.Message.(*tg.Message)
 		if !ok {
 			return nil
@@ -39,7 +39,7 @@ func (p *SessionPool) registerHandlers(dispatcher tg.UpdateDispatcher, active *A
 		return nil
 	})
 
-	dispatcher.OnUserTyping(func(ctx context.Context, e tg.Entities, update *tg.UpdateUserTyping) error {
+	dispatcher.OnUserTyping(func(_ context.Context, _ tg.Entities, update *tg.UpdateUserTyping) error {
 		data := domain.TypingEventData{
 			ChatID: update.UserID,
 			UserID: update.UserID,
@@ -49,7 +49,7 @@ func (p *SessionPool) registerHandlers(dispatcher tg.UpdateDispatcher, active *A
 		return nil
 	})
 
-	dispatcher.OnUserStatus(func(ctx context.Context, e tg.Entities, update *tg.UpdateUserStatus) error {
+	dispatcher.OnUserStatus(func(_ context.Context, _ tg.Entities, update *tg.UpdateUserStatus) error {
 		data := domain.UserStatusEventData{
 			UserID: update.UserID,
 		}
@@ -70,7 +70,7 @@ func (p *SessionPool) registerHandlers(dispatcher tg.UpdateDispatcher, active *A
 	})
 }
 
-// parseMessage parses a Telegram message into domain event data
+// parseMessage parses a Telegram message into domain event data.
 func (p *SessionPool) parseMessage(e tg.Entities, msg *tg.Message) domain.MessageEventData {
 	data := domain.MessageEventData{
 		MessageID: int64(msg.ID),

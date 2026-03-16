@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// RequestLogger returns a middleware that logs HTTP requests.
 func RequestLogger() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		start := time.Now()

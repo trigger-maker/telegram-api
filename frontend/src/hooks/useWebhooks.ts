@@ -17,7 +17,7 @@ const webhookKeys = {
 }
 
 /**
- * Hook para obtener la configuracion del webhook de una sesion
+ * Hook para obtener la configuration del webhook de una sesion
  */
 export const useWebhookConfig = (sessionId: string, options?: { enabled?: boolean }) => {
   return useQuery({

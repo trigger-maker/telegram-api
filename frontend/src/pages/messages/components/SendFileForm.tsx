@@ -76,7 +76,7 @@ export const SendFileForm = ({ sessionId }: SendFileFormProps) => {
       <Input
         label="Caption (Opcional)"
         type="text"
-        placeholder="Descripcion del archivo..."
+        placeholder="Description del archivo..."
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
         disabled={sendMessage.isPending}

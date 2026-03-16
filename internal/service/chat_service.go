@@ -6,7 +6,7 @@ import (
 	"telegram-api/internal/telegram"
 )
 
-// ChatService manages chat and contact operations
+// ChatService manages chat and contact operations.
 type ChatService struct {
 	sessionRepo domain.SessionRepository
 	cacheRepo   domain.CacheRepository
@@ -14,7 +14,7 @@ type ChatService struct {
 	cacheCfg    config.CacheConfig
 }
 
-// NewChatService creates a new ChatService instance
+// NewChatService creates a new ChatService instance.
 func NewChatService(
 	sessionRepo domain.SessionRepository,
 	cacheRepo domain.CacheRepository,

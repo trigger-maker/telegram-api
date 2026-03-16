@@ -9,6 +9,7 @@ import (
 
 // ==================== WEBHOOK CONFIG ====================
 
+// WebhookConfig represents a webhook configuration.
 type WebhookConfig struct {
 	ID          uuid.UUID  `json:"id"`
 	SessionID   uuid.UUID  `json:"session_id"`
@@ -26,22 +27,33 @@ type WebhookConfig struct {
 
 // ==================== EVENT TYPES ====================
 
+// EventType represents the type of webhook event.
 type EventType string
 
 const (
-	EventNewMessage     EventType = "message.new"
-	EventEditMessage    EventType = "message.edit"
-	EventDeleteMessage  EventType = "message.delete"
-	EventUserOnline     EventType = "user.online"
-	EventUserOffline    EventType = "user.offline"
-	EventUserTyping     EventType = "user.typing"
-	EventChatAction     EventType = "chat.action"
+	// EventNewMessage represents a new message event.
+	EventNewMessage EventType = "message.new"
+	// EventEditMessage represents an edited message event.
+	EventEditMessage EventType = "message.edit"
+	// EventDeleteMessage represents a deleted message event.
+	EventDeleteMessage EventType = "message.delete"
+	// EventUserOnline represents a user online event.
+	EventUserOnline EventType = "user.online"
+	// EventUserOffline represents a user offline event.
+	EventUserOffline EventType = "user.offline"
+	// EventUserTyping represents a user typing event.
+	EventUserTyping EventType = "user.typing"
+	// EventChatAction represents a chat action event.
+	EventChatAction EventType = "chat.action"
+	// EventSessionStarted represents a session started event.
 	EventSessionStarted EventType = "session.started"
+	// EventSessionStopped represents a session stopped event.
 	EventSessionStopped EventType = "session.stopped"
-	EventSessionError   EventType = "session.error"
+	// EventSessionError represents a session error event.
+	EventSessionError EventType = "session.error"
 )
 
-// AllEvents lista todos los eventos disponibles
+// AllEvents lista todos los eventos disponibles.
 var AllEvents = []EventType{
 	EventNewMessage,
 	EventEditMessage,
@@ -57,6 +69,7 @@ var AllEvents = []EventType{
 
 // ==================== WEBHOOK EVENT (payload enviado) ====================
 
+// WebhookEvent represents a webhook event payload.
 type WebhookEvent struct {
 	ID        string      `json:"id"`
 	SessionID uuid.UUID   `json:"session_id"`
@@ -67,6 +80,7 @@ type WebhookEvent struct {
 
 // ==================== EVENT DATA STRUCTS ====================
 
+// MessageEventData represents message event data.
 type MessageEventData struct {
 	MessageID int64     `json:"message_id"`
 	ChatID    int64     `json:"chat_id"`
@@ -79,6 +93,7 @@ type MessageEventData struct {
 	Date      time.Time `json:"date"`
 }
 
+// UserStatusEventData represents user status event data.
 type UserStatusEventData struct {
 	UserID   int64     `json:"user_id"`
 	Username string    `json:"username,omitempty"`
@@ -86,6 +101,7 @@ type UserStatusEventData struct {
 	LastSeen time.Time `json:"last_seen,omitempty"`
 }
 
+// TypingEventData represents typing event data.
 type TypingEventData struct {
 	ChatID   int64  `json:"chat_id"`
 	UserID   int64  `json:"user_id"`
@@ -93,6 +109,7 @@ type TypingEventData struct {
 	Action   string `json:"action"` // typing, upload_photo, etc.
 }
 
+// SessionEventData represents session event data.
 type SessionEventData struct {
 	SessionID   uuid.UUID `json:"session_id"`
 	SessionName string    `json:"session_name"`
@@ -103,7 +120,7 @@ type SessionEventData struct {
 
 // ==================== REQUEST DTOs ====================
 
-// WebhookCreateRequest para crear/actualizar webhook
+// WebhookCreateRequest represents a request to create or update a webhook.
 type WebhookCreateRequest struct {
 	URL        string   `json:"url" validate:"required,url" example:"https://mi-servidor.com/webhook"`
 	Secret     string   `json:"secret,omitempty" example:"mi_secret_123"`
@@ -112,7 +129,7 @@ type WebhookCreateRequest struct {
 	TimeoutMs  int      `json:"timeout_ms,omitempty" example:"5000"`
 }
 
-// WebhookResponse respuesta de webhook
+// WebhookResponse represents a webhook response.
 type WebhookResponse struct {
 	ID        uuid.UUID `json:"id"`
 	SessionID uuid.UUID `json:"session_id"`
@@ -123,6 +140,7 @@ type WebhookResponse struct {
 
 // ==================== REPOSITORY INTERFACE ====================
 
+// WebhookRepository defines operations for webhook persistence.
 type WebhookRepository interface {
 	Create(ctx context.Context, wh *WebhookConfig) error
 	Update(ctx context.Context, wh *WebhookConfig) error

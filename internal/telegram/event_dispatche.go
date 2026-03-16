@@ -17,7 +17,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// EventDispatcher envía eventos a webhooks configurados
+// EventDispatcher envía eventos a webhooks configurados.
 type EventDispatcher struct {
 	webhookRepo domain.WebhookRepository
 	httpClient  *http.Client
@@ -29,7 +29,7 @@ type dispatchJob struct {
 	Event     domain.WebhookEvent
 }
 
-// NewEventDispatcher crea el dispatcher
+// NewEventDispatcher crea el dispatcher.
 func NewEventDispatcher(webhookRepo domain.WebhookRepository) *EventDispatcher {
 	d := &EventDispatcher{
 		webhookRepo: webhookRepo,
@@ -47,7 +47,7 @@ func NewEventDispatcher(webhookRepo domain.WebhookRepository) *EventDispatcher {
 	return d
 }
 
-// Dispatch envía un evento
+// Dispatch envía un evento.
 func (d *EventDispatcher) Dispatch(sessionID uuid.UUID, eventType domain.EventType, data interface{}) {
 	event := domain.WebhookEvent{
 		ID:        uuid.New().String(),
@@ -73,33 +73,20 @@ func (d *EventDispatcher) worker() {
 	}
 }
 
-func (d *EventDispatcher) sendToWebhook(job *dispatchJob) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	// Obtener configuración de webhook
-	webhook, err := d.webhookRepo.GetBySessionID(ctx, job.SessionID)
-	if err != nil || webhook == nil || !webhook.IsActive {
-		return // No hay webhook configurado o no está activo
-	}
-
-	// Verificar si el evento está en la lista de eventos a enviar
-	if !d.shouldSendEvent(webhook.Events, job.Event.Type) {
-		return
-	}
-
-	// Serializar evento
+// prepareWebhookRequest prepares the HTTP request for webhook.
+func (d *EventDispatcher) prepareWebhookRequest(
+	ctx context.Context,
+	job *dispatchJob,
+	webhook *domain.WebhookConfig,
+) (*http.Request, error) {
 	payload, err := json.Marshal(job.Event)
 	if err != nil {
-		logger.Error().Err(err).Msg("Error serializando evento")
-		return
+		return nil, err
 	}
 
-	// Crear request
 	req, err := http.NewRequestWithContext(ctx, "POST", webhook.URL, bytes.NewReader(payload))
 	if err != nil {
-		logger.Error().Err(err).Msg("Error creando request")
-		return
+		return nil, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -107,27 +94,28 @@ func (d *EventDispatcher) sendToWebhook(job *dispatchJob) {
 	req.Header.Set("X-Telegram-Session", job.SessionID.String())
 	req.Header.Set("X-Telegram-Delivery", job.Event.ID)
 
-	// Firmar con secret si está configurado
 	if webhook.Secret != "" {
 		signature := d.signPayload(payload, webhook.Secret)
 		req.Header.Set("X-Telegram-Signature", signature)
 	}
 
-	// Enviar con retries
-	maxRetries := webhook.MaxRetries
-	if maxRetries == 0 {
-		maxRetries = 3
-	}
+	return req, nil
+}
 
+// sendWebhookWithRetry sends webhook request with retry logic.
+func (d *EventDispatcher) sendWebhookWithRetry(req *http.Request, maxRetries int, job *dispatchJob) error {
 	var lastErr error
 	for attempt := 1; attempt <= maxRetries; attempt++ {
+		// #nosec G704 -- Webhook URL is validated and user-configured
 		resp, err := d.httpClient.Do(req)
 		if err != nil {
 			lastErr = err
-			time.Sleep(time.Duration(attempt) * time.Second) // Backoff
+			time.Sleep(time.Duration(attempt) * time.Second)
 			continue
 		}
-		resp.Body.Close()
+		if err := resp.Body.Close(); err != nil {
+			logger.Error().Err(err).Msg("Error closing response body")
+		}
 
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 			logger.Debug().
@@ -135,22 +123,49 @@ func (d *EventDispatcher) sendToWebhook(job *dispatchJob) {
 				Str("event_type", string(job.Event.Type)).
 				Int("status", resp.StatusCode).
 				Msg("✅ Evento enviado a webhook")
-			return
+			return nil
 		}
 
 		lastErr = fmt.Errorf("webhook returned %d", resp.StatusCode)
 		time.Sleep(time.Duration(attempt) * time.Second)
 	}
 
-	// Falló después de todos los intentos
-	logger.Error().
-		Err(lastErr).
-		Str("session_id", job.SessionID.String()).
-		Str("url", webhook.URL).
-		Msg("❌ Webhook falló después de reintentos")
+	return lastErr
+}
 
-	// Actualizar último error en DB
-	go d.updateWebhookError(job.SessionID, lastErr.Error())
+func (d *EventDispatcher) sendToWebhook(job *dispatchJob) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	webhook, err := d.webhookRepo.GetBySessionID(ctx, job.SessionID)
+	if err != nil || webhook == nil || !webhook.IsActive {
+		return
+	}
+
+	if !d.shouldSendEvent(webhook.Events, job.Event.Type) {
+		return
+	}
+
+	req, err := d.prepareWebhookRequest(ctx, job, webhook)
+	if err != nil {
+		logger.Error().Err(err).Msg("Error preparing webhook request")
+		return
+	}
+
+	maxRetries := webhook.MaxRetries
+	if maxRetries == 0 {
+		maxRetries = 3
+	}
+
+	lastErr := d.sendWebhookWithRetry(req, maxRetries, job)
+	if lastErr != nil {
+		logger.Error().
+			Err(lastErr).
+			Str("session_id", job.SessionID.String()).
+			Str("url", webhook.URL).
+			Msg("❌ Webhook falló después de reintentos")
+		go d.updateWebhookError(job.SessionID, lastErr.Error())
+	}
 }
 
 func (d *EventDispatcher) shouldSendEvent(events []string, eventType domain.EventType) bool {

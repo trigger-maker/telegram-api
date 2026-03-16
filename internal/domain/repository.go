@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// UserRepository defines operations for user data persistence.
 type UserRepository interface {
 	Create(ctx context.Context, user *User) error
 	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
@@ -18,6 +19,7 @@ type UserRepository interface {
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 }
 
+// RefreshTokenRepository defines operations for refresh token persistence.
 type RefreshTokenRepository interface {
 	Create(ctx context.Context, token *RefreshToken) error
 	GetByTokenHash(ctx context.Context, tokenHash string) (*RefreshToken, error)
@@ -26,6 +28,7 @@ type RefreshTokenRepository interface {
 	DeleteExpired(ctx context.Context) (int64, error)
 }
 
+// CacheRepository defines operations for cache persistence.
 type CacheRepository interface {
 	Set(ctx context.Context, key string, value interface{}, ttlSeconds int) error
 	Get(ctx context.Context, key string) (string, error)

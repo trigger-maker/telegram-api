@@ -1,3 +1,4 @@
+// Package config provides configuration management for the application.
 package config
 
 import (
@@ -5,6 +6,7 @@ import (
 	"strconv"
 )
 
+// Config holds the application configuration.
 type Config struct {
 	Database   DatabaseConfig
 	Redis      RedisConfig
@@ -14,36 +16,42 @@ type Config struct {
 	Cache      CacheConfig // Nuevo
 }
 
+// DatabaseConfig holds database configuration.
 type DatabaseConfig struct {
 	URL string
 }
 
+// RedisConfig holds Redis configuration.
 type RedisConfig struct {
 	Addr     string
 	Password string
 }
 
+// JWTConfig holds JWT authentication configuration.
 type JWTConfig struct {
 	Secret      string
 	ExpiryHours int
 }
 
+// EncryptionConfig holds encryption configuration.
 type EncryptionConfig struct {
 	Key string
 }
 
+// LogConfig holds logging configuration.
 type LogConfig struct {
 	Level string
 }
 
-// CacheConfig configura TTLs de cache en segundos
+// CacheConfig configura TTLs de cache en segundos.
 type CacheConfig struct {
-	ContactsTTL int // TTL para contactos (default 300 = 5 min)
+	ContactsTTL int // TTL para contacts (default 300 = 5 min)
 	ChatsTTL    int // TTL para lista de chats (default 120 = 2 min)
 	ChatInfoTTL int // TTL para info de chat individual (default 300 = 5 min)
 	ResolveTTL  int // TTL para resolve peer (default 600 = 10 min)
 }
 
+// Load loads configuration from environment variables.
 func Load() (*Config, error) {
 	expiry, _ := strconv.Atoi(os.Getenv("JWT_EXPIRY_HOURS"))
 	if expiry == 0 {

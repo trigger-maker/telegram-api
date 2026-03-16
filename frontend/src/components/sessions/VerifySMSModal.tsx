@@ -112,7 +112,7 @@ export const VerifySMSModal = ({
         </form>
 
         <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
-          ¿No recibiste el código? Espera un momento y revisa tus mensajes de Telegram.
+          ¿No recibiste el código? Espera un memento y revisa tus mensajes de Telegram.
         </p>
       </div>
     </Modal>

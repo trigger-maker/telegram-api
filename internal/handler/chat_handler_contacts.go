@@ -20,7 +20,7 @@ import (
 // @Param offset query int false "Pagination offset"
 // @Param refresh query bool false "Force cache refresh"
 // @Success 200 {object} Response{data=domain.ContactsResponse}
-// @Router /sessions/{id}/contacts [get]
+// @Router /sessions/{id}/contacts [get].
 func (h *ChatHandler) GetContacts(c *fiber.Ctx) error {
 	sessionID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

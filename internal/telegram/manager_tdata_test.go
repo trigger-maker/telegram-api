@@ -13,13 +13,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Test 1: Invalid api_id - validation error
+// Test 1: Invalid api_id - validation error.
 func TestClientManager_ImportTData_InvalidApiID(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockSessionRepository)
 	sessionID := uuid.New().String()
 
-	manager, err := NewManager(&config.Config{Encryption: config.EncryptionConfig{Key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}}, mockRepo)
+	manager, err := NewManager(
+		&config.Config{
+			Encryption: config.EncryptionConfig{
+				Key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			},
+		},
+		mockRepo,
+	)
 	require.NoError(t, err)
 
 	tdataFiles := map[string][]byte{
@@ -32,13 +39,20 @@ func TestClientManager_ImportTData_InvalidApiID(t *testing.T) {
 	assert.Contains(t, err.Error(), "invalid api_id")
 }
 
-// Test 2: Empty api_hash - validation error
+// Test 2: Empty api_hash - validation error.
 func TestClientManager_ImportTData_EmptyApiHash(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockSessionRepository)
 	sessionID := uuid.New().String()
 
-	manager, err := NewManager(&config.Config{Encryption: config.EncryptionConfig{Key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}}, mockRepo)
+	manager, err := NewManager(
+		&config.Config{
+			Encryption: config.EncryptionConfig{
+				Key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			},
+		},
+		mockRepo,
+	)
 	require.NoError(t, err)
 
 	tdataFiles := map[string][]byte{
@@ -51,13 +65,20 @@ func TestClientManager_ImportTData_EmptyApiHash(t *testing.T) {
 	assert.Contains(t, err.Error(), "api_hash required")
 }
 
-// Test 3: No files - validation error
+// Test 3: No files - validation error.
 func TestClientManager_ImportTData_NoFiles(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockSessionRepository)
 	sessionID := uuid.New().String()
 
-	manager, err := NewManager(&config.Config{Encryption: config.EncryptionConfig{Key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}}, mockRepo)
+	manager, err := NewManager(
+		&config.Config{
+			Encryption: config.EncryptionConfig{
+				Key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			},
+		},
+		mockRepo,
+	)
 	require.NoError(t, err)
 
 	tdataFiles := map[string][]byte{}
@@ -68,13 +89,20 @@ func TestClientManager_ImportTData_NoFiles(t *testing.T) {
 	assert.Contains(t, err.Error(), "tdata files required")
 }
 
-// Test 4: Corrupted files - ErrTDataInvalid
+// Test 4: Corrupted files - ErrTDataInvalid.
 func TestClientManager_ImportTData_CorruptedFiles(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockSessionRepository)
 	sessionID := uuid.New().String()
 
-	manager, err := NewManager(&config.Config{Encryption: config.EncryptionConfig{Key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}}, mockRepo)
+	manager, err := NewManager(
+		&config.Config{
+			Encryption: config.EncryptionConfig{
+				Key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			},
+		},
+		mockRepo,
+	)
 	require.NoError(t, err)
 
 	tdataFiles := map[string][]byte{
@@ -87,13 +115,20 @@ func TestClientManager_ImportTData_CorruptedFiles(t *testing.T) {
 	assert.Equal(t, domain.ErrTDataInvalid, errors.Unwrap(err))
 }
 
-// Test 5: Valid input structure - passes validation
+// Test 5: Valid input structure - passes validation.
 func TestClientManager_ImportTData_ValidInput(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := new(MockSessionRepository)
 	sessionID := uuid.New().String()
 
-	manager, err := NewManager(&config.Config{Encryption: config.EncryptionConfig{Key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}}, mockRepo)
+	manager, err := NewManager(
+		&config.Config{
+			Encryption: config.EncryptionConfig{
+				Key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			},
+		},
+		mockRepo,
+	)
 	require.NoError(t, err)
 
 	tdataFiles := map[string][]byte{

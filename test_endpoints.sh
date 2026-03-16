@@ -137,9 +137,9 @@ else
   echo "⚠️ No se pudo obtener CHAT_ID del resolve"
 fi
 
-# --- Test 11: Contactos ---
+# --- Test 11: Contacts ---
 echo ""
-echo "👥 Test 11: Listar Contactos"
+echo "👥 Test 11: Listar Contacts"
 echo "-------------------------------------------"
 curl -s -X GET "$BASE_URL/sessions/$SESSION_ID/contacts" \
   -H "Authorization: Bearer $TOKEN" | jq .

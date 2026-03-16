@@ -12,8 +12,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Queries SQL como constantes privadas (Single Responsibility: solo SQL de usuarios)
+// Queries SQL como constantes privadas (Single Responsibility: solo SQL de usuarios).
 const (
+	// #nosec G101 -- SQL queries without hardcoded credentials
 	queryCreateUser = `
 		INSERT INTO users (id, username, email, password_hash, is_active, role, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
@@ -47,23 +48,24 @@ const (
 	queryExistsByEmail = `
 		SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)`
 
+	// #nosec G101 -- SQL queries without hardcoded credentials
 	queryUpdatePassword = `
 		UPDATE users SET password_hash = $2, updated_at = $3 WHERE id = $1`
 )
 
-// UserRepository implementa domain.UserRepository usando PostgreSQL
-// Principio: Single Responsibility - Solo maneja operaciones de usuarios
+// UserRepository implementa domain.UserRepository usando PostgreSQL.
+// Principio: Single Responsibility - Solo maneja operaciones de usuarios.
 type UserRepository struct {
 	pool *pgxpool.Pool
 }
 
-// NewUserRepository crea una nueva instancia del repositorio
-// Dependency Inversion: Recibe el pool como dependencia
+// NewUserRepository crea una nueva instancia del repositorio.
+// Dependency Inversion: Recibe el pool como dependencia.
 func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
 	return &UserRepository{pool: pool}
 }
 
-// Create crea un nuevo usuario en la base de datos
+// Create crea un nuevo usuario en la base de datos.
 func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 	_, err := r.pool.Exec(ctx, queryCreateUser,
 		user.ID,
@@ -81,7 +83,7 @@ func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 	return nil
 }
 
-// GetByID obtiene un usuario por su ID
+// GetByID obtiene un usuario por su ID.
 func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
 	user := &domain.User{}
 	err := r.pool.QueryRow(ctx, queryGetUserByID, id).Scan(
@@ -104,7 +106,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Use
 	return user, nil
 }
 
-// GetByUsername obtiene un usuario por su nombre de usuario
+// GetByUsername obtiene un usuario por su nombre de usuario.
 func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
 	user := &domain.User{}
 	err := r.pool.QueryRow(ctx, queryGetUserByUsername, username).Scan(
@@ -127,7 +129,7 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*d
 	return user, nil
 }
 
-// GetByEmail obtiene un usuario por su email
+// GetByEmail obtiene un usuario por su email.
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	user := &domain.User{}
 	err := r.pool.QueryRow(ctx, queryGetUserByEmail, email).Scan(
@@ -150,7 +152,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.
 	return user, nil
 }
 
-// Update actualiza los datos de un usuario
+// Update actualiza los datos de un usuario.
 func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 	result, err := r.pool.Exec(ctx, queryUpdateUser,
 		user.ID,
@@ -169,7 +171,7 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 	return nil
 }
 
-// UpdateLastLogin actualiza la fecha del último login
+// UpdateLastLogin actualiza la fecha del último login.
 func (r *UserRepository) UpdateLastLogin(ctx context.Context, id uuid.UUID) error {
 	_, err := r.pool.Exec(ctx, queryUpdateLastLogin, id, time.Now())
 	if err != nil {
@@ -178,7 +180,7 @@ func (r *UserRepository) UpdateLastLogin(ctx context.Context, id uuid.UUID) erro
 	return nil
 }
 
-// Delete realiza un soft delete del usuario
+// Delete realiza un soft delete del usuario.
 func (r *UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	result, err := r.pool.Exec(ctx, queryDeleteUser, id, time.Now())
 	if err != nil {
@@ -190,7 +192,7 @@ func (r *UserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-// ExistsByUsername verifica si existe un usuario con ese username
+// ExistsByUsername verifica si existe un usuario con ese username.
 func (r *UserRepository) ExistsByUsername(ctx context.Context, username string) (bool, error) {
 	var exists bool
 	err := r.pool.QueryRow(ctx, queryExistsByUsername, username).Scan(&exists)
@@ -200,7 +202,7 @@ func (r *UserRepository) ExistsByUsername(ctx context.Context, username string) 
 	return exists, nil
 }
 
-// ExistsByEmail verifica si existe un usuario con ese email
+// ExistsByEmail verifica si existe un usuario con ese email.
 func (r *UserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
 	var exists bool
 	err := r.pool.QueryRow(ctx, queryExistsByEmail, email).Scan(&exists)
@@ -210,7 +212,7 @@ func (r *UserRepository) ExistsByEmail(ctx context.Context, email string) (bool,
 	return exists, nil
 }
 
-// UpdatePassword actualiza la contraseña de un usuario
+// UpdatePassword actualiza la contraseña de un usuario.
 func (r *UserRepository) UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error {
 	result, err := r.pool.Exec(ctx, queryUpdatePassword, id, passwordHash, time.Now())
 	if err != nil {
@@ -222,5 +224,5 @@ func (r *UserRepository) UpdatePassword(ctx context.Context, id uuid.UUID, passw
 	return nil
 }
 
-// Verificación en tiempo de compilación de que implementa la interfaz
+// Verificación en tiempo de compilación de que implementa la interfaz.
 var _ domain.UserRepository = (*UserRepository)(nil)

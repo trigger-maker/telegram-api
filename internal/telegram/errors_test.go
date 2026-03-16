@@ -13,123 +13,171 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// TestHandleMTProtoError tests MTProto error handling
-func TestHandleMTProtoError(t *testing.T) {
-	ctx := context.Background()
-	sessionID := uuid.New()
+// errorTestCase defines a test case for error handling.
+type errorTestCase struct {
+	name           string
+	err            error
+	expectedAction ErrorAction
+	expectedState  domain.SessionStatus
+	expectedPause  time.Duration
+	expectedError  error
+}
 
-	tests := []struct {
-		name                string
-		err                 error
-		expectedAction       ErrorAction
-		expectedState       domain.SessionStatus
-		expectedPause        time.Duration
-		expectedError       error
-	}{
+// getFloodWaitTestCases returns flood wait error test cases.
+func getFloodWaitTestCases() []errorTestCase {
+	return []errorTestCase{
 		{
-			name:          "FLOOD_WAIT_30",
-			err:           errors.New("FLOOD_WAIT_30"),
+			name:           "FLOOD_WAIT_30",
+			err:            errors.New("FLOOD_WAIT_30"),
 			expectedAction: ActionPause,
 			expectedPause:  30 * time.Second,
 			expectedError:  domain.ErrTelegramFloodWait,
 		},
 		{
-			name:          "FLOOD_WAIT_120",
-			err:           errors.New("FLOOD_WAIT_120"),
+			name:           "FLOOD_WAIT_120",
+			err:            errors.New("FLOOD_WAIT_120"),
 			expectedAction: ActionPause,
 			expectedPause:  120 * time.Second,
 			expectedError:  domain.ErrTelegramFloodWait,
 		},
+	}
+}
+
+// getBlockingErrorTestCases returns blocking error test cases.
+func getBlockingErrorTestCases() []errorTestCase {
+	return []errorTestCase{
 		{
-			name:          "SESSION_REVOKED",
-			err:           errors.New("SESSION_REVOKED"),
+			name:           "SESSION_REVOKED",
+			err:            errors.New("SESSION_REVOKED"),
 			expectedAction: ActionStop,
 			expectedState:  domain.SessionBanned,
 			expectedError:  domain.ErrSessionNotActive,
 		},
 		{
-			name:          "AUTH_KEY_UNREGISTERED",
-			err:           errors.New("AUTH_KEY_UNREGISTERED"),
+			name:           "AUTH_KEY_UNREGISTERED",
+			err:            errors.New("AUTH_KEY_UNREGISTERED"),
 			expectedAction: ActionStop,
 			expectedState:  domain.SessionBanned,
 			expectedError:  domain.ErrSessionNotActive,
 		},
+	}
+}
+
+// getSessionStatusErrorTestCases returns session status error test cases.
+func getSessionStatusErrorTestCases() []errorTestCase {
+	return []errorTestCase{
 		{
-			name:          "USER_DEACTIVATED",
-			err:           errors.New("USER_DEACTIVATED"),
+			name:           "USER_DEACTIVATED",
+			err:            errors.New("USER_DEACTIVATED"),
 			expectedAction: ActionStop,
 			expectedState:  domain.SessionFrozen,
 			expectedError:  domain.ErrSessionNotActive,
 		},
 		{
-			name:          "USER_DEACTIVATED_BAN",
-			err:           errors.New("USER_DEACTIVATED_BAN"),
+			name:           "USER_DEACTIVATED_BAN",
+			err:            errors.New("USER_DEACTIVATED_BAN"),
 			expectedAction: ActionStop,
 			expectedState:  domain.SessionBanned,
 			expectedError:  domain.ErrSessionNotActive,
 		},
 		{
-			name:          "PHONE_NUMBER_BANNED",
-			err:           errors.New("PHONE_NUMBER_BANNED"),
+			name:           "PHONE_NUMBER_BANNED",
+			err:            errors.New("PHONE_NUMBER_BANNED"),
 			expectedAction: ActionStop,
 			expectedState:  domain.SessionBanned,
 			expectedError:  domain.ErrSessionNotActive,
 		},
+	}
+}
+
+// getPeerErrorTestCases returns peer error test cases.
+func getPeerErrorTestCases() []errorTestCase {
+	return []errorTestCase{
 		{
-			name:          "PEER_ID_INVALID",
-			err:           errors.New("PEER_ID_INVALID"),
+			name:           "PEER_ID_INVALID",
+			err:            errors.New("PEER_ID_INVALID"),
 			expectedAction: ActionFailTask,
 			expectedError:  domain.ErrPeerNotFound,
 		},
 		{
-			name:          "USERNAME_NOT_OCCUPIED",
-			err:           errors.New("USERNAME_NOT_OCCUPIED"),
+			name:           "USERNAME_NOT_OCCUPIED",
+			err:            errors.New("USERNAME_NOT_OCCUPIED"),
 			expectedAction: ActionFailTask,
 			expectedError:  domain.ErrPeerNotFound,
 		},
 		{
-			name:          "INPUT_USER_DEACTIVATED",
-			err:           errors.New("INPUT_USER_DEACTIVATED"),
+			name:           "INPUT_USER_DEACTIVATED",
+			err:            errors.New("INPUT_USER_DEACTIVATED"),
 			expectedAction: ActionFailTask,
 			expectedError:  domain.ErrPeerNotFound,
 		},
+	}
+}
+
+// getMiscErrorTestCases returns miscellaneous error test cases.
+func getMiscErrorTestCases() []errorTestCase {
+	return []errorTestCase{
 		{
-			name:          "Unknown error",
-			err:           errors.New("UNKNOWN_ERROR"),
+			name:           "Unknown error",
+			err:            errors.New("UNKNOWN_ERROR"),
 			expectedAction: ActionContinue,
 			expectedError:  domain.ErrInternal,
 		},
 	}
+}
+
+// getErrorTestCases returns all error test cases.
+func getErrorTestCases() []errorTestCase {
+	cases := []errorTestCase{}
+	cases = append(cases, getFloodWaitTestCases()...)
+	cases = append(cases, getBlockingErrorTestCases()...)
+	cases = append(cases, getSessionStatusErrorTestCases()...)
+	cases = append(cases, getPeerErrorTestCases()...)
+	cases = append(cases, getMiscErrorTestCases()...)
+	return cases
+}
+
+// runErrorTestCase runs a single error test case.
+func runErrorTestCase(ctx context.Context, t *testing.T, sessionID uuid.UUID, tt errorTestCase) {
+	mockRepo := new(MockSessionRepository)
+
+	if tt.expectedAction == ActionStop {
+		mockRepo.On("GetByID", ctx, sessionID).Return(&domain.TelegramSession{
+			ID:        sessionID,
+			AuthState: domain.SessionAuthenticated,
+			IsActive:  true,
+		}, nil)
+		mockRepo.On("Update", ctx, mock.Anything).Return(nil)
+	}
+
+	action, pause, err := HandleMTProtoError(ctx, sessionID, tt.err, mockRepo)
+
+	assert.Equal(t, tt.expectedAction, action)
+	assert.Equal(t, tt.expectedPause, pause)
+	assert.Equal(t, tt.expectedError, err)
+
+	if tt.expectedAction == ActionStop {
+		mockRepo.AssertCalled(t, "Update", ctx, mock.MatchedBy(func(s *domain.TelegramSession) bool {
+			return s.AuthState == tt.expectedState
+		}))
+	}
+}
+
+// TestHandleMTProtoError tests MTProto error handling.
+func TestHandleMTProtoError(t *testing.T) {
+	ctx := context.Background()
+	sessionID := uuid.New()
+
+	tests := getErrorTestCases()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRepo := new(MockSessionRepository)
-
-			if tt.expectedAction == ActionStop {
-				mockRepo.On("GetByID", ctx, sessionID).Return(&domain.TelegramSession{
-					ID:        sessionID,
-					AuthState: domain.SessionAuthenticated,
-					IsActive:  true,
-				}, nil)
-				mockRepo.On("Update", ctx, mock.Anything).Return(nil)
-			}
-
-			action, pause, err := HandleMTProtoError(ctx, sessionID, tt.err, mockRepo)
-
-			assert.Equal(t, tt.expectedAction, action)
-			assert.Equal(t, tt.expectedPause, pause)
-			assert.Equal(t, tt.expectedError, err)
-
-			if tt.expectedAction == ActionStop {
-				mockRepo.AssertCalled(t, "Update", ctx, mock.MatchedBy(func(s *domain.TelegramSession) bool {
-					return s.AuthState == tt.expectedState
-				}))
-			}
+			runErrorTestCase(ctx, t, sessionID, tt)
 		})
 	}
 }
 
-// TestExtractFloodWaitSeconds tests flood wait extraction
+// TestExtractFloodWaitSeconds tests flood wait extraction.
 func TestExtractFloodWaitSeconds(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -161,7 +209,7 @@ func TestExtractFloodWaitSeconds(t *testing.T) {
 	}
 }
 
-// TestIsBlockingError tests blocking error detection
+// TestIsBlockingError tests blocking error detection.
 func TestIsBlockingError(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -213,7 +261,7 @@ func TestIsBlockingError(t *testing.T) {
 	}
 }
 
-// TestIsTaskError tests task error detection
+// TestIsTaskError tests task error detection.
 func TestIsTaskError(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -255,7 +303,7 @@ func TestIsTaskError(t *testing.T) {
 	}
 }
 
-// TestGetBannedState tests banned state determination
+// TestGetBannedState tests banned state determination.
 func TestGetBannedState(t *testing.T) {
 	tests := []struct {
 		name     string

@@ -13,7 +13,7 @@ import (
 	"github.com/gotd/td/telegram"
 )
 
-// ClientManager manages Telegram client operations
+// ClientManager manages Telegram client operations.
 type ClientManager struct {
 	cfg        *config.Config
 	repo       domain.SessionRepository
@@ -23,13 +23,13 @@ type ClientManager struct {
 	mu         sync.RWMutex
 }
 
-// TGUser represents a Telegram user
+// TGUser represents a Telegram user.
 type TGUser struct {
 	ID       int64
 	Username string
 }
 
-// SignInResult represents the result of sign in operation
+// SignInResult represents the result of sign in operation.
 type SignInResult struct {
 	User          *TGUser
 	SessionData   []byte
@@ -37,14 +37,14 @@ type SignInResult struct {
 	PasswordHint  string
 }
 
-// QRAuthResult represents the result of QR authentication
+// QRAuthResult represents the result of QR authentication.
 type QRAuthResult struct {
 	User        *TGUser
 	SessionData []byte
 	Error       error
 }
 
-// NewManager creates a new ClientManager instance
+// NewManager creates a new ClientManager instance.
 func NewManager(cfg *config.Config, repo domain.SessionRepository) (*ClientManager, error) {
 	crypter, err := crypto.NewCrypter(cfg.Encryption.Key)
 	if err != nil {
@@ -61,15 +61,19 @@ func NewManager(cfg *config.Config, repo domain.SessionRepository) (*ClientManag
 	}, nil
 }
 
-// SetPool sets the session pool for the manager
+// SetPool sets the session pool for the manager.
 func (m *ClientManager) SetPool(pool *SessionPool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.pool = pool
 }
 
-// newClient creates a new Telegram client with the given configuration
-func (m *ClientManager) newClient(apiID int, apiHash, sessionName string, storage telegram.SessionStorage) *telegram.Client {
+// newClient creates a new Telegram client with the given configuration.
+func (m *ClientManager) newClient(
+	apiID int,
+	apiHash, sessionName string,
+	storage telegram.SessionStorage,
+) *telegram.Client {
 	return telegram.NewClient(apiID, apiHash, telegram.Options{
 		SessionStorage: storage,
 		Device: telegram.DeviceConfig{
@@ -82,12 +86,12 @@ func (m *ClientManager) newClient(apiID int, apiHash, sessionName string, storag
 	})
 }
 
-// Encrypt encrypts data using the configured crypter
+// Encrypt encrypts data using the configured crypter.
 func (m *ClientManager) Encrypt(data []byte) ([]byte, error) {
 	return m.crypter.Encrypt(data)
 }
 
-// Decrypt decrypts data using the configured crypter
+// Decrypt decrypts data using the configured crypter.
 func (m *ClientManager) Decrypt(data []byte) ([]byte, error) {
 	return m.crypter.Decrypt(data)
 }

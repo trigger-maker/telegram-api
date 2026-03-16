@@ -2,13 +2,78 @@ package handler
 
 import (
 	"io"
+	"mime/multipart"
 	"strconv"
 
+	"telegram-api/internal/domain"
 	"telegram-api/internal/middleware"
 	"telegram-api/pkg/logger"
 
 	"github.com/gofiber/fiber/v2"
 )
+
+// validateTDataForm validates the tdata import form fields.
+func validateTDataForm(c *fiber.Ctx) (userID string, apiID int, apiHash, sessionName string, err error) {
+	userIDUUID, err := middleware.GetUserID(c)
+	if err != nil {
+		return "", 0, "", "", err
+	}
+
+	apiID, err = strconv.Atoi(c.FormValue("api_id", "0"))
+	if err != nil || apiID <= 0 {
+		return "", 0, "", "", fiber.NewError(400, "api_id is required and must be positive")
+	}
+
+	apiHash = c.FormValue("api_hash", "")
+	if apiHash == "" {
+		return "", 0, "", "", fiber.NewError(400, "api_hash is required")
+	}
+
+	sessionName = c.FormValue("session_name", "")
+	return userIDUUID.String(), apiID, apiHash, sessionName, nil
+}
+
+// readTDataFiles reads all uploaded tdata files.
+func readTDataFiles(files []*multipart.FileHeader) (map[string][]byte, error) {
+	tdataFiles := make(map[string][]byte)
+
+	for _, fileHeader := range files {
+		file, err := fileHeader.Open()
+		if err != nil {
+			logger.Error().Err(err).Str("filename", fileHeader.Filename).Msg("Error opening tdata file")
+			return nil, fiber.NewError(400, "Error reading tdata file")
+		}
+		defer func() {
+			if err := file.Close(); err != nil {
+				logger.Error().Err(err).Str("filename", fileHeader.Filename).Msg("Error closing tdata file")
+			}
+		}()
+
+		content, err := io.ReadAll(file)
+		if err != nil {
+			logger.Error().Err(err).Str("filename", fileHeader.Filename).Msg("Error reading tdata file content")
+			return nil, fiber.NewError(400, "Error reading tdata file content")
+		}
+
+		tdataFiles[fileHeader.Filename] = content
+	}
+
+	return tdataFiles, nil
+}
+
+// buildTDataResponse builds the response for tdata import.
+func buildTDataResponse(session *domain.TelegramSession) fiber.Map {
+	return fiber.Map{
+		"session": fiber.Map{
+			"session_id":       session.ID,
+			"is_active":        session.IsActive,
+			"telegram_user_id": session.TelegramUserID,
+			"username":         session.TelegramUsername,
+			"auth_state":       session.AuthState,
+			"auth_method":      "tdata",
+		},
+	}
+}
 
 // ImportTData imports Telegram Desktop session
 // @Summary Import Telegram Desktop session
@@ -24,7 +89,7 @@ import (
 // @Success 201 {object} handler.Response{data=fiber.Map}
 // @Failure 400 {object} handler.Response
 // @Failure 422 {object} handler.Response
-// @Router /sessions/import-tdata [post]
+// @Router /sessions/import-tdata [post].
 func (h *SessionHandler) ImportTData(c *fiber.Ctx) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
@@ -37,43 +102,23 @@ func (h *SessionHandler) ImportTData(c *fiber.Ctx) error {
 		return c.Status(400).JSON(NewErrorResponse(400, "Invalid multipart form"))
 	}
 
-	apiID, err := strconv.Atoi(c.FormValue("api_id", "0"))
-	if err != nil || apiID <= 0 {
-		return c.Status(400).JSON(NewErrorResponse(400, "api_id is required and must be positive"))
+	userIDStr, apiID, apiHash, sessionName, err := validateTDataForm(c)
+	if err != nil {
+		return c.Status(400).JSON(NewErrorResponse(400, err.Error()))
 	}
 
-	apiHash := c.FormValue("api_hash", "")
-	if apiHash == "" {
-		return c.Status(400).JSON(NewErrorResponse(400, "api_hash is required"))
-	}
-
-	sessionName := c.FormValue("session_name", "")
-
-	tdataFiles := make(map[string][]byte)
 	files := form.File["files"]
 	if len(files) == 0 {
 		return c.Status(400).JSON(NewErrorResponse(400, "tdata files are required"))
 	}
 
-	for _, fileHeader := range files {
-		file, err := fileHeader.Open()
-		if err != nil {
-			logger.Error().Err(err).Str("filename", fileHeader.Filename).Msg("Error opening tdata file")
-			return c.Status(400).JSON(NewErrorResponse(400, "Error reading tdata file"))
-		}
-		defer file.Close()
-
-		content, err := io.ReadAll(file)
-		if err != nil {
-			logger.Error().Err(err).Str("filename", fileHeader.Filename).Msg("Error reading tdata file content")
-			return c.Status(400).JSON(NewErrorResponse(400, "Error reading tdata file content"))
-		}
-
-		tdataFiles[fileHeader.Filename] = content
+	tdataFiles, err := readTDataFiles(files)
+	if err != nil {
+		return c.Status(400).JSON(NewErrorResponse(400, err.Error()))
 	}
 
 	logger.Debug().
-		Str("user_id", userID.String()).
+		Str("user_id", userIDStr).
 		Int("api_id", apiID).
 		Str("session_name", sessionName).
 		Int("files_count", len(tdataFiles)).
@@ -84,16 +129,6 @@ func (h *SessionHandler) ImportTData(c *fiber.Ctx) error {
 		return handleSessionError(c, err)
 	}
 
-	response := fiber.Map{
-		"session": fiber.Map{
-			"session_id":       session.ID,
-			"is_active":        session.IsActive,
-			"telegram_user_id": session.TelegramUserID,
-			"username":         session.TelegramUsername,
-			"auth_state":       session.AuthState,
-			"auth_method":      "tdata",
-		},
-	}
-
+	response := buildTDataResponse(session)
 	return c.Status(201).JSON(NewSuccessResponse(response))
 }

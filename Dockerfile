@@ -3,12 +3,12 @@
 # ============================================
 FROM golang:1.25-alpine AS builder
 
-# Dependencias mínimas para compilar
+# Dependencies mínimas para compilar
 RUN apk add --no-cache git ca-certificates tzdata
 
 WORKDIR /build
 
-# Cache de dependencias (solo se re-ejecuta si cambian go.mod/go.sum)
+# Cache de dependencies (solo se re-ejecuta si cambian go.mod/go.sum)
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 

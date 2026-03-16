@@ -1,3 +1,4 @@
+// Package redis provides Redis-based caching functionality.
 package redis
 
 import (
@@ -12,7 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// Prefijos de claves para organización
+// Prefijos de claves para organización.
 const (
 	PrefixSession    = "session:"    // Sesiones de usuario (JWT blacklist)
 	PrefixRateLimit  = "rate:"       // Rate limiting
@@ -21,18 +22,18 @@ const (
 	PrefixCache      = "cache:"      // Caché general
 )
 
-// CacheRepository implementa domain.CacheRepository usando Redis
-// Single Responsibility: Solo maneja operaciones de caché
+// CacheRepository implementa domain.CacheRepository usando Redis.
+// Single Responsibility: Solo maneja operaciones de caché.
 type CacheRepository struct {
 	client *redis.Client
 }
 
-// NewCacheRepository crea una nueva instancia del repositorio de caché
+// NewCacheRepository crea una nueva instancia del repositorio de caché.
 func NewCacheRepository(client *redis.Client) *CacheRepository {
 	return &CacheRepository{client: client}
 }
 
-// Set guarda un valor string con TTL
+// Set guarda un valor string con TTL.
 func (r *CacheRepository) Set(ctx context.Context, key string, value interface{}, ttlSeconds int) error {
 	var strValue string
 	switch v := value.(type) {
@@ -52,7 +53,7 @@ func (r *CacheRepository) Set(ctx context.Context, key string, value interface{}
 	return nil
 }
 
-// Get obtiene un valor string
+// Get obtiene un valor string.
 func (r *CacheRepository) Get(ctx context.Context, key string) (string, error) {
 	val, err := r.client.Get(ctx, key).Result()
 	if err != nil {
@@ -64,7 +65,7 @@ func (r *CacheRepository) Get(ctx context.Context, key string) (string, error) {
 	return val, nil
 }
 
-// Delete elimina una o más claves
+// Delete elimina una o más claves.
 func (r *CacheRepository) Delete(ctx context.Context, keys ...string) error {
 	if len(keys) == 0 {
 		return nil
@@ -76,7 +77,7 @@ func (r *CacheRepository) Delete(ctx context.Context, keys ...string) error {
 	return nil
 }
 
-// Exists verifica si una clave existe
+// Exists verifica si una clave existe.
 func (r *CacheRepository) Exists(ctx context.Context, key string) (bool, error) {
 	count, err := r.client.Exists(ctx, key).Result()
 	if err != nil {
@@ -85,7 +86,7 @@ func (r *CacheRepository) Exists(ctx context.Context, key string) (bool, error) 
 	return count > 0, nil
 }
 
-// SetJSON guarda un objeto como JSON con TTL
+// SetJSON guarda un objeto como JSON con TTL.
 func (r *CacheRepository) SetJSON(ctx context.Context, key string, value interface{}, ttlSeconds int) error {
 	data, err := json.Marshal(value)
 	if err != nil {
@@ -100,7 +101,7 @@ func (r *CacheRepository) SetJSON(ctx context.Context, key string, value interfa
 	return nil
 }
 
-// GetJSON obtiene un objeto JSON y lo deserializa
+// GetJSON obtiene un objeto JSON y lo deserializa.
 func (r *CacheRepository) GetJSON(ctx context.Context, key string, dest interface{}) error {
 	val, err := r.client.Get(ctx, key).Bytes()
 	if err != nil {
@@ -116,8 +117,8 @@ func (r *CacheRepository) GetJSON(ctx context.Context, key string, dest interfac
 	return nil
 }
 
-// IncrementRateLimit incrementa un contador para rate limiting
-// Retorna el nuevo valor del contador
+// IncrementRateLimit incrementa un contador para rate limiting.
+// Retorna el nuevo valor del contador.
 func (r *CacheRepository) IncrementRateLimit(ctx context.Context, key string, windowSeconds int) (int64, error) {
 	pipe := r.client.Pipeline()
 
@@ -135,7 +136,7 @@ func (r *CacheRepository) IncrementRateLimit(ctx context.Context, key string, wi
 	return incr.Val(), nil
 }
 
-// GetRateLimitCount obtiene el contador actual de rate limiting
+// GetRateLimitCount obtiene el contador actual de rate limiting.
 func (r *CacheRepository) GetRateLimitCount(ctx context.Context, key string) (int64, error) {
 	val, err := r.client.Get(ctx, key).Int64()
 	if err != nil {
@@ -147,7 +148,7 @@ func (r *CacheRepository) GetRateLimitCount(ctx context.Context, key string) (in
 	return val, nil
 }
 
-// SetWithNX saves only if key does not exist (useful for locks)
+// SetWithNX saves only if key does not exist (useful for locks).
 func (r *CacheRepository) SetWithNX(ctx context.Context, key string, value interface{}, ttlSeconds int) (bool, error) {
 	ttl := time.Duration(ttlSeconds) * time.Second
 	ok, err := r.client.SetNX(ctx, key, value, ttl).Result()
@@ -157,7 +158,7 @@ func (r *CacheRepository) SetWithNX(ctx context.Context, key string, value inter
 	return ok, nil
 }
 
-// GetTTL obtiene el tiempo restante de vida de una clave
+// GetTTL obtiene el tiempo restante de vida de una clave.
 func (r *CacheRepository) GetTTL(ctx context.Context, key string) (time.Duration, error) {
 	ttl, err := r.client.TTL(ctx, key).Result()
 	if err != nil {
@@ -166,7 +167,7 @@ func (r *CacheRepository) GetTTL(ctx context.Context, key string) (time.Duration
 	return ttl, nil
 }
 
-// ScanKeys searches keys by pattern (use with caution in production)
+// ScanKeys searches keys by pattern (use with caution in production).
 func (r *CacheRepository) ScanKeys(ctx context.Context, pattern string, count int64) ([]string, error) {
 	var keys []string
 	var cursor uint64
@@ -186,31 +187,36 @@ func (r *CacheRepository) ScanKeys(ctx context.Context, pattern string, count in
 	return keys, nil
 }
 
-// BlacklistToken adds a token to blacklist (for logout)
+// BlacklistToken adds a token to blacklist (for logout).
 func (r *CacheRepository) BlacklistToken(ctx context.Context, tokenID string, ttlSeconds int) error {
 	key := PrefixSession + "blacklist:" + tokenID
 	return r.Set(ctx, key, "1", ttlSeconds)
 }
 
-// IsTokenBlacklisted checks if a token is in blacklist
+// IsTokenBlacklisted checks if a token is in blacklist.
 func (r *CacheRepository) IsTokenBlacklisted(ctx context.Context, tokenID string) (bool, error) {
 	key := PrefixSession + "blacklist:" + tokenID
 	return r.Exists(ctx, key)
 }
 
-// StoreTelegramCode temporarily stores a verification code
-func (r *CacheRepository) StoreTelegramCode(ctx context.Context, sessionID string, codeHash string, ttlSeconds int) error {
+// StoreTelegramCode temporarily stores a verification code.
+func (r *CacheRepository) StoreTelegramCode(
+	ctx context.Context,
+	sessionID string,
+	codeHash string,
+	ttlSeconds int,
+) error {
 	key := PrefixVerifyCode + sessionID
 	return r.Set(ctx, key, codeHash, ttlSeconds)
 }
 
-// GetTelegramCode gets verification code hash
+// GetTelegramCode gets verification code hash.
 func (r *CacheRepository) GetTelegramCode(ctx context.Context, sessionID string) (string, error) {
 	key := PrefixVerifyCode + sessionID
 	return r.Get(ctx, key)
 }
 
-// Health checks Redis connectivity
+// Health checks Redis connectivity.
 func (r *CacheRepository) Health(ctx context.Context) error {
 	_, err := r.client.Ping(ctx).Result()
 	if err != nil {
@@ -219,7 +225,7 @@ func (r *CacheRepository) Health(ctx context.Context) error {
 	return nil
 }
 
-// wrapRedisError wraps Redis errors
+// wrapRedisError wraps Redis errors.
 func wrapRedisError(err error, operation string) error {
 	if err == nil {
 		return nil
@@ -227,5 +233,5 @@ func wrapRedisError(err error, operation string) error {
 	return fmt.Errorf("%s: %w (redis: %v)", operation, domain.ErrCache, err)
 }
 
-// Verificación en tiempo de compilación
+// Verificación en tiempo de compilación.
 var _ domain.CacheRepository = (*CacheRepository)(nil)

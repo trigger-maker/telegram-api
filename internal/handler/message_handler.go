@@ -6,17 +6,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// MessageHandler handles message-related HTTP requests
+// MessageHandler handles message-related HTTP requests.
 type MessageHandler struct {
 	service service.MessageServiceInterface
 }
 
-// NewMessageHandler creates a new MessageHandler instance
+// NewMessageHandler creates a new MessageHandler instance.
 func NewMessageHandler(s service.MessageServiceInterface) *MessageHandler {
 	return &MessageHandler{service: s}
 }
 
-// RegisterRoutes registers message routes
+// RegisterRoutes registers message routes.
 func (h *MessageHandler) RegisterRoutes(r fiber.Router) {
 	msg := r.Group("/sessions/:id/messages")
 	msg.Post("/text", h.SendText)

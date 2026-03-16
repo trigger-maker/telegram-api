@@ -1,3 +1,4 @@
+// Package telegram provides Telegram client and related functionality.
 package telegram
 
 import (
@@ -10,8 +11,12 @@ import (
 	"github.com/gotd/td/tg"
 )
 
-// GetDialogs retrieves the list of chats/dialogs
-func (m *ClientManager) GetDialogs(ctx context.Context, client *telegram.Client, req domain.GetChatsRequest) (*domain.ChatsResponse, error) {
+// GetDialogs retrieves the list of chats/dialogs.
+func (m *ClientManager) GetDialogs(
+	ctx context.Context,
+	client *telegram.Client,
+	req domain.GetChatsRequest,
+) (*domain.ChatsResponse, error) {
 	api := client.API()
 
 	if req.Limit <= 0 || req.Limit > 100 {
@@ -70,7 +75,7 @@ func (m *ClientManager) GetDialogs(ctx context.Context, client *telegram.Client,
 	}, nil
 }
 
-// GetChatInfo retrieves information about a specific chat
+// GetChatInfo retrieves information about a specific chat.
 func (m *ClientManager) GetChatInfo(ctx context.Context, client *telegram.Client, chatID int64) (*domain.Chat, error) {
 	api := client.API()
 
@@ -94,7 +99,7 @@ func (m *ClientManager) GetChatInfo(ctx context.Context, client *telegram.Client
 	if chatID < 0 {
 		channelID := -chatID
 		if channelID > 1000000000000 {
-			channelID = channelID - 1000000000000
+			channelID -= 1000000000000
 		}
 
 		result, err := api.ChannelsGetChannels(ctx, []tg.InputChannelClass{
@@ -121,8 +126,13 @@ func (m *ClientManager) GetChatInfo(ctx context.Context, client *telegram.Client
 	return nil, fmt.Errorf("chat not found: %d", chatID)
 }
 
-// GetChatHistory retrieves the message history for a chat
-func (m *ClientManager) GetChatHistory(ctx context.Context, client *telegram.Client, chatID int64, req domain.GetHistoryRequest) (*domain.HistoryResponse, error) {
+// GetChatHistory retrieves the message history for a chat.
+func (m *ClientManager) GetChatHistory(
+	ctx context.Context,
+	client *telegram.Client,
+	chatID int64,
+	req domain.GetHistoryRequest,
+) (*domain.HistoryResponse, error) {
 	api := client.API()
 
 	if req.Limit <= 0 || req.Limit > 100 {

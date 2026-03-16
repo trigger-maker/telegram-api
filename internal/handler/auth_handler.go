@@ -1,3 +1,4 @@
+// Package handler provides HTTP request handlers.
 package handler
 
 import (
@@ -8,14 +9,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// AuthHandler handles authentication-related HTTP requests.
 type AuthHandler struct {
 	auth *service.AuthService
 }
 
+// NewAuthHandler creates a new AuthHandler instance.
 func NewAuthHandler(auth *service.AuthService) *AuthHandler {
 	return &AuthHandler{auth: auth}
 }
 
+// RegisterRoutes registers authentication routes.
 func (h *AuthHandler) RegisterRoutes(r fiber.Router) {
 	auth := r.Group("/auth")
 	auth.Post("/register", h.Register)
@@ -35,7 +39,7 @@ func (h *AuthHandler) RegisterRoutes(r fiber.Router) {
 // @Success 201 {object} handler.Response{data=domain.UserInfo}
 // @Failure 400 {object} handler.Response
 // @Failure 409 {object} handler.Response
-// @Router /auth/register [post]
+// @Router /auth/register [post].
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var req domain.CreateUserRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -60,7 +64,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 // @Param body body domain.LoginRequest true "Credenciales"
 // @Success 200 {object} handler.Response{data=domain.LoginResponse}
 // @Failure 401 {object} handler.Response
-// @Router /auth/login [post]
+// @Router /auth/login [post].
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var req domain.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -82,7 +86,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 // @Param body body object{refresh_token=string} true "Refresh token"
 // @Success 200 {object} handler.Response{data=domain.LoginResponse}
 // @Failure 401 {object} handler.Response
-// @Router /auth/refresh [post]
+// @Router /auth/refresh [post].
 func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	var req struct {
 		RefreshToken string `json:"refresh_token"`
@@ -106,13 +110,17 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 // @Security BearerAuth
 // @Param body body object{refresh_token=string} true "Refresh token"
 // @Success 200 {object} handler.Response
-// @Router /auth/logout [post]
+// @Router /auth/logout [post].
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	var req struct {
 		RefreshToken string `json:"refresh_token"`
 	}
-	c.BodyParser(&req)
-	h.auth.Logout(c.Context(), req.RefreshToken)
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(NewErrorResponse(400, "Invalid request body"))
+	}
+	if err := h.auth.Logout(c.Context(), req.RefreshToken); err != nil {
+		return handleErr(c, err)
+	}
 	return c.JSON(NewSuccessResponse(fiber.Map{"message": "ok"}))
 }
 
@@ -124,7 +132,7 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 // @Security BearerAuth
 // @Success 200 {object} handler.Response{data=domain.UserInfo}
 // @Failure 401 {object} handler.Response
-// @Router /auth/me [get]
+// @Router /auth/me [get].
 func (h *AuthHandler) Me(c *fiber.Ctx) error {
 	userID, _ := middleware.GetUserID(c)
 	user, err := h.auth.GetUserByID(c.Context(), userID)

@@ -162,7 +162,7 @@ const SessionNavItem = ({ session, collapsed, onNavigate, isExpanded, onToggle }
             `}
           >
             <Users className="w-3.5 h-3.5" />
-            <span>Contactos</span>
+            <span>Contacts</span>
           </NavLink>
           <NavLink
             to={`/webhooks/${session.id}`}
@@ -327,7 +327,7 @@ export const Sidebar = () => {
         <NavItem
           to="/settings"
           icon={<Settings className="w-5 h-5" />}
-          label="Configuracion"
+          label="Configuration"
           collapsed={isCollapsed}
           onClick={handleMobileNavigate}
         />

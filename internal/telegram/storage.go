@@ -10,14 +10,14 @@ import (
 	"github.com/google/uuid"
 )
 
-// PersistentSessionStorage implements telegram.SessionStorage with encryption
+// PersistentSessionStorage implements telegram.SessionStorage with encryption.
 type PersistentSessionStorage struct {
 	crypter   *crypto.Crypter
 	repo      domain.SessionRepository
 	sessionID string
 }
 
-// NewPersistentSessionStorage creates a new persistent session storage
+// NewPersistentSessionStorage creates a new persistent session storage.
 func NewPersistentSessionStorage(
 	crypter *crypto.Crypter,
 	repo domain.SessionRepository,
@@ -30,8 +30,8 @@ func NewPersistentSessionStorage(
 	}
 }
 
-// StoreSession encrypts and saves session data to database
-func (s *PersistentSessionStorage) StoreSession(ctx context.Context, data []byte) error {
+// StoreSession encrypts and saves session data to database.
+func (s *PersistentSessionStorage) StoreSession(_ context.Context, data []byte) error {
 	if s.crypter == nil {
 		return fmt.Errorf("crypter not initialized")
 	}
@@ -49,7 +49,7 @@ func (s *PersistentSessionStorage) StoreSession(ctx context.Context, data []byte
 	return nil
 }
 
-// LoadSession loads and decrypts session data from database
+// LoadSession loads and decrypts session data from database.
 func (s *PersistentSessionStorage) LoadSession(ctx context.Context) ([]byte, error) {
 	if s.crypter == nil {
 		return []byte{}, fmt.Errorf("crypter not initialized")

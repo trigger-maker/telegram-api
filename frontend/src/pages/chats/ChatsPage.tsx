@@ -136,7 +136,7 @@ export const ChatsPage = () => {
                     <div className="text-center">
                       <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                       <p className="text-gray-500 dark:text-gray-400">
-                        Selecciona un chat para ver la conversacion
+                        Selecciona un chat para ver la conversation
                       </p>
                     </div>
                   </div>

@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// MockSessionRepository is a mock for SessionRepository
+// MockSessionRepository is a mock for SessionRepository.
 type MockSessionRepository struct {
 	mock.Mock
 }
@@ -40,7 +40,11 @@ func (m *MockSessionRepository) GetByPhone(ctx context.Context, phone string) (*
 	return args.Get(0).(*domain.TelegramSession), args.Error(1)
 }
 
-func (m *MockSessionRepository) GetByUserAndPhone(ctx context.Context, userID uuid.UUID, phone string) (*domain.TelegramSession, error) {
+func (m *MockSessionRepository) GetByUserAndPhone(
+	ctx context.Context,
+	userID uuid.UUID,
+	phone string,
+) (*domain.TelegramSession, error) {
 	args := m.Called(ctx, userID, phone)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -79,7 +83,7 @@ func (m *MockSessionRepository) UpdateSessionData(sessionID string, data []byte)
 	return args.Error(0)
 }
 
-// Test 1: StoreSession with valid bytes - encryption and save
+// Test 1: StoreSession with valid bytes - encryption and save.
 func TestPersistentSessionStorage_StoreSession_ValidBytes(t *testing.T) {
 	ctx := context.Background()
 	sessionID := uuid.New().String()
@@ -98,7 +102,7 @@ func TestPersistentSessionStorage_StoreSession_ValidBytes(t *testing.T) {
 	mockRepo.AssertCalled(t, "UpdateSessionData", sessionID, mock.AnythingOfType("[]uint8"))
 }
 
-// Test 2: LoadSession when record doesn't exist - empty slice, not error
+// Test 2: LoadSession when record doesn't exist - empty slice, not error.
 func TestPersistentSessionStorage_LoadSession_NotFound(t *testing.T) {
 	ctx := context.Background()
 	sessionID := uuid.New().String()
@@ -117,7 +121,7 @@ func TestPersistentSessionStorage_LoadSession_NotFound(t *testing.T) {
 	mockRepo.AssertCalled(t, "GetByID", ctx, mock.AnythingOfType("uuid.UUID"))
 }
 
-// Test 3: StoreSession when DB unavailable - error, not panic
+// Test 3: StoreSession when DB unavailable - error, not panic.
 func TestPersistentSessionStorage_StoreSession_DBError(t *testing.T) {
 	ctx := context.Background()
 	sessionID := uuid.New().String()
@@ -136,7 +140,7 @@ func TestPersistentSessionStorage_StoreSession_DBError(t *testing.T) {
 	assert.Contains(t, err.Error(), "500")
 }
 
-// Test 4: Service restart - automatic restore of active sessions
+// Test 4: Service restart - automatic restore of active sessions.
 func TestPersistentSessionStorage_RestoreActiveSessions(t *testing.T) {
 	ctx := context.Background()
 	crypter, err := crypto.NewCrypter("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
@@ -164,7 +168,7 @@ func TestPersistentSessionStorage_RestoreActiveSessions(t *testing.T) {
 	assert.Equal(t, testData, data)
 }
 
-// Test 5: DC switch - save new bytes, continue work
+// Test 5: DC switch - save new bytes, continue work.
 func TestPersistentSessionStorage_DCSwitch(t *testing.T) {
 	ctx := context.Background()
 	sessionID := uuid.New().String()
@@ -190,7 +194,7 @@ func TestPersistentSessionStorage_DCSwitch(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
-// Test 6: UpdateSessionData with non-existent session_id - repository error
+// Test 6: UpdateSessionData with non-existent session_id - repository error.
 func TestPersistentSessionStorage_UpdateSessionData_NonExistent(t *testing.T) {
 	ctx := context.Background()
 	sessionID := uuid.New().String()
@@ -209,7 +213,7 @@ func TestPersistentSessionStorage_UpdateSessionData_NonExistent(t *testing.T) {
 	assert.ErrorIs(t, err, domain.ErrSessionNotFound)
 }
 
-// Test LoadSession with valid encrypted data
+// Test LoadSession with valid encrypted data.
 func TestPersistentSessionStorage_LoadSession_ValidData(t *testing.T) {
 	ctx := context.Background()
 	sessionID := uuid.New()
@@ -236,7 +240,7 @@ func TestPersistentSessionStorage_LoadSession_ValidData(t *testing.T) {
 	assert.Equal(t, testData, data)
 }
 
-// Test LoadSession with corrupted data
+// Test LoadSession with corrupted data.
 func TestPersistentSessionStorage_LoadSession_CorruptedData(t *testing.T) {
 	ctx := context.Background()
 	sessionID := uuid.New()

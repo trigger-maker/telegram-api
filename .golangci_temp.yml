@@ -1,0 +1,10 @@
+version: "2"
+
+linters:
+  disable-all: true
+  enable:
+    - revive
+
+run:
+  skip-dirs:
+    - internal/telegram

@@ -11,8 +11,11 @@ import (
 	tgClient "github.com/gotd/td/telegram"
 )
 
-// getValidSession retrieves and validates a session
-func (s *ChatService) getValidSession(ctx context.Context, userID, sessionID uuid.UUID) (*domain.TelegramSession, error) {
+// getValidSession retrieves and validates a session.
+func (s *ChatService) getValidSession(
+	ctx context.Context,
+	userID, sessionID uuid.UUID,
+) (*domain.TelegramSession, error) {
 	sess, err := s.sessionRepo.GetByID(ctx, sessionID)
 	if err != nil {
 		return nil, domain.ErrSessionNotFound
@@ -26,9 +29,9 @@ func (s *ChatService) getValidSession(ctx context.Context, userID, sessionID uui
 	return sess, nil
 }
 
-// createClient creates a Telegram client from session data
+// createClient creates a Telegram client from session data.
 func (s *ChatService) createClient(ctx context.Context, sess *domain.TelegramSession) (*tgClient.Client, error) {
-	apiHashBytes, err := s.tgManager.Decrypt(sess.ApiHashEncrypted)
+	apiHashBytes, err := s.tgManager.Decrypt(sess.APIHashEncrypted)
 	if err != nil {
 		return nil, fmt.Errorf("decrypt api_hash: %w", err)
 	}
@@ -43,7 +46,7 @@ func (s *ChatService) createClient(ctx context.Context, sess *domain.TelegramSes
 		return nil, fmt.Errorf("store session: %w", err)
 	}
 
-	return tgClient.NewClient(sess.ApiID, string(apiHashBytes), tgClient.Options{
+	return tgClient.NewClient(sess.APIID, string(apiHashBytes), tgClient.Options{
 		SessionStorage: storage,
 		Device: tgClient.DeviceConfig{
 			DeviceModel:    sess.SessionName,

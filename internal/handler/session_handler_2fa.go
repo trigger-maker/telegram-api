@@ -18,7 +18,7 @@ import (
 // @Failure 400 {object} handler.Response
 // @Failure 404 {object} handler.Response
 // @Failure 409 {object} handler.Response
-// @Router /sessions/{id}/submit-password [post]
+// @Router /sessions/{id}/submit-password [post].
 func (h *SessionHandler) SubmitPassword(c *fiber.Ctx) error {
 	sessionID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

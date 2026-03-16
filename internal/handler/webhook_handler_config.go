@@ -19,7 +19,7 @@ import (
 // @Param id path string true "Session ID"
 // @Param body body domain.WebhookCreateRequest true "Configuration"
 // @Success 200 {object} Response{data=domain.WebhookResponse}
-// @Router /sessions/{id}/webhook [post]
+// @Router /sessions/{id}/webhook [post].
 func (h *WebhookHandler) Configure(c *fiber.Ctx) error {
 	sessionID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -85,7 +85,7 @@ func (h *WebhookHandler) Configure(c *fiber.Ctx) error {
 // @Security BearerAuth
 // @Param id path string true "Session ID"
 // @Success 200 {object} Response{data=domain.WebhookConfig}
-// @Router /sessions/{id}/webhook [get]
+// @Router /sessions/{id}/webhook [get].
 func (h *WebhookHandler) Get(c *fiber.Ctx) error {
 	sessionID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -111,7 +111,7 @@ func (h *WebhookHandler) Get(c *fiber.Ctx) error {
 // @Security BearerAuth
 // @Param id path string true "Session ID"
 // @Success 200 {object} Response
-// @Router /sessions/{id}/webhook [delete]
+// @Router /sessions/{id}/webhook [delete].
 func (h *WebhookHandler) Delete(c *fiber.Ctx) error {
 	sessionID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

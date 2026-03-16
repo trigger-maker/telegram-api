@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// handleSessionError handles session-related errors
+// handleSessionError handles session-related errors.
 func handleSessionError(c *fiber.Ctx, err error) error {
 	switch err {
 	case domain.ErrSessionNotFound:

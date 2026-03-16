@@ -6,17 +6,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// ChatHandler handles chat-related HTTP requests
+// ChatHandler handles chat-related HTTP requests.
 type ChatHandler struct {
 	chatService *service.ChatService
 }
 
-// NewChatHandler creates a new ChatHandler instance
+// NewChatHandler creates a new ChatHandler instance.
 func NewChatHandler(chatService *service.ChatService) *ChatHandler {
 	return &ChatHandler{chatService: chatService}
 }
 
-// RegisterRoutes registers chat routes
+// RegisterRoutes registers chat routes.
 func (h *ChatHandler) RegisterRoutes(r fiber.Router) {
 	chats := r.Group("/sessions/:id/chats")
 	chats.Get("/", h.GetChats)

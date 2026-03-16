@@ -11,7 +11,7 @@ import (
 	"github.com/gotd/td/tg"
 )
 
-// GetContacts retrieves the user's contacts list
+// GetContacts retrieves the user's contacts list.
 func (m *ClientManager) GetContacts(ctx context.Context, client *telegram.Client) (*domain.ContactsResponse, error) {
 	api := client.API()
 
@@ -54,81 +54,103 @@ func (m *ClientManager) GetContacts(ctx context.Context, client *telegram.Client
 	}, nil
 }
 
-// ResolveUsername resolves a username or phone number to a peer
-func (m *ClientManager) ResolveUsername(ctx context.Context, client *telegram.Client, req domain.ResolveRequest) (*domain.ResolvedPeer, error) {
+// resolveByUsername resolves a peer by username.
+func (m *ClientManager) resolveByUsername(
+	ctx context.Context,
+	api *tg.Client,
+	username string,
+) (*domain.ResolvedPeer, error) {
+	username = strings.TrimPrefix(username, "@")
+	result, err := api.ContactsResolveUsername(ctx, &tg.ContactsResolveUsernameRequest{
+		Username: username,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("resolve username: %w", err)
+	}
+
+	users := buildUserMap(result.Users)
+	_, channels := buildChatMaps(result.Chats)
+
+	switch p := result.Peer.(type) {
+	case *tg.PeerUser:
+		if user, ok := users[p.UserID]; ok {
+			return &domain.ResolvedPeer{
+				ID:         user.ID,
+				Type:       domain.ChatTypePrivate,
+				Username:   user.Username,
+				FirstName:  user.FirstName,
+				LastName:   user.LastName,
+				Phone:      user.Phone,
+				AccessHash: user.AccessHash,
+				IsBot:      user.Bot,
+				IsVerified: user.Verified,
+			}, nil
+		}
+	case *tg.PeerChannel:
+		if ch, ok := channels[p.ChannelID]; ok {
+			chatType := domain.ChatTypeSupergroup
+			if ch.Broadcast {
+				chatType = domain.ChatTypeChannel
+			}
+			return &domain.ResolvedPeer{
+				ID:         ch.ID,
+				Type:       chatType,
+				Username:   ch.Username,
+				Title:      ch.Title,
+				AccessHash: ch.AccessHash,
+				IsVerified: ch.Verified,
+			}, nil
+		}
+	}
+
+	return nil, fmt.Errorf("peer not found for username: %s", username)
+}
+
+// resolveByPhone resolves a peer by phone number.
+func (m *ClientManager) resolveByPhone(
+	ctx context.Context,
+	api *tg.Client,
+	phone string,
+) (*domain.ResolvedPeer, error) {
+	phone = strings.TrimPrefix(phone, "+")
+	result, err := api.ContactsResolvePhone(ctx, phone)
+	if err != nil {
+		return nil, fmt.Errorf("resolve phone: %w", err)
+	}
+
+	users := buildUserMap(result.Users)
+	if p, ok := result.Peer.(*tg.PeerUser); ok {
+		if user, ok := users[p.UserID]; ok {
+			return &domain.ResolvedPeer{
+				ID:         user.ID,
+				Type:       domain.ChatTypePrivate,
+				Username:   user.Username,
+				FirstName:  user.FirstName,
+				LastName:   user.LastName,
+				Phone:      user.Phone,
+				AccessHash: user.AccessHash,
+				IsBot:      user.Bot,
+			}, nil
+		}
+	}
+
+	return nil, fmt.Errorf("peer not found for phone: %s", phone)
+}
+
+// ResolveUsername resolves a username or phone number to a peer.
+func (m *ClientManager) ResolveUsername(
+	ctx context.Context,
+	client *telegram.Client,
+	req domain.ResolveRequest,
+) (*domain.ResolvedPeer, error) {
 	api := client.API()
 
 	if req.Username != "" {
-		username := strings.TrimPrefix(req.Username, "@")
-		result, err := api.ContactsResolveUsername(ctx, &tg.ContactsResolveUsernameRequest{
-			Username: username,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("resolve username: %w", err)
-		}
-
-		users := buildUserMap(result.Users)
-		_, channels := buildChatMaps(result.Chats)
-
-		switch p := result.Peer.(type) {
-		case *tg.PeerUser:
-			if user, ok := users[p.UserID]; ok {
-				return &domain.ResolvedPeer{
-					ID:         user.ID,
-					Type:       domain.ChatTypePrivate,
-					Username:   user.Username,
-					FirstName:  user.FirstName,
-					LastName:   user.LastName,
-					Phone:      user.Phone,
-					AccessHash: user.AccessHash,
-					IsBot:      user.Bot,
-					IsVerified: user.Verified,
-				}, nil
-			}
-		case *tg.PeerChannel:
-			if ch, ok := channels[p.ChannelID]; ok {
-				chatType := domain.ChatTypeSupergroup
-				if ch.Broadcast {
-					chatType = domain.ChatTypeChannel
-				}
-				return &domain.ResolvedPeer{
-					ID:         ch.ID,
-					Type:       chatType,
-					Username:   ch.Username,
-					Title:      ch.Title,
-					AccessHash: ch.AccessHash,
-					IsVerified: ch.Verified,
-				}, nil
-			}
-		}
-
-		return nil, fmt.Errorf("peer not found for username: %s", username)
+		return m.resolveByUsername(ctx, api, req.Username)
 	}
 
 	if req.Phone != "" {
-		phone := strings.TrimPrefix(req.Phone, "+")
-		result, err := api.ContactsResolvePhone(ctx, phone)
-		if err != nil {
-			return nil, fmt.Errorf("resolve phone: %w", err)
-		}
-
-		users := buildUserMap(result.Users)
-		if p, ok := result.Peer.(*tg.PeerUser); ok {
-			if user, ok := users[p.UserID]; ok {
-				return &domain.ResolvedPeer{
-					ID:         user.ID,
-					Type:       domain.ChatTypePrivate,
-					Username:   user.Username,
-					FirstName:  user.FirstName,
-					LastName:   user.LastName,
-					Phone:      user.Phone,
-					AccessHash: user.AccessHash,
-					IsBot:      user.Bot,
-				}, nil
-			}
-		}
-
-		return nil, fmt.Errorf("peer not found for phone: %s", phone)
+		return m.resolveByPhone(ctx, api, req.Phone)
 	}
 
 	return nil, fmt.Errorf("username or phone required")

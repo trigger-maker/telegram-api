@@ -10,17 +10,17 @@ import (
 	"github.com/google/uuid"
 )
 
-// ListSessions returns all sessions for a user
+// ListSessions returns all sessions for a user.
 func (s *SessionService) ListSessions(ctx context.Context, userID uuid.UUID) ([]domain.TelegramSession, error) {
 	return s.sessionRepo.ListByUserID(ctx, userID)
 }
 
-// GetSession returns a session by ID
+// GetSession returns a session by ID.
 func (s *SessionService) GetSession(ctx context.Context, sessionID uuid.UUID) (*domain.TelegramSession, error) {
 	return s.sessionRepo.GetByID(ctx, sessionID)
 }
 
-// DeleteSession deletes a session by ID
+// DeleteSession deletes a session by ID.
 func (s *SessionService) DeleteSession(ctx context.Context, sessionID uuid.UUID) error {
 	session, err := s.sessionRepo.GetByID(ctx, sessionID)
 	if err != nil {
@@ -33,8 +33,8 @@ func (s *SessionService) DeleteSession(ctx context.Context, sessionID uuid.UUID)
 
 		err := s.tgManager.LogOut(
 			logoutCtx,
-			session.ApiID,
-			session.ApiHashEncrypted,
+			session.APIID,
+			session.APIHashEncrypted,
 			session.SessionData,
 			session.SessionName,
 		)

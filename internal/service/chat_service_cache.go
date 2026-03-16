@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// InvalidateCache invalidates cache for specified type
+// InvalidateCache invalidates cache for specified type.
 func (s *ChatService) InvalidateCache(ctx context.Context, sessionID uuid.UUID, cacheType string) error {
 	var keys []string
 

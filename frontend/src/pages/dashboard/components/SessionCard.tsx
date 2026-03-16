@@ -131,7 +131,7 @@ export const SessionCard = ({ session }: SessionCardProps) => {
                 className="flex items-center gap-2 flex-1 sm:flex-none justify-center"
               >
                 <Users className="w-4 h-4" />
-                <span className="sm:inline">Contactos</span>
+                <span className="sm:inline">Contacts</span>
               </Button>
               <Button
                 variant="primary"

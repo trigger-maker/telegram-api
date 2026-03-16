@@ -391,7 +391,8 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Inicia autenticación con Telegram (SMS o QR). Para QR, el sistema escucha automáticamente en background.",
+                "description": "Inicia autenticación con Telegram (SMS o QR). " +
+                    "Para QR, el sistema escucha automáticamente en background.",
                 "consumes": [
                     "application/json"
                 ],
@@ -442,7 +443,8 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna detalle de una sesión. Use para verificar si QR fue escaneado (is_active=true).",
+                "description": "Retorna detalle de una sesión. " +
+                    "Use para verificar si QR fue escaneado (is_active=true).",
                 "produces": [
                     "application/json"
                 ],
@@ -720,14 +722,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Obtiene la lista de contactos de Telegram",
+                "description": "Obtiene la lista de contacts de Telegram",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Contacts"
                 ],
-                "summary": "Listar contactos",
+                "summary": "Listar contacts",
                 "parameters": [
                     {
                         "type": "string",
@@ -1294,6 +1296,89 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
+                        "description": "OK. When 2FA is enabled, returns hint for password",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/domain.TelegramSession"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "hint": {
+                                                            "type": "string",
+                                                            "description": "2FA password hint (only when password_required)"
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Response"
+                        }
+                    },
+                    "410": {
+                        "description": "Gone",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/sessions/{id}/submit-password": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Completa autenticación con 2FA password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Submit 2FA Password",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "2FA Password",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.SubmitPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
                         "description": "OK",
                         "schema": {
                             "allOf": [
@@ -1312,13 +1397,101 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad Request - INVALID_PASSWORD",
                         "schema": {
                             "$ref": "#/definitions/handler.Response"
                         }
                     },
-                    "410": {
-                        "description": "Gone",
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict - ALREADY_AUTHENTICATED",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/sessions/import-tdata": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Importa sesión desde Telegram Desktop",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Import TData Session",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "API ID from my.telegram.org",
+                        "name": "api_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "API Hash from my.telegram.org",
+                        "name": "api_hash",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Session name (optional)",
+                        "name": "session_name",
+                        "in": "formData",
+                        "required": false
+                    },
+                    {
+                        "type": "file",
+                        "description": "TData files (key_data.json, etc.)",
+                        "name": "tdata",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/handler.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/domain.TelegramSession"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - VALIDATION",
+                        "schema": {
+                            "$ref": "#/definitions/handler.Response"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity - TDATA_INVALID",
                         "schema": {
                             "$ref": "#/definitions/handler.Response"
                         }
@@ -1556,11 +1729,13 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "sms",
-                "qr"
+                "qr",
+                "tdata"
             ],
             "x-enum-varnames": [
                 "AuthMethodSMS",
-                "AuthMethodQR"
+                "AuthMethodQR",
+                "AuthMethodTData"
             ]
         },
         "domain.BulkTextRequest": {
@@ -2020,6 +2195,44 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.SubmitPasswordRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "description": "2FA password"
+                }
+            }
+        },
+        "domain.ImportTDataRequest": {
+            "type": "object",
+            "required": [
+                "api_id",
+                "api_hash",
+                "tdata"
+            ],
+            "properties": {
+                "api_id": {
+                    "type": "integer",
+                    "description": "API ID from my.telegram.org"
+                },
+                "api_hash": {
+                    "type": "string",
+                    "description": "API Hash from my.telegram.org"
+                },
+                "session_name": {
+                    "type": "string",
+                    "description": "Session name (optional)"
+                },
+                "tdata": {
+                    "type": "file",
+                    "description": "TData files (key_data.json, etc.)"
+                }
+            }
+        },
         "domain.ResolveRequest": {
             "type": "object",
             "properties": {
@@ -2083,14 +2296,18 @@ const docTemplate = `{
                 "code_sent",
                 "password_required",
                 "authenticated",
-                "failed"
+                "failed",
+                "banned",
+                "frozen"
             ],
             "x-enum-varnames": [
                 "SessionPending",
                 "SessionCodeSent",
                 "SessionPasswordRequired",
                 "SessionAuthenticated",
-                "SessionFailed"
+                "SessionFailed",
+                "SessionBanned",
+                "SessionFrozen"
             ]
         },
         "domain.TelegramSession": {
@@ -2098,6 +2315,9 @@ const docTemplate = `{
             "properties": {
                 "api_id": {
                     "type": "integer"
+                },
+                "auth_method": {
+                    "$ref": "#/definitions/domain.AuthMethod"
                 },
                 "auth_state": {
                     "$ref": "#/definitions/domain.SessionStatus"
@@ -2358,7 +2578,7 @@ const docTemplate = `{
     }
 }`
 
-// SwaggerInfo holds exported Swagger Info so clients can modify it
+// SwaggerInfo holds exported Swagger Info so clients can modify it.
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1.0",
 	Host:             "localhost:7789",

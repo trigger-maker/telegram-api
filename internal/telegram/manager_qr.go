@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"telegram-api/internal/domain"
 	"telegram-api/pkg/logger"
 	"telegram-api/pkg/utils"
 
@@ -14,7 +15,332 @@ import (
 	"github.com/gotd/td/tg"
 )
 
-// StartQRAuth starts QR code authentication process
+// handleTokenSuccess handles successful token authentication.
+func handleTokenSuccess(auth *tg.AuthAuthorization) *TGUser {
+	if u, ok := auth.User.(*tg.User); ok {
+		return &TGUser{ID: u.ID, Username: u.Username}
+	}
+	return nil
+}
+
+// handleTokenMigrate handles token migration to different DC.
+func handleTokenMigrate(
+	ctx context.Context,
+	client *telegram.Client,
+	token *tg.AuthLoginTokenMigrateTo,
+) (*TGUser, error) {
+	logger.Info().Int("dc", token.DCID).Msg("QR scanned, migrating to DC...")
+
+	if err := client.MigrateTo(ctx, token.DCID); err != nil {
+		logger.Error().Err(err).Int("dc", token.DCID).Msg("Error migrating to DC")
+		return nil, err
+	}
+
+	res, err := client.API().AuthImportLoginToken(ctx, token.Token)
+	if err != nil {
+		logger.Error().Err(err).Msg("Error importing token")
+		return nil, err
+	}
+
+	success, ok := res.(*tg.AuthLoginTokenSuccess)
+	if !ok {
+		logger.Warn().Msgf("Unexpected type: %T", res)
+		return nil, fmt.Errorf("unexpected token type")
+	}
+
+	auth, ok := success.Authorization.(*tg.AuthAuthorization)
+	if !ok {
+		return nil, fmt.Errorf("unexpected auth type")
+	}
+
+	u, ok := auth.User.(*tg.User)
+	if !ok {
+		return nil, fmt.Errorf("unexpected user type")
+	}
+
+	logger.Info().
+		Int64("user_id", u.ID).
+		Str("username", u.Username).
+		Msg("✅ DC migration successful, user authenticated")
+
+	return &TGUser{ID: u.ID, Username: u.Username}, nil
+}
+
+// generateQR generates QR code image from token.
+func generateQR(token *tg.AuthLoginToken) string {
+	tokenB64 := base64.URLEncoding.EncodeToString(token.Token)
+	url := "tg://login?token=" + tokenB64
+	qrImg, _ := utils.GenerateQRBase64(url)
+	return qrImg
+}
+
+// sendFirstQR sends first QR code to channel if available.
+func sendFirstQR(firstQR chan<- string, qrImg string) {
+	select {
+	case firstQR <- qrImg:
+	default:
+	}
+}
+
+// handleTokenSuccessInLoop handles successful token in auth loop.
+func handleTokenSuccessInLoop(token *tg.AuthLoginTokenSuccess, result chan<- QRAuthResult) bool {
+	auth, ok := token.Authorization.(*tg.AuthAuthorization)
+	if !ok {
+		return false
+	}
+	if u, ok := auth.User.(*tg.User); ok {
+		result <- QRAuthResult{
+			User: &TGUser{ID: u.ID, Username: u.Username},
+		}
+		return true
+	}
+	return false
+}
+
+// handleLoginTokenInLoop handles login token in auth loop.
+func handleLoginTokenInLoop(
+	ctx context.Context,
+	m *ClientManager,
+	client *telegram.Client,
+	apiID int,
+	apiHash string,
+	storage *PersistentSessionStorage,
+	token *tg.AuthLoginToken,
+	sessionName string,
+	attempt int,
+	maxAttempts int,
+	qrTimeout time.Duration,
+	firstQR chan<- string,
+	result chan<- QRAuthResult,
+) bool {
+	qrImg := generateQR(token)
+
+	logger.Info().
+		Str("session_name", sessionName).
+		Int("attempt", attempt).
+		Int("max", maxAttempts).
+		Msg("QR generated, waiting for scan...")
+
+	if attempt == 1 {
+		sendFirstQR(firstQR, qrImg)
+	}
+
+	if user, sessionData, ok := m.waitForScan(ctx, client, apiID, apiHash, storage, qrTimeout); ok {
+		result <- QRAuthResult{User: user, SessionData: sessionData}
+		return true
+	}
+
+	logger.Info().
+		Str("session_name", sessionName).
+		Int("attempt", attempt).
+		Msg("QR expired, generating new...")
+
+	return false
+}
+
+// processAuthToken processes authentication token.
+func processAuthToken(
+	ctx context.Context,
+	m *ClientManager,
+	client *telegram.Client,
+	apiID int,
+	apiHash string,
+	storage *PersistentSessionStorage,
+	token interface{},
+	sessionName string,
+	attempt int,
+	maxAttempts int,
+	qrTimeout time.Duration,
+	firstQR chan<- string,
+	result chan<- QRAuthResult,
+) bool {
+	switch t := token.(type) {
+	case *tg.AuthLoginTokenSuccess:
+		return handleTokenSuccessInLoop(t, result)
+	case *tg.AuthLoginToken:
+		return handleLoginTokenInLoop(
+			ctx, m, client, apiID, apiHash, storage, t,
+			sessionName, attempt, maxAttempts, qrTimeout,
+			firstQR, result,
+		)
+	}
+	return false
+}
+
+// exportLoginToken exports login token with error handling.
+func exportLoginToken(
+	ctx context.Context,
+	client *telegram.Client,
+	apiID int,
+	apiHash string,
+	sessionID uuid.UUID,
+	repo domain.SessionRepository,
+	attempt int,
+	errChan chan<- error,
+) (interface{}, error) {
+	token, err := client.API().AuthExportLoginToken(ctx, &tg.AuthExportLoginTokenRequest{
+		APIID:     apiID,
+		APIHash:   apiHash,
+		ExceptIDs: []int64{},
+	})
+	if err != nil {
+		if attempt == 1 {
+			action, _, wrappedErr := HandleMTProtoError(ctx, sessionID, err, repo)
+			if action == ActionStop {
+				errChan <- wrappedErr
+				return nil, wrappedErr
+			}
+			errChan <- fmt.Errorf("export token: %w", err)
+			return nil, err
+		}
+		return nil, err
+	}
+	return token, nil
+}
+
+// runQRAuthLoop runs QR authentication loop.
+func runQRAuthLoop(
+	ctx context.Context,
+	m *ClientManager,
+	client *telegram.Client,
+	apiID int,
+	apiHash string,
+	storage *PersistentSessionStorage,
+	sessionID uuid.UUID,
+	repo domain.SessionRepository,
+	sessionName string,
+	maxAttempts int,
+	qrTimeout time.Duration,
+	firstQR chan<- string,
+	result chan<- QRAuthResult,
+	errChan chan<- error,
+) error {
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		token, err := exportLoginToken(ctx, client, apiID, apiHash, sessionID, repo, attempt, errChan)
+		if err != nil {
+			continue
+		}
+
+		if processAuthToken(
+			ctx, m, client, apiID, apiHash, storage, token,
+			sessionName, attempt, maxAttempts, qrTimeout,
+			firstQR, result,
+		) {
+			return nil
+		}
+	}
+
+	result <- QRAuthResult{Error: fmt.Errorf("max QR attempts reached")}
+	return nil
+}
+
+// handleLoginTokenInLoopWithSession handles login token in auth loop with session.
+func handleLoginTokenInLoopWithSession(
+	ctx context.Context,
+	m *ClientManager,
+	client *telegram.Client,
+	apiID int,
+	apiHash string,
+	storage *PersistentSessionStorage,
+	token *tg.AuthLoginToken,
+	sessionName string,
+	attempt int,
+	maxAttempts int,
+	qrTimeout time.Duration,
+	firstQR chan<- string,
+	result chan<- QRAuthResult,
+) bool {
+	qrImg := generateQR(token)
+
+	logger.Info().
+		Str("session_name", sessionName).
+		Int("attempt", attempt).
+		Int("max", maxAttempts).
+		Msg("QR generated, waiting for scan...")
+
+	if attempt == 1 {
+		sendFirstQR(firstQR, qrImg)
+	}
+
+	if user, ok := m.waitForScanWithSession(ctx, client, apiID, apiHash, storage, qrTimeout); ok {
+		result <- QRAuthResult{User: user}
+		return true
+	}
+
+	logger.Info().
+		Str("session_name", sessionName).
+		Int("attempt", attempt).
+		Msg("QR expired, generating new...")
+
+	return false
+}
+
+// processAuthTokenWithSession processes authentication token with session.
+func processAuthTokenWithSession(
+	ctx context.Context,
+	m *ClientManager,
+	client *telegram.Client,
+	apiID int,
+	apiHash string,
+	storage *PersistentSessionStorage,
+	token interface{},
+	sessionName string,
+	attempt int,
+	maxAttempts int,
+	qrTimeout time.Duration,
+	firstQR chan<- string,
+	result chan<- QRAuthResult,
+) bool {
+	switch t := token.(type) {
+	case *tg.AuthLoginTokenSuccess:
+		return handleTokenSuccessInLoop(t, result)
+	case *tg.AuthLoginToken:
+		return handleLoginTokenInLoopWithSession(
+			ctx, m, client, apiID, apiHash, storage, t,
+			sessionName, attempt, maxAttempts, qrTimeout,
+			firstQR, result,
+		)
+	}
+	return false
+}
+
+// runQRAuthLoopWithSession runs QR authentication loop with session.
+func runQRAuthLoopWithSession(
+	ctx context.Context,
+	m *ClientManager,
+	client *telegram.Client,
+	apiID int,
+	apiHash string,
+	storage *PersistentSessionStorage,
+	sessionID uuid.UUID,
+	repo domain.SessionRepository,
+	sessionName string,
+	maxAttempts int,
+	qrTimeout time.Duration,
+	firstQR chan<- string,
+	result chan<- QRAuthResult,
+	errChan chan<- error,
+) error {
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		token, err := exportLoginToken(ctx, client, apiID, apiHash, sessionID, repo, attempt, errChan)
+		if err != nil {
+			continue
+		}
+
+		if processAuthTokenWithSession(
+			ctx, m, client, apiID, apiHash, storage, token,
+			sessionName, attempt, maxAttempts, qrTimeout,
+			firstQR, result,
+		) {
+			return nil
+		}
+	}
+
+	result <- QRAuthResult{Error: fmt.Errorf("max QR attempts reached")}
+	return nil
+}
+
+// StartQRAuth starts QR code authentication process.
 func (m *ClientManager) StartQRAuth(
 	ctx context.Context,
 	apiID int,
@@ -36,70 +362,11 @@ func (m *ClientManager) StartQRAuth(
 		client := m.newClient(apiID, apiHash, sessionName, storage)
 
 		runErr := client.Run(ctx, func(ctx context.Context) error {
-			for attempt := 1; attempt <= maxAttempts; attempt++ {
-				token, err := client.API().AuthExportLoginToken(ctx, &tg.AuthExportLoginTokenRequest{
-					APIID:     apiID,
-					APIHash:   apiHash,
-					ExceptIDs: []int64{},
-				})
-				if err != nil {
-					if attempt == 1 {
-						action, _, wrappedErr := HandleMTProtoError(ctx, sessionID, err, m.repo)
-						if action == ActionStop {
-							errChan <- wrappedErr
-							return wrappedErr
-						}
-						errChan <- fmt.Errorf("export token: %w", err)
-						return err
-					}
-					continue
-				}
-
-				switch t := token.(type) {
-				case *tg.AuthLoginTokenSuccess:
-					auth, ok := t.Authorization.(*tg.AuthAuthorization)
-					if ok {
-						if u, ok := auth.User.(*tg.User); ok {
-							result <- QRAuthResult{
-								User: &TGUser{ID: u.ID, Username: u.Username},
-							}
-							return nil
-						}
-					}
-
-				case *tg.AuthLoginToken:
-					tokenB64 := base64.URLEncoding.EncodeToString(t.Token)
-					url := "tg://login?token=" + tokenB64
-
-					qrImg, _ := utils.GenerateQRBase64(url)
-
-					logger.Info().
-						Str("session_name", sessionName).
-						Int("attempt", attempt).
-						Int("max", maxAttempts).
-						Msg("QR generated, waiting for scan...")
-
-					if attempt == 1 {
-						select {
-						case firstQR <- qrImg:
-						default:
-						}
-					}
-
-					if user, sessionData, ok := m.waitForScan(ctx, client, apiID, apiHash, storage, qrTimeout); ok {
-						result <- QRAuthResult{User: user, SessionData: sessionData}
-						return nil
-					}
-
-					logger.Info().
-						Str("session_name", sessionName).
-						Int("attempt", attempt).
-						Msg("QR expired, generating new...")
-				}
-			}
-
-			result <- QRAuthResult{Error: fmt.Errorf("max QR attempts reached")}
-			return nil
+			return runQRAuthLoop(
+				ctx, m, client, apiID, apiHash, storage,
+				sessionID, m.repo, sessionName, maxAttempts,
+				qrTimeout, firstQR, result, errChan,
+			)
 		})
 
 		if runErr != nil && ctx.Err() == nil {
@@ -119,7 +386,7 @@ func (m *ClientManager) StartQRAuth(
 	}
 }
 
-// StartQRAuthWithSession starts QR code authentication with persistent session storage
+// StartQRAuthWithSession starts QR code authentication with persistent session storage.
 func (m *ClientManager) StartQRAuthWithSession(
 	ctx context.Context,
 	sessionID string,
@@ -140,72 +407,14 @@ func (m *ClientManager) StartQRAuthWithSession(
 		storage := NewPersistentSessionStorage(m.crypter, m.repo, sessionID)
 		client := m.newClient(apiID, apiHash, sessionName, storage)
 
+		sessionUUID, _ := uuid.Parse(sessionID)
+
 		runErr := client.Run(ctx, func(ctx context.Context) error {
-			for attempt := 1; attempt <= maxAttempts; attempt++ {
-				token, err := client.API().AuthExportLoginToken(ctx, &tg.AuthExportLoginTokenRequest{
-					APIID:     apiID,
-					APIHash:   apiHash,
-					ExceptIDs: []int64{},
-				})
-				if err != nil {
-					if attempt == 1 {
-						sessionUUID, _ := uuid.Parse(sessionID)
-						action, _, wrappedErr := HandleMTProtoError(ctx, sessionUUID, err, m.repo)
-						if action == ActionStop {
-							errChan <- wrappedErr
-							return wrappedErr
-						}
-						errChan <- fmt.Errorf("export token: %w", err)
-						return err
-					}
-					continue
-				}
-
-				switch t := token.(type) {
-				case *tg.AuthLoginTokenSuccess:
-					auth, ok := t.Authorization.(*tg.AuthAuthorization)
-					if ok {
-						if u, ok := auth.User.(*tg.User); ok {
-							result <- QRAuthResult{
-								User: &TGUser{ID: u.ID, Username: u.Username},
-							}
-							return nil
-						}
-					}
-
-				case *tg.AuthLoginToken:
-					tokenB64 := base64.URLEncoding.EncodeToString(t.Token)
-					url := "tg://login?token=" + tokenB64
-
-					qrImg, _ := utils.GenerateQRBase64(url)
-
-					logger.Info().
-						Str("session_name", sessionName).
-						Int("attempt", attempt).
-						Int("max", maxAttempts).
-						Msg("QR generated, waiting for scan...")
-
-					if attempt == 1 {
-						select {
-						case firstQR <- qrImg:
-						default:
-						}
-					}
-
-					if user, ok := m.waitForScanWithSession(ctx, client, apiID, apiHash, storage, qrTimeout); ok {
-						result <- QRAuthResult{User: user}
-						return nil
-					}
-
-					logger.Info().
-						Str("session_name", sessionName).
-						Int("attempt", attempt).
-						Msg("QR expired, generating new...")
-				}
-			}
-
-			result <- QRAuthResult{Error: fmt.Errorf("max QR attempts reached")}
-			return nil
+			return runQRAuthLoopWithSession(
+				ctx, m, client, apiID, apiHash, storage,
+				sessionUUID, m.repo, sessionName, maxAttempts,
+				qrTimeout, firstQR, result, errChan,
+			)
 		})
 
 		if runErr != nil && ctx.Err() == nil {
@@ -225,13 +434,13 @@ func (m *ClientManager) StartQRAuthWithSession(
 	}
 }
 
-// waitForScan waits for the QR code to be scanned
+// waitForScan waits for the QR code to be scanned.
 func (m *ClientManager) waitForScan(
 	ctx context.Context,
 	client *telegram.Client,
 	apiID int,
 	apiHash string,
-	storage *PersistentSessionStorage,
+	_ *PersistentSessionStorage,
 	timeout time.Duration,
 ) (*TGUser, []byte, bool) {
 
@@ -260,50 +469,20 @@ func (m *ClientManager) waitForScan(
 				if !ok {
 					continue
 				}
-				u, ok := auth.User.(*tg.User)
-				if !ok {
-					continue
+				if user := handleTokenSuccess(auth); user != nil {
+					logger.Info().
+						Int64("user_id", user.ID).
+						Str("username", user.Username).
+						Msg("✅ QR scanned successfully")
+					return user, nil, true
 				}
-				logger.Info().
-					Int64("user_id", u.ID).
-					Str("username", u.Username).
-					Msg("✅ QR scanned successfully")
-				return &TGUser{ID: u.ID, Username: u.Username}, nil, true
 
 			case *tg.AuthLoginTokenMigrateTo:
-				logger.Info().Int("dc", t.DCID).Msg("QR scanned, migrating to DC...")
-
-				if err := client.MigrateTo(ctx, t.DCID); err != nil {
-					logger.Error().Err(err).Int("dc", t.DCID).Msg("Error migrating to DC")
-					continue
-				}
-
-				res, err := client.API().AuthImportLoginToken(ctx, t.Token)
+				user, err := handleTokenMigrate(ctx, client, t)
 				if err != nil {
-					logger.Error().Err(err).Msg("Error importing token")
 					continue
 				}
-
-				success, ok := res.(*tg.AuthLoginTokenSuccess)
-				if !ok {
-					logger.Warn().Msgf("Unexpected type: %T", res)
-					continue
-				}
-
-				auth, ok := success.Authorization.(*tg.AuthAuthorization)
-				if !ok {
-					continue
-				}
-
-				u, ok := auth.User.(*tg.User)
-				if !ok {
-					continue
-				}
-				logger.Info().
-					Int64("user_id", u.ID).
-					Str("username", u.Username).
-					Msg("✅ DC migration successful, user authenticated")
-				return &TGUser{ID: u.ID, Username: u.Username}, nil, true
+				return user, nil, true
 
 			case *tg.AuthLoginToken:
 				continue
@@ -314,13 +493,13 @@ func (m *ClientManager) waitForScan(
 	return nil, nil, false
 }
 
-// waitForScanWithSession waits for the QR code to be scanned with persistent session storage
+// waitForScanWithSession waits for the QR code to be scanned with persistent session storage.
 func (m *ClientManager) waitForScanWithSession(
 	ctx context.Context,
 	client *telegram.Client,
 	apiID int,
 	apiHash string,
-	storage *PersistentSessionStorage,
+	_ *PersistentSessionStorage,
 	timeout time.Duration,
 ) (*TGUser, bool) {
 
@@ -349,51 +528,20 @@ func (m *ClientManager) waitForScanWithSession(
 				if !ok {
 					continue
 				}
-				u, ok := auth.User.(*tg.User)
-				if !ok {
-					continue
+				if user := handleTokenSuccess(auth); user != nil {
+					logger.Info().
+						Int64("user_id", user.ID).
+						Str("username", user.Username).
+						Msg("✅ QR scanned successfully")
+					return user, true
 				}
-				logger.Info().
-					Int64("user_id", u.ID).
-					Str("username", u.Username).
-					Msg("✅ QR scanned successfully")
-				return &TGUser{ID: u.ID, Username: u.Username}, true
 
 			case *tg.AuthLoginTokenMigrateTo:
-				logger.Info().Int("dc", t.DCID).Msg("QR scanned, migrating to DC...")
-
-				if err := client.MigrateTo(ctx, t.DCID); err != nil {
-					logger.Error().Err(err).Int("dc", t.DCID).Msg("Error migrating to DC")
-					continue
-				}
-
-				res, err := client.API().AuthImportLoginToken(ctx, t.Token)
+				user, err := handleTokenMigrate(ctx, client, t)
 				if err != nil {
-					logger.Error().Err(err).Msg("Error importing token")
 					continue
 				}
-
-				success, ok := res.(*tg.AuthLoginTokenSuccess)
-				if !ok {
-					logger.Warn().Msgf("Unexpected type: %T", res)
-					continue
-				}
-
-				auth, ok := success.Authorization.(*tg.AuthAuthorization)
-				if !ok {
-					continue
-				}
-
-				u, ok := auth.User.(*tg.User)
-				if !ok {
-					continue
-				}
-
-				logger.Info().
-					Int64("user_id", u.ID).
-					Str("username", u.Username).
-					Msg("✅ DC migration successful, user authenticated")
-				return &TGUser{ID: u.ID, Username: u.Username}, true
+				return user, true
 
 			case *tg.AuthLoginToken:
 				continue

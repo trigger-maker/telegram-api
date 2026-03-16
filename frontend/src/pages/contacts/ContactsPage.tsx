@@ -104,7 +104,7 @@ export const ContactsPage = () => {
       <Layout>
         <div className="flex flex-col items-center justify-center py-12 gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Cargando contactos...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Cargando contacts...</p>
         </div>
       </Layout>
     )
@@ -198,7 +198,7 @@ export const ContactsPage = () => {
               </Button>
               <div className="min-w-0">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white truncate">
-                  Contactos
+                  Contacts
                 </h1>
                 <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                   {session.phone_number || session.session_name}
@@ -210,7 +210,7 @@ export const ContactsPage = () => {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400">
                 <Users className="w-4 h-4 mr-1.5" />
-                {totalCount.toLocaleString()} contactos
+                {totalCount.toLocaleString()} contacts
               </span>
               {fromCache && (
                 <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400">
@@ -253,7 +253,7 @@ export const ContactsPage = () => {
           <Alert variant="error" className="mb-6">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
-              <span>Error al cargar los contactos. Intenta nuevamente.</span>
+              <span>Error al cargar los contacts. Intenta nuevamente.</span>
             </div>
           </Alert>
         )}
@@ -268,8 +268,8 @@ export const ContactsPage = () => {
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
               {searchTerm
-                ? `No se encontraron contactos para "${searchTerm}"`
-                : 'No se encontraron contactos en esta sesion'}
+                ? `No se encontraron contacts para "${searchTerm}"`
+                : 'No se encontraron contacts en esta sesion'}
             </p>
           </div>
         )}
@@ -357,7 +357,7 @@ export const ContactsPage = () => {
               {isFetchingNextPage ? (
                 <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Cargando mas contactos...</span>
+                  <span>Cargando mas contacts...</span>
                 </div>
               ) : hasNextPage ? (
                 <Button
@@ -370,7 +370,7 @@ export const ContactsPage = () => {
                 </Button>
               ) : filteredContacts.length > 0 && contacts.length >= 50 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Has visto todos los contactos
+                  Has visto todos los contacts
                 </p>
               ) : null}
             </div>

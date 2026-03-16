@@ -61,7 +61,7 @@ export const SettingsPage = () => {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Configuracion</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Configuration</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Personaliza tu experiencia
           </p>
@@ -190,7 +190,7 @@ export const SettingsPage = () => {
         <Card className="p-6">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            Informacion de la API
+            Information de la API
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
@@ -202,7 +202,7 @@ export const SettingsPage = () => {
               <p className="font-mono font-medium text-gray-900 dark:text-white text-sm">/api/v1</p>
             </div>
             <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Documentacion</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Documentation</p>
               <a
                 href="/docs/"
                 target="_blank"
@@ -228,7 +228,7 @@ export const SettingsPage = () => {
           </h3>
           <Alert variant="error">
             <p className="text-sm">
-              Las siguientes acciones son irreversibles. Procede con precaucion.
+              Las siguientes acciones son irreversibles. Proceed con precaution.
             </p>
           </Alert>
           <div className="mt-4 flex flex-wrap gap-3">

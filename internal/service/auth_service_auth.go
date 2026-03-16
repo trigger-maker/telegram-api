@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Register creates a new user account
+// Register creates a new user account.
 func (s *AuthService) Register(ctx context.Context, req *domain.CreateUserRequest) (*domain.User, error) {
 	logger.Debug().Str("username", req.Username).Str("email", req.Email).Msg("Starting registration")
 
@@ -61,8 +61,12 @@ func (s *AuthService) Register(ctx context.Context, req *domain.CreateUserReques
 	return user, nil
 }
 
-// Login authenticates a user and returns tokens
-func (s *AuthService) Login(ctx context.Context, req *domain.LoginRequest, ipAddr, userAgent string) (*domain.LoginResponse, error) {
+// Login authenticates a user and returns tokens.
+func (s *AuthService) Login(
+	ctx context.Context,
+	req *domain.LoginRequest,
+	ipAddr, userAgent string,
+) (*domain.LoginResponse, error) {
 	logger.Debug().Str("username", req.Username).Str("ip", ipAddr).Msg("Login attempt")
 
 	user, err := s.userRepo.GetByUsername(ctx, req.Username)
@@ -106,8 +110,11 @@ func (s *AuthService) Login(ctx context.Context, req *domain.LoginRequest, ipAdd
 	}, nil
 }
 
-// RefreshTokens refreshes access and refresh tokens
-func (s *AuthService) RefreshTokens(ctx context.Context, refreshTokenStr, ipAddr, userAgent string) (*domain.LoginResponse, error) {
+// RefreshTokens refreshes access and refresh tokens.
+func (s *AuthService) RefreshTokens(
+	ctx context.Context,
+	refreshTokenStr, ipAddr, userAgent string,
+) (*domain.LoginResponse, error) {
 	tokenHash := crypto.HashToken(refreshTokenStr)
 
 	token, err := s.tokenRepo.GetByTokenHash(ctx, tokenHash)
@@ -161,7 +168,7 @@ func (s *AuthService) RefreshTokens(ctx context.Context, refreshTokenStr, ipAddr
 	}, nil
 }
 
-// Logout revokes a refresh token
+// Logout revokes a refresh token.
 func (s *AuthService) Logout(ctx context.Context, refreshTokenStr string) error {
 	tokenHash := crypto.HashToken(refreshTokenStr)
 	token, err := s.tokenRepo.GetByTokenHash(ctx, tokenHash)
@@ -172,7 +179,7 @@ func (s *AuthService) Logout(ctx context.Context, refreshTokenStr string) error 
 	return s.tokenRepo.Revoke(ctx, token.ID)
 }
 
-// LogoutAll revokes all refresh tokens for a user
+// LogoutAll revokes all refresh tokens for a user.
 func (s *AuthService) LogoutAll(ctx context.Context, userID uuid.UUID) error {
 	logger.Info().Str("user_id", userID.String()).Msg("Logout all devices")
 	return s.tokenRepo.RevokeAllForUser(ctx, userID)

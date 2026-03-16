@@ -76,7 +76,7 @@ export const SendVideoForm = ({ sessionId }: SendVideoFormProps) => {
       <Input
         label="Caption (Opcional)"
         type="text"
-        placeholder="Descripcion del video..."
+        placeholder="Description del video..."
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
         disabled={sendMessage.isPending}

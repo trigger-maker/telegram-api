@@ -131,7 +131,7 @@ export const LoginPage = () => {
                     type="checkbox"
                     className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
-                  <span className="text-gray-600 dark:text-gray-400">Recordarme</span>
+                  <span className="text-gray-600 dark:text-gray-400">Recorder</span>
                 </label>
                 <a href="#" className="text-primary-600 hover:text-primary-500 font-medium">
                   Olvidaste tu contrasena?

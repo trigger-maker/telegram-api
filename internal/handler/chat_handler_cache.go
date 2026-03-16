@@ -18,7 +18,7 @@ import (
 // @Param id path string true "Session ID"
 // @Param type query string false "Cache type to invalidate (contacts, chats, all)" default(all)
 // @Success 200 {object} Response
-// @Router /sessions/{id}/cache [delete]
+// @Router /sessions/{id}/cache [delete].
 func (h *ChatHandler) InvalidateCache(c *fiber.Ctx) error {
 	sessionID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

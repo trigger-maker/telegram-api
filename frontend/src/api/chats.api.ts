@@ -132,7 +132,7 @@ export const getChatHistory = async (
 }
 
 /**
- * Obtiene la lista de contactos de Telegram
+ * Obtiene la lista de contacts de Telegram
  */
 export const getContacts = async (
   sessionId: string,

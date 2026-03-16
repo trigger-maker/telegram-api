@@ -12,14 +12,17 @@ import (
 	"github.com/google/uuid"
 )
 
-// handleQRResult processes QR auth result in background
-func (s *SessionService) handleQRResult(sessionID uuid.UUID, resultChan <-chan telegram.QRAuthResult) {
+// handleQRResult processes QR auth result in background.
+func (s *SessionService) handleQRResult(
+	ctx context.Context,
+	sessionID uuid.UUID,
+	resultChan <-chan telegram.QRAuthResult,
+) {
 	result, ok := <-resultChan
 	if !ok {
 		logger.Warn().Str("session_id", sessionID.String()).Msg("Channel closed without result")
 		return
 	}
-	ctx := context.Background()
 	session, err := s.sessionRepo.GetByID(ctx, sessionID)
 	if err != nil {
 		logger.Error().Err(err).Str("session_id", sessionID.String()).Msg("Session not found")
@@ -56,8 +59,14 @@ func (s *SessionService) handleQRResult(sessionID uuid.UUID, resultChan <-chan t
 		Msg("QR session authenticated successfully")
 }
 
-// completeAuth completes the authentication process
-func (s *SessionService) completeAuth(ctx context.Context, session *domain.TelegramSession, user *telegram.TGUser, sessionData []byte, cacheKey string) (*domain.TelegramSession, error) {
+// completeAuth completes the authentication process.
+func (s *SessionService) completeAuth(
+	ctx context.Context,
+	session *domain.TelegramSession,
+	user *telegram.TGUser,
+	sessionData []byte,
+	cacheKey string,
+) (*domain.TelegramSession, error) {
 	var encryptedSessionData []byte
 	if len(sessionData) > 0 {
 		encryptedSessionData, _ = s.tgManager.Encrypt(sessionData)
@@ -85,7 +94,7 @@ func (s *SessionService) completeAuth(ctx context.Context, session *domain.Teleg
 	return session, nil
 }
 
-// defaultSessionName returns a default session name if not provided
+// defaultSessionName returns a default session name if not provided.
 func defaultSessionName(name, fallback string) string {
 	if name != "" {
 		return name

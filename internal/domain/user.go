@@ -1,4 +1,4 @@
-// / @file telegram-api/internal/domain/user.go
+// Package domain provides domain models and types for the application.
 package domain
 
 import (
@@ -7,15 +7,17 @@ import (
 	"github.com/google/uuid"
 )
 
-// Role define los roles de usuario en el sistema
+// Role define los roles de usuario en el sistema.
 type Role string
 
 const (
+	// RoleAdmin represents an administrator role with full access.
 	RoleAdmin Role = "admin"
-	RoleUser  Role = "user"
+	// RoleUser represents a standard user role.
+	RoleUser Role = "user"
 )
 
-// User representa un administrador de la API
+// User representa un administrador de la API.
 type User struct {
 	ID           uuid.UUID  `json:"id"`
 	Username     string     `json:"username"`
@@ -28,20 +30,20 @@ type User struct {
 	UpdatedAt    time.Time  `json:"updated_at"`
 }
 
-// CreateUserRequest representa la petición para crear usuario
+// CreateUserRequest representa la petición para crear usuario.
 type CreateUserRequest struct {
 	Username string `json:"username" validate:"required,min=3,max=50,alphanum"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=8,max=72"`
 }
 
-// LoginRequest representa la petición de login
+// LoginRequest representa la petición de login.
 type LoginRequest struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }
 
-// LoginResponse representa la respuesta de login exitoso
+// LoginResponse representa la respuesta de login exitoso.
 type LoginResponse struct {
 	AccessToken  string    `json:"access_token"`
 	RefreshToken string    `json:"refresh_token"`
@@ -50,7 +52,7 @@ type LoginResponse struct {
 	User         *UserInfo `json:"user"`
 }
 
-// UserInfo representa información pública del usuario
+// UserInfo representa información pública del usuario.
 type UserInfo struct {
 	ID       uuid.UUID `json:"id"`
 	Username string    `json:"username"`
@@ -58,7 +60,7 @@ type UserInfo struct {
 	Role     Role      `json:"role"`
 }
 
-// RefreshToken representa un token de refresco
+// RefreshToken representa un token de refresco.
 type RefreshToken struct {
 	ID         uuid.UUID  `json:"id"`
 	UserID     uuid.UUID  `json:"user_id"`
@@ -70,7 +72,7 @@ type RefreshToken struct {
 	CreatedAt  time.Time  `json:"created_at"`
 }
 
-// ToUserInfo convierte User a UserInfo (datos públicos)
+// ToUserInfo convierte User a UserInfo (datos públicos).
 func (u *User) ToUserInfo() *UserInfo {
 	return &UserInfo{
 		ID:       u.ID,
@@ -80,7 +82,7 @@ func (u *User) ToUserInfo() *UserInfo {
 	}
 }
 
-// IsAdmin verifica si el usuario es administrador
+// IsAdmin verifica si el usuario es administrador.
 func (u *User) IsAdmin() bool {
 	return u.Role == RoleAdmin
 }

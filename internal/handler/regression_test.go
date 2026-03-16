@@ -8,21 +8,26 @@ import (
 	"testing"
 	"time"
 
+	"telegram-api/internal/domain"
+	"telegram-api/internal/service"
+	"telegram-api/internal/telegram"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"telegram-api/internal/domain"
-	"telegram-api/internal/service"
-	"telegram-api/internal/telegram"
 )
 
-// Mock services for regression tests
+// Mock services for regression tests.
 type MockSessionServiceRegression struct {
 	mock.Mock
 }
 
-func (m *MockSessionServiceRegression) CreateSession(ctx context.Context, userID uuid.UUID, req *domain.CreateSessionRequest) (*domain.TelegramSession, string, error) {
+func (m *MockSessionServiceRegression) CreateSession(
+	ctx context.Context,
+	userID uuid.UUID,
+	req *domain.CreateSessionRequest,
+) (*domain.TelegramSession, string, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.String(1), args.Error(2)
@@ -30,7 +35,11 @@ func (m *MockSessionServiceRegression) CreateSession(ctx context.Context, userID
 	return args.Get(0).(*domain.TelegramSession), args.String(1), args.Error(2)
 }
 
-func (m *MockSessionServiceRegression) VerifyCode(ctx context.Context, sessionID uuid.UUID, code string) (*domain.TelegramSession, string, error) {
+func (m *MockSessionServiceRegression) VerifyCode(
+	ctx context.Context,
+	sessionID uuid.UUID,
+	code string,
+) (*domain.TelegramSession, string, error) {
 	args := m.Called(ctx, sessionID, code)
 	if args.Get(0) == nil {
 		return nil, args.String(1), args.Error(2)
@@ -38,7 +47,11 @@ func (m *MockSessionServiceRegression) VerifyCode(ctx context.Context, sessionID
 	return args.Get(0).(*domain.TelegramSession), args.String(1), args.Error(2)
 }
 
-func (m *MockSessionServiceRegression) SubmitPassword(ctx context.Context, sessionID uuid.UUID, password string) (*domain.TelegramSession, error) {
+func (m *MockSessionServiceRegression) SubmitPassword(
+	ctx context.Context,
+	sessionID uuid.UUID,
+	password string,
+) (*domain.TelegramSession, error) {
 	args := m.Called(ctx, sessionID, password)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -46,7 +59,10 @@ func (m *MockSessionServiceRegression) SubmitPassword(ctx context.Context, sessi
 	return args.Get(0).(*domain.TelegramSession), args.Error(1)
 }
 
-func (m *MockSessionServiceRegression) GetSession(ctx context.Context, sessionID uuid.UUID) (*domain.TelegramSession, error) {
+func (m *MockSessionServiceRegression) GetSession(
+	ctx context.Context,
+	sessionID uuid.UUID,
+) (*domain.TelegramSession, error) {
 	args := m.Called(ctx, sessionID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -54,7 +70,10 @@ func (m *MockSessionServiceRegression) GetSession(ctx context.Context, sessionID
 	return args.Get(0).(*domain.TelegramSession), args.Error(1)
 }
 
-func (m *MockSessionServiceRegression) ListSessions(ctx context.Context, userID uuid.UUID) ([]domain.TelegramSession, error) {
+func (m *MockSessionServiceRegression) ListSessions(
+	ctx context.Context,
+	userID uuid.UUID,
+) ([]domain.TelegramSession, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -72,7 +91,14 @@ func (m *MockSessionServiceRegression) RegenerateQR(ctx context.Context, session
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockSessionServiceRegression) ImportTData(ctx context.Context, userID uuid.UUID, apiID int, apiHash string, sessionName string, tdataFiles map[string][]byte) (*domain.TelegramSession, error) {
+func (m *MockSessionServiceRegression) ImportTData(
+	ctx context.Context,
+	userID uuid.UUID,
+	apiID int,
+	apiHash string,
+	sessionName string,
+	tdataFiles map[string][]byte,
+) (*domain.TelegramSession, error) {
 	args := m.Called(ctx, userID, apiID, apiHash, sessionName, tdataFiles)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -80,11 +106,17 @@ func (m *MockSessionServiceRegression) ImportTData(ctx context.Context, userID u
 	return args.Get(0).(*domain.TelegramSession), args.Error(1)
 }
 
+var _ service.SessionServiceInterface = (*MockSessionServiceRegression)(nil)
+
 type MockMessageServiceRegression struct {
 	mock.Mock
 }
 
-func (m *MockMessageServiceRegression) SendMessage(ctx context.Context, sessionID uuid.UUID, req *domain.SendMessageRequest) (*domain.MessageResponse, error) {
+func (m *MockMessageServiceRegression) SendMessage(
+	ctx context.Context,
+	sessionID uuid.UUID,
+	req *domain.SendMessageRequest,
+) (*domain.MessageResponse, error) {
 	args := m.Called(ctx, sessionID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -92,7 +124,11 @@ func (m *MockMessageServiceRegression) SendMessage(ctx context.Context, sessionI
 	return args.Get(0).(*domain.MessageResponse), args.Error(1)
 }
 
-func (m *MockMessageServiceRegression) SendBulk(ctx context.Context, sessionID uuid.UUID, req *domain.BulkMessageRequest) ([]domain.MessageResponse, error) {
+func (m *MockMessageServiceRegression) SendBulk(
+	ctx context.Context,
+	sessionID uuid.UUID,
+	req *domain.BulkMessageRequest,
+) ([]domain.MessageResponse, error) {
 	args := m.Called(ctx, sessionID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -110,7 +146,7 @@ func (m *MockMessageServiceRegression) GetJobStatus(ctx context.Context, jobID s
 
 var _ service.MessageServiceInterface = (*MockMessageServiceRegression)(nil)
 
-// R.1. SMS authorization without 2FA - no changes
+// R.1. SMS authorization without 2FA - no changes.
 func TestRegression_SMSAuthorization(t *testing.T) {
 	app := fiber.New()
 	mockService := new(MockSessionServiceRegression)
@@ -125,8 +161,8 @@ func TestRegression_SMSAuthorization(t *testing.T) {
 	})
 
 	req := domain.CreateSessionRequest{
-		ApiID:       12345,
-		ApiHash:     "12345678901234567890123456789012",
+		APIID:       12345,
+		APIHash:     "12345678901234567890123456789012",
 		Phone:       "+1234567890",
 		SessionName: "test_session",
 		AuthMethod:  domain.AuthMethodSMS,
@@ -149,14 +185,14 @@ func TestRegression_SMSAuthorization(t *testing.T) {
 	assert.Equal(t, 201, resp.StatusCode)
 
 	var result Response
-	json.NewDecoder(resp.Body).Decode(&result)
+	assert.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	assert.True(t, result.Success)
 	assert.Contains(t, result.Data, "phone_code_hash")
 	assert.Contains(t, result.Data, "next_step")
 	mockService.AssertExpectations(t)
 }
 
-// R.2. QR authorization - no changes, QR not printed
+// R.2. QR authorization - no changes, QR not printed.
 func TestRegression_QRAuthorization(t *testing.T) {
 	app := fiber.New()
 	mockService := new(MockSessionServiceRegression)
@@ -171,8 +207,8 @@ func TestRegression_QRAuthorization(t *testing.T) {
 	})
 
 	req := domain.CreateSessionRequest{
-		ApiID:       12345,
-		ApiHash:     "12345678901234567890123456789012",
+		APIID:       12345,
+		APIHash:     "12345678901234567890123456789012",
 		Phone:       "",
 		SessionName: "test_qr_session",
 		AuthMethod:  domain.AuthMethodQR,
@@ -194,14 +230,14 @@ func TestRegression_QRAuthorization(t *testing.T) {
 	assert.Equal(t, 201, resp.StatusCode)
 
 	var result Response
-	json.NewDecoder(resp.Body).Decode(&result)
+	assert.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	assert.True(t, result.Success)
 	assert.Contains(t, result.Data, "qr_image_base64")
 	assert.Contains(t, result.Data, "message")
 	mockService.AssertExpectations(t)
 }
 
-// R.3. QR regenerate - no changes
+// R.3. QR regenerate - no changes.
 func TestRegression_QRRegenerate(t *testing.T) {
 	app := fiber.New()
 	mockService := new(MockSessionServiceRegression)
@@ -218,7 +254,11 @@ func TestRegression_QRRegenerate(t *testing.T) {
 	mockService.On("RegenerateQR", mock.Anything, sessionID).
 		Return("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==", nil)
 
-	httpReq := httptest.NewRequest("POST", "/test/"+sessionID.String(), nil)
+	httpReq := httptest.NewRequest(
+		"POST",
+		"/test/"+sessionID.String(),
+		nil,
+	)
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(httpReq)
@@ -226,109 +266,152 @@ func TestRegression_QRRegenerate(t *testing.T) {
 	assert.Equal(t, 200, resp.StatusCode)
 
 	var result Response
-	json.NewDecoder(resp.Body).Decode(&result)
+	assert.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	assert.True(t, result.Success)
 	assert.Contains(t, result.Data, "qr_image_base64")
 	mockService.AssertExpectations(t)
 }
 
-// R.4. Send all media types - no changes
-func TestRegression_SendMediaTypes(t *testing.T) {
-	mediaTypes := []struct {
-		name      string
-		endpoint  string
-		req       interface{}
-		mediaType domain.MessageType
-		mediaURL  string
-	}{
+// mediaTestCase defines a test case for media message sending.
+type mediaTestCase struct {
+	name      string
+	endpoint  string
+	req       interface{}
+	mediaType domain.MessageType
+	mediaURL  string
+}
+
+// getMediaTestCases returns all media test cases.
+func getMediaTestCases() []mediaTestCase {
+	return []mediaTestCase{
 		{
-			name:      "photo",
-			endpoint:  "/photo",
-			req:       domain.PhotoMessageRequest{To: "@testuser", PhotoURL: "https://example.com/photo.jpg", Caption: "Test photo"},
+			name:     "photo",
+			endpoint: "/photo",
+			req: domain.PhotoMessageRequest{
+				To:       "@testuser",
+				PhotoURL: "https://example.com/photo.jpg",
+				Caption:  "Test photo",
+			},
 			mediaType: domain.MessageTypePhoto,
 			mediaURL:  "https://example.com/photo.jpg",
 		},
 		{
-			name:      "video",
-			endpoint:  "/video",
-			req:       domain.VideoMessageRequest{To: "@testuser", VideoURL: "https://example.com/video.mp4", Caption: "Test video"},
+			name:     "video",
+			endpoint: "/video",
+			req: domain.VideoMessageRequest{
+				To:       "@testuser",
+				VideoURL: "https://example.com/video.mp4",
+				Caption:  "Test video",
+			},
 			mediaType: domain.MessageTypeVideo,
 			mediaURL:  "https://example.com/video.mp4",
 		},
 		{
-			name:      "audio",
-			endpoint:  "/audio",
-			req:       domain.AudioMessageRequest{To: "@testuser", AudioURL: "https://example.com/audio.mp3", Caption: "Test audio"},
+			name:     "audio",
+			endpoint: "/audio",
+			req: domain.AudioMessageRequest{
+				To:       "@testuser",
+				AudioURL: "https://example.com/audio.mp3",
+				Caption:  "Test audio",
+			},
 			mediaType: domain.MessageTypeAudio,
 			mediaURL:  "https://example.com/audio.mp3",
 		},
 		{
-			name:      "file",
-			endpoint:  "/file",
-			req:       domain.FileMessageRequest{To: "@testuser", FileURL: "https://example.com/document.pdf", Caption: "Test file"},
+			name:     "file",
+			endpoint: "/file",
+			req: domain.FileMessageRequest{
+				To:      "@testuser",
+				FileURL: "https://example.com/document.pdf",
+				Caption: "Test file",
+			},
 			mediaType: domain.MessageTypeFile,
 			mediaURL:  "https://example.com/document.pdf",
 		},
 	}
+}
+
+// getMediaHandler returns the appropriate handler function for the media type.
+func getMediaHandler(handler *MessageHandler, name string) fiber.Handler {
+	switch name {
+	case "photo":
+		return handler.SendPhoto
+	case "video":
+		return handler.SendVideo
+	case "audio":
+		return handler.SendAudio
+	case "file":
+		return handler.SendFile
+	default:
+		return nil
+	}
+}
+
+// testMediaType tests sending a specific media type.
+func testMediaType(t *testing.T, tt mediaTestCase, mockService *MockMessageServiceRegression) {
+	app := fiber.New()
+	handler := NewMessageHandler(mockService)
+
+	sessionID := uuid.New()
+	jobID := uuid.New().String()
+
+	mediaHandler := getMediaHandler(handler, tt.name)
+	if mediaHandler == nil {
+		t.Fatal("Invalid media type")
+	}
+
+	app.Post("/test/:id", func(c *fiber.Ctx) error {
+		return mediaHandler(c)
+	})
+
+	mockService.On("SendMessage", mock.Anything, sessionID, mock.MatchedBy(func(r *domain.SendMessageRequest) bool {
+		return r.Type == tt.mediaType && r.MediaURL == tt.mediaURL
+	})).Return(&domain.MessageResponse{
+		JobID:  jobID,
+		Status: domain.MessageStatusPending,
+		SendAt: time.Now(),
+	}, nil)
+
+	body, _ := json.Marshal(tt.req)
+	httpReq := httptest.NewRequest("POST", "/test/"+sessionID.String(), bytes.NewReader(body))
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(httpReq)
+	assert.NoError(t, err)
+	if resp.StatusCode != 202 {
+		var errorResp Response
+		bodyBytes, _ := json.Marshal(resp.Body)
+		t.Logf("Response body: %s", string(bodyBytes))
+		if err := json.NewDecoder(resp.Body).Decode(&errorResp); err != nil {
+			t.Logf("Decode error: %v", err)
+		} else {
+			t.Logf("Error response: %+v", errorResp)
+			if errorResp.Error != nil {
+				t.Logf("Error code: %d, message: %s", errorResp.Error.Code, errorResp.Error.Message)
+			}
+		}
+	}
+	assert.Equal(t, 202, resp.StatusCode)
+
+	var result Response
+	assert.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
+	assert.True(t, result.Success)
+	mockService.AssertExpectations(t)
+}
+
+// R.4. Send all media types - no changes.
+func TestRegression_SendMediaTypes(t *testing.T) {
+	mediaTypes := getMediaTestCases()
 
 	for _, tt := range mediaTypes {
 		t.Run(tt.name, func(t *testing.T) {
-			app := fiber.New()
 			mockService := new(MockMessageServiceRegression)
-			handler := NewMessageHandler(mockService)
-
-			sessionID := uuid.New()
-			jobID := uuid.New().String()
-
-			app.Post("/test/:id", func(c *fiber.Ctx) error {
-				switch tt.name {
-				case "photo":
-					return handler.SendPhoto(c)
-				case "video":
-					return handler.SendVideo(c)
-				case "audio":
-					return handler.SendAudio(c)
-				case "file":
-					return handler.SendFile(c)
-				}
-				return fiber.ErrNotFound
-			})
-
-			mockService.On("SendMessage", mock.Anything, sessionID, mock.MatchedBy(func(r *domain.SendMessageRequest) bool {
-				return r.Type == tt.mediaType && r.MediaURL == tt.mediaURL
-			})).Return(&domain.MessageResponse{
-				JobID:  jobID,
-				Status: domain.MessageStatusPending,
-				SendAt: time.Now(),
-			}, nil)
-
-			body, _ := json.Marshal(tt.req)
-			httpReq := httptest.NewRequest("POST", "/test/"+sessionID.String(), bytes.NewReader(body))
-			httpReq.Header.Set("Content-Type", "application/json")
-
-			resp, err := app.Test(httpReq)
-			assert.NoError(t, err)
-			if resp.StatusCode != 202 {
-				var errorResp Response
-				bodyBytes, _ := json.Marshal(resp.Body)
-				t.Logf("Response body: %s", string(bodyBytes))
-				json.NewDecoder(resp.Body).Decode(&errorResp)
-				t.Logf("Error response: %+v", errorResp)
-				if errorResp.Error != nil {
-					t.Logf("Error code: %s, message: %s", errorResp.Error.Code, errorResp.Error.Message)
-				}
-			}
-			assert.Equal(t, 202, resp.StatusCode)
-
-			var result Response
-			json.NewDecoder(resp.Body).Decode(&result)
-			assert.True(t, result.Success)
-			mockService.AssertExpectations(t)
+			testMediaType(t, tt, mockService)
 		})
 	}
 }
 
-// R.5. Bulk send - no changes
+// R.5. Bulk send - no changes.
 func TestRegression_BulkSend(t *testing.T) {
 	app := fiber.New()
 	mockService := new(MockMessageServiceRegression)
@@ -364,12 +447,12 @@ func TestRegression_BulkSend(t *testing.T) {
 	assert.Equal(t, 202, resp.StatusCode)
 
 	var result Response
-	json.NewDecoder(resp.Body).Decode(&result)
+	assert.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	assert.True(t, result.Success)
 	mockService.AssertExpectations(t)
 }
 
-// R.6. Webhook event delivery - no changes
+// R.6. Webhook event delivery - no changes.
 func TestRegression_WebhookDelivery(t *testing.T) {
 	app := fiber.New()
 	mockWebhookRepo := new(MockWebhookRepository)
@@ -402,6 +485,7 @@ func TestRegression_WebhookDelivery(t *testing.T) {
 		return wh.SessionID == sessionID && wh.URL == "https://example.com/webhook"
 	})).Return(nil)
 
+	// #nosec G117 -- Test code, not exposing secrets
 	body, _ := json.Marshal(req)
 	httpReq := httptest.NewRequest("POST", "/test/"+sessionID.String(), bytes.NewReader(body))
 	httpReq.Header.Set("Content-Type", "application/json")
@@ -411,7 +495,7 @@ func TestRegression_WebhookDelivery(t *testing.T) {
 	assert.Equal(t, 200, resp.StatusCode)
 
 	var result Response
-	json.NewDecoder(resp.Body).Decode(&result)
+	assert.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	assert.True(t, result.Success)
 	assert.Contains(t, result.Data, "id")
 	assert.Contains(t, result.Data, "url")
@@ -420,7 +504,7 @@ func TestRegression_WebhookDelivery(t *testing.T) {
 	mockSessionRepo.AssertExpectations(t)
 }
 
-// R.7. GET /messages/:jobId/status - no changes
+// R.7. GET /messages/:jobId/status - no changes.
 func TestRegression_GetMessageStatus(t *testing.T) {
 	app := fiber.New()
 	mockService := new(MockMessageServiceRegression)
@@ -453,12 +537,12 @@ func TestRegression_GetMessageStatus(t *testing.T) {
 	assert.Equal(t, 200, resp.StatusCode)
 
 	var result Response
-	json.NewDecoder(resp.Body).Decode(&result)
+	assert.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	assert.True(t, result.Success)
 	mockService.AssertExpectations(t)
 }
 
-// R.8. DELETE /sessions/:id - no changes
+// R.8. DELETE /sessions/:id - no changes.
 func TestRegression_DeleteSession(t *testing.T) {
 	app := fiber.New()
 	mockService := new(MockSessionServiceRegression)
@@ -481,12 +565,12 @@ func TestRegression_DeleteSession(t *testing.T) {
 	assert.Equal(t, 200, resp.StatusCode)
 
 	var result Response
-	json.NewDecoder(resp.Body).Decode(&result)
+	assert.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	assert.True(t, result.Success)
 	mockService.AssertExpectations(t)
 }
 
-// R.9. Incoming webhook message.new - no changes
+// R.9. Incoming webhook message.new - no changes.
 func TestRegression_IncomingWebhookMessageNew(t *testing.T) {
 	app := fiber.New()
 	mockWebhookRepo := new(MockWebhookRepository)
@@ -517,7 +601,7 @@ func TestRegression_IncomingWebhookMessageNew(t *testing.T) {
 	assert.Equal(t, 200, resp.StatusCode)
 
 	var result Response
-	json.NewDecoder(resp.Body).Decode(&result)
+	assert.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
 	assert.True(t, result.Success)
 	webhookData := result.Data.(map[string]interface{})
 	assert.Equal(t, "https://example.com/webhook", webhookData["url"])
@@ -525,7 +609,7 @@ func TestRegression_IncomingWebhookMessageNew(t *testing.T) {
 	mockWebhookRepo.AssertExpectations(t)
 }
 
-// Mock repositories for webhook tests
+// Mock repositories for webhook tests.
 type MockWebhookRepository struct {
 	mock.Mock
 }
@@ -540,7 +624,10 @@ func (m *MockWebhookRepository) Update(ctx context.Context, wh *domain.WebhookCo
 	return args.Error(0)
 }
 
-func (m *MockWebhookRepository) GetBySessionID(ctx context.Context, sessionID uuid.UUID) (*domain.WebhookConfig, error) {
+func (m *MockWebhookRepository) GetBySessionID(
+	ctx context.Context,
+	sessionID uuid.UUID,
+) (*domain.WebhookConfig, error) {
 	args := m.Called(ctx, sessionID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -586,7 +673,11 @@ func (m *MockSessionRepository) GetByPhone(ctx context.Context, phone string) (*
 	return args.Get(0).(*domain.TelegramSession), args.Error(1)
 }
 
-func (m *MockSessionRepository) GetByUserAndPhone(ctx context.Context, userID uuid.UUID, phone string) (*domain.TelegramSession, error) {
+func (m *MockSessionRepository) GetByUserAndPhone(
+	ctx context.Context,
+	userID uuid.UUID,
+	phone string,
+) (*domain.TelegramSession, error) {
 	args := m.Called(ctx, userID, phone)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -625,7 +716,7 @@ func (m *MockSessionRepository) UpdateSessionData(sessionID string, data []byte)
 	return args.Error(0)
 }
 
-// MockSessionPool for webhook tests
+// MockSessionPool for webhook tests.
 type MockSessionPool struct {
 	mock.Mock
 }

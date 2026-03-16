@@ -1,3 +1,4 @@
+// Package middleware provides HTTP middleware functions.
 package middleware
 
 import (
@@ -7,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
-// CORSConfig retorna la configuración CORS para la API
+// CORSConfig retorna la configuración CORS para la API.
 func CORSConfig() cors.Config {
 	allowedOrigins := os.Getenv("CORS_ORIGINS")
 	if allowedOrigins == "" {
@@ -24,10 +25,12 @@ func CORSConfig() cors.Config {
 	}
 }
 
+// CORS returns a CORS middleware handler.
 func CORS() fiber.Handler {
 	return cors.New(CORSConfig())
 }
 
+// HandlePreflight handles preflight OPTIONS requests.
 func HandlePreflight() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if c.Method() == "OPTIONS" {

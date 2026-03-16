@@ -14,13 +14,14 @@ import (
 	"github.com/gotd/td/tg"
 )
 
-// MessageServiceInterface defines the interface for MessageService
+// MessageServiceInterface defines the interface for MessageService.
 type MessageServiceInterface interface {
 	SendMessage(ctx context.Context, sessionID uuid.UUID, req *domain.SendMessageRequest) (*domain.MessageResponse, error)
 	SendBulk(ctx context.Context, sessionID uuid.UUID, req *domain.BulkMessageRequest) ([]domain.MessageResponse, error)
 	GetJobStatus(ctx context.Context, jobID string) (*domain.MessageJob, error)
 }
 
+// MessageService handles message sending operations.
 type MessageService struct {
 	sessionRepo domain.SessionRepository
 	cache       domain.CacheRepository
@@ -28,6 +29,7 @@ type MessageService struct {
 	pool        *telegram.SessionPool
 }
 
+// NewMessageService creates a new MessageService instance.
 func NewMessageService(
 	sRepo domain.SessionRepository,
 	cache domain.CacheRepository,
@@ -48,7 +50,12 @@ const (
 	jobTTL    = 86400 // 24 horas
 )
 
-func (s *MessageService) SendMessage(ctx context.Context, sessionID uuid.UUID, req *domain.SendMessageRequest) (*domain.MessageResponse, error) {
+// SendMessage sends a single message via Telegram.
+func (s *MessageService) SendMessage(
+	ctx context.Context,
+	sessionID uuid.UUID,
+	req *domain.SendMessageRequest,
+) (*domain.MessageResponse, error) {
 	sess, err := s.sessionRepo.GetByID(ctx, sessionID)
 	if err != nil {
 		return nil, domain.ErrSessionNotFound
@@ -85,9 +92,9 @@ func (s *MessageService) SendMessage(ctx context.Context, sessionID uuid.UUID, r
 	_ = s.cache.Set(ctx, jobPrefix+job.ID, string(jobData), jobTTL)
 
 	if req.DelayMs > 0 {
-		go s.scheduleJob(job)
+		go s.scheduleJob(ctx, job)
 	} else {
-		go s.processJob(job)
+		go s.processJob(ctx, job)
 	}
 
 	return &domain.MessageResponse{
@@ -98,7 +105,12 @@ func (s *MessageService) SendMessage(ctx context.Context, sessionID uuid.UUID, r
 	}, nil
 }
 
-func (s *MessageService) SendBulk(ctx context.Context, sessionID uuid.UUID, req *domain.BulkMessageRequest) ([]domain.MessageResponse, error) {
+// SendBulk sends messages to multiple recipients.
+func (s *MessageService) SendBulk(
+	ctx context.Context,
+	sessionID uuid.UUID,
+	req *domain.BulkMessageRequest,
+) ([]domain.MessageResponse, error) {
 	if s.pool == nil {
 		return nil, domain.ErrSessionNotActive
 	}
@@ -144,6 +156,7 @@ func (s *MessageService) SendBulk(ctx context.Context, sessionID uuid.UUID, req 
 	return responses, nil
 }
 
+// GetJobStatus retrieves the status of a message job.
 func (s *MessageService) GetJobStatus(ctx context.Context, jobID string) (*domain.MessageJob, error) {
 	data, err := s.cache.Get(ctx, jobPrefix+jobID)
 	if err != nil || data == "" {
@@ -158,15 +171,21 @@ func (s *MessageService) GetJobStatus(ctx context.Context, jobID string) (*domai
 	return &job, nil
 }
 
-func (s *MessageService) scheduleJob(job *domain.MessageJob) {
+func (s *MessageService) scheduleJob(ctx context.Context, job *domain.MessageJob) {
 	delay := time.Until(job.SendAt)
 	if delay > 0 {
 		time.Sleep(delay)
 	}
-	s.processJob(job)
+	s.processJob(ctx, job)
 }
 
-func (s *MessageService) SendMessageWithClient(ctx context.Context, sessionID uuid.UUID, api interface{}, req *domain.SendMessageRequest) (*domain.MessageResponse, error) {
+// SendMessageWithClient sends a message using a specific Telegram client.
+func (s *MessageService) SendMessageWithClient(
+	ctx context.Context,
+	sessionID uuid.UUID,
+	api interface{},
+	req *domain.SendMessageRequest,
+) (*domain.MessageResponse, error) {
 	sess, err := s.sessionRepo.GetByID(ctx, sessionID)
 	if err != nil {
 		return nil, domain.ErrSessionNotFound
@@ -203,9 +222,9 @@ func (s *MessageService) SendMessageWithClient(ctx context.Context, sessionID uu
 	_ = s.cache.Set(ctx, jobPrefix+job.ID, string(jobData), jobTTL)
 
 	if req.DelayMs > 0 {
-		go s.scheduleJob(job)
+		go s.scheduleJob(ctx, job)
 	} else {
-		go s.processJobWithClient(job, api)
+		go s.processJobWithClient(ctx, job, api)
 	}
 
 	return &domain.MessageResponse{
@@ -216,8 +235,8 @@ func (s *MessageService) SendMessageWithClient(ctx context.Context, sessionID uu
 	}, nil
 }
 
-func (s *MessageService) processJob(job *domain.MessageJob) {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+func (s *MessageService) processJob(ctx context.Context, job *domain.MessageJob) {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
 	job.Status = domain.MessageStatusSending
@@ -256,8 +275,8 @@ func (s *MessageService) processJob(job *domain.MessageJob) {
 	}
 }
 
-func (s *MessageService) processJobWithClient(job *domain.MessageJob, api interface{}) {
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+func (s *MessageService) processJobWithClient(ctx context.Context, job *domain.MessageJob, api interface{}) {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
 	job.Status = domain.MessageStatusSending

@@ -1,3 +1,4 @@
+// Package database provides database services and connection management.
 package database
 
 import (
@@ -12,11 +13,13 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// Services holds database connections for PostgreSQL and Redis.
 type Services struct {
 	DB    *pgxpool.Pool
 	Redis *redis.Client
 }
 
+// NewServices creates a new Services instance with initialized database connections.
 func NewServices(ctx context.Context) (*Services, error) {
 	dsn := os.Getenv("DB_URL")
 	if dsn == "" {
@@ -61,6 +64,7 @@ func NewServices(ctx context.Context) (*Services, error) {
 	return &Services{DB: pool, Redis: rdb}, nil
 }
 
+// Migrate runs all SQL migration files from db/migrations directory.
 func (s *Services) Migrate() error {
 	files, err := filepath.Glob("db/migrations/*.sql")
 	if err != nil {
@@ -68,6 +72,7 @@ func (s *Services) Migrate() error {
 	}
 
 	for _, f := range files {
+		// #nosec G304 -- Reading migration files from trusted directory
 		schema, err := os.ReadFile(f)
 		if err != nil {
 			return fmt.Errorf("leer %s: %w", f, err)
@@ -82,7 +87,10 @@ func (s *Services) Migrate() error {
 	return nil
 }
 
+// Close closes all database connections.
 func (s *Services) Close() {
 	s.DB.Close()
-	s.Redis.Close()
+	if err := s.Redis.Close(); err != nil {
+		log.Printf("redis close error: %v", err)
+	}
 }

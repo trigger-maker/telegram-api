@@ -4012,7 +4012,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"data\": {\n    \"api_id\": 25603739,\n    \"auth_state\": \"password_required\",\n    \"created_at\": \"ullamco non adipisicing velit et\",\n    \"id\": \"fugiat ex Lorem\",\n    \"is_active\": true,\n    \"phone_number\": \"ex\",\n    \"session_name\": \"aliquip magna proident\",\n    \"telegram_user_id\": -42472158,\n    \"telegram_username\": \"velit dolor eu sunt mollit\",\n    \"updated_at\": \"ad sit\",\n    \"user_id\": \"minim irure\"\n  },\n  \"error\": {\n    \"code\": \"dolore aliquip eu nisi adipisicing\",\n    \"details\": {},\n    \"message\": \"velit pariatur laborum\"\n  },\n  \"meta\": {\n    \"page\": 18551218,\n    \"per_page\": 60646065,\n    \"total\": 34545108,\n    \"total_pages\": -47435085\n  },\n  \"success\": true\n}",
+              "body": "{\n  \"data\": {\n    \"api_id\": 25603739,\n    \"auth_state\": \"password_required\",\n    \"created_at\": \"ullamco non adipisicing velit et\",\n    \"hint\": \"Your 2FA password hint\",\n    \"id\": \"fugiat ex Lorem\",\n    \"is_active\": true,\n    \"phone_number\": \"ex\",\n    \"session_name\": \"aliquip magna proident\",\n    \"telegram_user_id\": -42472158,\n    \"telegram_username\": \"velit dolor eu sunt mollit\",\n    \"updated_at\": \"ad sit\",\n    \"user_id\": \"minim irure\"\n  },\n  \"error\": {\n    \"code\": \"dolore aliquip eu nisi adipisicing\",\n    \"details\": {},\n    \"message\": \"velit pariatur laborum\"\n  },\n  \"meta\": {\n    \"page\": 18551218,\n    \"per_page\": 60646065,\n    \"total\": 34545108,\n    \"total_pages\": -47435085\n  },\n  \"success\": true\n}",
               "cookie": []
             },
             {
@@ -4144,6 +4144,321 @@
                 "type": "text/javascript",
                 "exec": [
                   "// Validate status 2xx \npm.test(\"[POST]::/sessions/:id/verify - Status code is 2xx\", function () {\n   pm.response.to.be.success;\n});\n"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "submit-password-001",
+          "name": "Submit Password",
+          "request": {
+            "name": "Submit Password",
+            "description": {
+              "content": "Completa autenticación con 2FA password",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "sessions",
+                ":id",
+                "submit-password"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "description": {
+                    "content": "(Required) Session ID",
+                    "type": "text/plain"
+                  },
+                  "type": "any",
+                  "value": "session-id",
+                  "key": "id"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"your-2fa-password\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "type": "any",
+                  "value": "Authorization",
+                  "key": "key"
+                },
+                {
+                  "type": "any",
+                  "value": "{{apiKey}}",
+                  "key": "value"
+                },
+                {
+                  "type": "any",
+                  "value": "header",
+                  "key": "in"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "_": {
+                "postman_previewlanguage": "json"
+              },
+              "id": "submit-password-200",
+              "name": "OK",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "sessions",
+                    ":id",
+                    "submit-password"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"your-2fa-password\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"api_id\": 25603739,\n    \"auth_state\": \"authenticated\",\n    \"created_at\": \"2024-01-01T00:00:00Z\",\n    \"id\": \"session-id\",\n    \"is_active\": true,\n    \"phone_number\": \"+1234567890\",\n    \"session_name\": \"My Session\",\n    \"telegram_user_id\": 123456789,\n    \"telegram_username\": \"username\",\n    \"updated_at\": \"2024-01-01T00:00:00Z\",\n    \"user_id\": \"user-id\"\n  },\n  \"success\": true\n}",
+              "cookie": []
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "submit-password-test",
+                "type": "text/javascript",
+                "exec": [
+                  "// Validate status 2xx \npm.test(\"[POST]::/sessions/:id/submit-password - Status code is 2xx\", function () {\n   pm.response.to.be.success;\n});\n"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "import-tdata-001",
+          "name": "Import TData",
+          "request": {
+            "name": "Import TData",
+            "description": {
+              "content": "Importa sesión desde Telegram Desktop",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "sessions",
+                "import-tdata"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "api_id",
+                  "type": "text",
+                  "value": "12345678"
+                },
+                {
+                  "key": "api_hash",
+                  "type": "text",
+                  "value": "your-api-hash"
+                },
+                {
+                  "key": "session_name",
+                  "type": "text",
+                  "value": "My TData Session",
+                  "description": "Optional"
+                },
+                {
+                  "key": "tdata",
+                  "type": "file",
+                  "src": "/path/to/key_data.json",
+                  "description": "TData files (key_data.json, etc.)"
+                }
+              ]
+            },
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "type": "any",
+                  "value": "Authorization",
+                  "key": "key"
+                },
+                {
+                  "type": "any",
+                  "value": "{{apiKey}}",
+                  "key": "value"
+                },
+                {
+                  "type": "any",
+                  "value": "header",
+                  "key": "in"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "_": {
+                "postman_previewlanguage": "json"
+              },
+              "id": "import-tdata-201",
+              "name": "Created",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "sessions",
+                    "import-tdata"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Authorization",
+                    "value": "<API Key>"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "api_id",
+                      "type": "text",
+                      "value": "12345678"
+                    },
+                    {
+                      "key": "api_hash",
+                      "type": "text",
+                      "value": "your-api-hash"
+                    },
+                    {
+                      "key": "session_name",
+                      "type": "text",
+                      "value": "My TData Session"
+                    },
+                    {
+                      "key": "tdata",
+                      "type": "file",
+                      "src": "/path/to/key_data.json"
+                    }
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": {\n    \"api_id\": 12345678,\n    \"auth_method\": \"tdata\",\n    \"auth_state\": \"authenticated\",\n    \"created_at\": \"2024-01-01T00:00:00Z\",\n    \"id\": \"imported-session-id\",\n    \"is_active\": true,\n    \"phone_number\": \"+1234567890\",\n    \"session_name\": \"My TData Session\",\n    \"telegram_user_id\": 123456789,\n    \"telegram_username\": \"username\",\n    \"updated_at\": \"2024-01-01T00:00:00Z\",\n    \"user_id\": \"user-id\"\n  },\n  \"success\": true\n}",
+              "cookie": []
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "import-tdata-test",
+                "type": "text/javascript",
+                "exec": [
+                  "// Validate status 2xx \npm.test(\"[POST]::/sessions/import-tdata - Status code is 2xx\", function () {\n   pm.response.to.be.success;\n});\n"
                 ]
               }
             }
@@ -4692,11 +5007,11 @@
       "item": [
         {
           "id": "44930df2-86c0-4517-a967-7c894531ab01",
-          "name": "Listar contactos",
+          "name": "Listar contacts",
           "request": {
-            "name": "Listar contactos",
+            "name": "Listar contacts",
             "description": {
-              "content": "Obtiene la lista de contactos de Telegram",
+              "content": "Obtiene la lista de contacts de Telegram",
               "type": "text/plain"
             },
             "url": {

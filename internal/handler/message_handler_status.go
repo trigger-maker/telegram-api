@@ -13,7 +13,7 @@ import (
 // @Param jobId path string true "Job ID"
 // @Success 200 {object} Response{data=domain.MessageJob}
 // @Failure 404 {object} Response
-// @Router /messages/{jobId}/status [get]
+// @Router /messages/{jobId}/status [get].
 func (h *MessageHandler) GetStatus(c *fiber.Ctx) error {
 	jobID := c.Params("jobId")
 

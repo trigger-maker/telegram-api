@@ -13,17 +13,85 @@ import (
 	"github.com/google/uuid"
 )
 
-// ErrorAction represents the action to take on an error
+// ErrorAction represents the action to take on an error.
 type ErrorAction string
 
 const (
-	ActionContinue  ErrorAction = "continue"
-	ActionPause    ErrorAction = "pause"
-	ActionStop     ErrorAction = "stop"
+	// ActionContinue indicates to continue processing.
+	ActionContinue ErrorAction = "continue"
+	// ActionPause indicates to pause processing.
+	ActionPause ErrorAction = "pause"
+	// ActionStop indicates to stop processing.
+	ActionStop ErrorAction = "stop"
+	// ActionFailTask indicates to fail the current task.
 	ActionFailTask ErrorAction = "fail_task"
 )
 
-// HandleMTProtoError handles MTProto errors centrally
+// handleTaskError handles task-specific errors.
+func handleTaskError(sessionID uuid.UUID, errorCode, errStr string, err error) (ErrorAction, error) {
+	logger.Warn().
+		Str("session_id", sessionID.String()).
+		Str("error_code", errorCode).
+		Str("error", errStr).
+		Msg("Task-specific error, marking task as failed")
+	return ActionFailTask, getTaskError(err)
+}
+
+// handleBlockingError handles blocking errors.
+func handleBlockingError(
+	ctx context.Context,
+	sessionID uuid.UUID,
+	errorCode, errStr string,
+	err error,
+	repo domain.SessionRepository,
+) (ErrorAction, error) {
+	newState := getBannedState(err)
+	logger.Warn().
+		Str("session_id", sessionID.String()).
+		Str("error_code", errorCode).
+		Str("error", errStr).
+		Str("new_state", string(newState)).
+		Msg("Blocking error, stopping session")
+
+	if err := updateSessionState(ctx, sessionID, newState, repo); err != nil {
+		logger.Error().
+			Err(err).
+			Str("session_id", sessionID.String()).
+			Msg("Failed to update session state")
+	}
+
+	return ActionStop, domain.ErrSessionNotActive
+}
+
+// handleFloodWaitError handles flood wait errors.
+func handleFloodWaitError(sessionID uuid.UUID, errorCode, _ string, err error) (ErrorAction, time.Duration, error) {
+	seconds := extractFloodWaitSeconds(err)
+	if seconds > 0 {
+		logger.Warn().
+			Str("session_id", sessionID.String()).
+			Str("error_code", errorCode).
+			Int("wait_seconds", seconds).
+			Msg("Flood wait error, pausing")
+		return ActionPause, time.Duration(seconds) * time.Second, domain.ErrTelegramFloodWait
+	}
+	return ActionContinue, 0, nil
+}
+
+// handleSlowmodeError handles slowmode errors.
+func handleSlowmodeError(sessionID uuid.UUID, errorCode, _ string, err error) (ErrorAction, time.Duration, error) {
+	seconds := extractFloodWaitSeconds(err)
+	if seconds > 0 {
+		logger.Warn().
+			Str("session_id", sessionID.String()).
+			Str("error_code", errorCode).
+			Int("wait_seconds", seconds).
+			Msg("Slowmode error, pausing for peer")
+		return ActionPause, time.Duration(seconds) * time.Second, domain.ErrTelegramFloodWait
+	}
+	return ActionContinue, 0, nil
+}
+
+// HandleMTProtoError handles MTProto errors centrally.
 func HandleMTProtoError(
 	ctx context.Context,
 	sessionID uuid.UUID,
@@ -44,55 +112,23 @@ func HandleMTProtoError(
 		Msg("MTProto error occurred")
 
 	if isTaskError(err) {
-		logger.Warn().
-			Str("session_id", sessionID.String()).
-			Str("error_code", errorCode).
-			Str("error", errStr).
-			Msg("Task-specific error, marking task as failed")
-		return ActionFailTask, 0, getTaskError(err)
+		action, taskErr := handleTaskError(sessionID, errorCode, errStr, err)
+		return action, 0, taskErr
 	}
 
 	if isBlockingError(err) {
-		newState := getBannedState(err)
-		logger.Warn().
-			Str("session_id", sessionID.String()).
-			Str("error_code", errorCode).
-			Str("error", errStr).
-			Str("new_state", string(newState)).
-			Msg("Blocking error, stopping session")
-
-		if err := updateSessionState(ctx, sessionID, newState, repo); err != nil {
-			logger.Error().
-				Err(err).
-				Str("session_id", sessionID.String()).
-				Msg("Failed to update session state")
-		}
-
-		return ActionStop, 0, domain.ErrSessionNotActive
+		action, blockingErr := handleBlockingError(ctx, sessionID, errorCode, errStr, err, repo)
+		return action, 0, blockingErr
 	}
 
 	if isFloodWaitError(err) {
-		seconds := extractFloodWaitSeconds(err)
-		if seconds > 0 {
-			logger.Warn().
-				Str("session_id", sessionID.String()).
-				Str("error_code", errorCode).
-				Int("wait_seconds", seconds).
-				Msg("Flood wait error, pausing")
-			return ActionPause, time.Duration(seconds) * time.Second, domain.ErrTelegramFloodWait
-		}
+		action, wait, floodErr := handleFloodWaitError(sessionID, errorCode, errStr, err)
+		return action, wait, floodErr
 	}
 
 	if isSlowmodeError(err) {
-		seconds := extractFloodWaitSeconds(err)
-		if seconds > 0 {
-			logger.Warn().
-				Str("session_id", sessionID.String()).
-				Str("error_code", errorCode).
-				Int("wait_seconds", seconds).
-				Msg("Slowmode error, pausing for peer")
-			return ActionPause, time.Duration(seconds) * time.Second, domain.ErrTelegramFloodWait
-		}
+		action, wait, slowErr := handleSlowmodeError(sessionID, errorCode, errStr, err)
+		return action, wait, slowErr
 	}
 
 	logger.Error().
@@ -104,7 +140,7 @@ func HandleMTProtoError(
 	return ActionContinue, 0, domain.ErrInternal
 }
 
-// isBlockingError checks if error is blocking (stops session)
+// isBlockingError checks if error is blocking (stops session).
 func isBlockingError(err error) bool {
 	if err == nil {
 		return false
@@ -128,7 +164,7 @@ func isBlockingError(err error) bool {
 	return false
 }
 
-// isTaskError checks if error is task-specific (fails only current task)
+// isTaskError checks if error is task-specific (fails only current task).
 func isTaskError(err error) bool {
 	if err == nil {
 		return false
@@ -150,7 +186,7 @@ func isTaskError(err error) bool {
 	return false
 }
 
-// isFloodWaitError checks if error is flood wait
+// isFloodWaitError checks if error is flood wait.
 func isFloodWaitError(err error) bool {
 	if err == nil {
 		return false
@@ -158,7 +194,7 @@ func isFloodWaitError(err error) bool {
 	return strings.Contains(err.Error(), "FLOOD_WAIT_")
 }
 
-// isSlowmodeError checks if error is slowmode
+// isSlowmodeError checks if error is slowmode.
 func isSlowmodeError(err error) bool {
 	if err == nil {
 		return false
@@ -166,7 +202,7 @@ func isSlowmodeError(err error) bool {
 	return strings.Contains(err.Error(), "SLOWMODE_WAIT_")
 }
 
-// extractFloodWaitSeconds extracts wait time from error message
+// extractFloodWaitSeconds extracts wait time from error message.
 func extractFloodWaitSeconds(err error) int {
 	if err == nil {
 		return 0
@@ -186,7 +222,7 @@ func extractFloodWaitSeconds(err error) int {
 	return 0
 }
 
-// extractErrorCode extracts error code from error string
+// extractErrorCode extracts error code from error string.
 func extractErrorCode(err error) string {
 	if err == nil {
 		return "UNKNOWN"
@@ -225,7 +261,7 @@ func extractErrorCode(err error) string {
 	return "UNKNOWN"
 }
 
-// getBannedState returns the banned state for blocking errors
+// getBannedState returns the banned state for blocking errors.
 func getBannedState(err error) domain.SessionStatus {
 	if err == nil {
 		return domain.SessionAuthenticated
@@ -253,7 +289,7 @@ func getBannedState(err error) domain.SessionStatus {
 	return domain.SessionAuthenticated
 }
 
-// getTaskError returns the appropriate error for task failures
+// getTaskError returns the appropriate error for task failures.
 func getTaskError(err error) error {
 	if err == nil {
 		return nil
@@ -270,7 +306,7 @@ func getTaskError(err error) error {
 	return domain.ErrInternal
 }
 
-// updateSessionState updates session state in repository
+// updateSessionState updates session state in repository.
 func updateSessionState(
 	ctx context.Context,
 	sessionID uuid.UUID,

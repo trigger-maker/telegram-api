@@ -9,10 +9,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gotd/td/telegram"
+	"github.com/gotd/td/telegram/auth"
 	"github.com/gotd/td/tg"
 )
 
-// SendCode sends a verification code to the given phone number
+// SendCode sends a verification code to the given phone number.
 func (m *ClientManager) SendCode(ctx context.Context, apiID int, apiHash, phone string) (string, error) {
 	sessionID := uuid.New()
 	storage := NewPersistentSessionStorage(m.crypter, m.repo, sessionID.String())
@@ -50,8 +51,58 @@ func (m *ClientManager) SendCode(ctx context.Context, apiID int, apiHash, phone 
 	return phoneCodeHash, err
 }
 
-// SignIn signs in the user with the given phone number and code
-func (m *ClientManager) SignIn(ctx context.Context, apiID int, apiHash, phone, code, codeHash string) (*TGUser, []byte, string, error) {
+// performSignIn performs the actual sign-in operation.
+func performSignIn(
+	ctx context.Context,
+	client *telegram.Client,
+	phone, code, codeHash string,
+) (*TGUser, []byte, string, error) {
+	auth, err := client.API().AuthSignIn(ctx, &tg.AuthSignInRequest{
+		PhoneNumber:   phone,
+		PhoneCodeHash: codeHash,
+		PhoneCode:     code,
+	})
+	if err != nil {
+		if err.Error() == "SESSION_PASSWORD_NEEDED" {
+			passwordInfo, pErr := client.API().AccountGetPassword(ctx)
+			passwordHint := ""
+			if pErr == nil {
+				passwordHint = passwordInfo.Hint
+			}
+			return nil, nil, passwordHint, err
+		}
+		return nil, nil, "", err
+	}
+
+	a, ok := auth.(*tg.AuthAuthorization)
+	if !ok {
+		return nil, nil, "", fmt.Errorf("unexpected auth response")
+	}
+
+	u, ok := a.User.(*tg.User)
+	if !ok {
+		return nil, nil, "", fmt.Errorf("unexpected user type")
+	}
+
+	user := &TGUser{ID: u.ID, Username: u.Username}
+	return user, nil, "", nil
+}
+
+// loadSessionData loads session data from storage.
+func loadSessionData(ctx context.Context, storage *PersistentSessionStorage) ([]byte, error) {
+	data, err := storage.LoadSession(ctx)
+	if err == nil {
+		return data, nil
+	}
+	return nil, err
+}
+
+// SignIn signs in the user with the given phone number and code.
+func (m *ClientManager) SignIn(
+	ctx context.Context,
+	apiID int,
+	apiHash, phone, code, codeHash string,
+) (*TGUser, []byte, string, error) {
 	sessionID := uuid.New()
 	storage := NewPersistentSessionStorage(m.crypter, m.repo, sessionID.String())
 	client := m.newClient(apiID, apiHash, "SMS Session", storage)
@@ -61,36 +112,14 @@ func (m *ClientManager) SignIn(ctx context.Context, apiID int, apiHash, phone, c
 	var passwordHint string
 
 	err := client.Run(ctx, func(ctx context.Context) error {
-		auth, err := client.API().AuthSignIn(ctx, &tg.AuthSignInRequest{
-			PhoneNumber:   phone,
-			PhoneCodeHash: codeHash,
-			PhoneCode:     code,
-		})
+		u, _, hint, err := performSignIn(ctx, client, phone, code, codeHash)
 		if err != nil {
-			if err.Error() == "SESSION_PASSWORD_NEEDED" {
-				passwordInfo, pErr := client.API().AccountGetPassword(ctx)
-				if pErr != nil {
-					passwordHint = ""
-				} else {
-					passwordHint = passwordInfo.Hint
-				}
-				return err
-			}
+			passwordHint = hint
 			return err
 		}
+		user = u
 
-		a, ok := auth.(*tg.AuthAuthorization)
-		if !ok {
-			return fmt.Errorf("unexpected auth response")
-		}
-
-		u, ok := a.User.(*tg.User)
-		if !ok {
-			return fmt.Errorf("unexpected user type")
-		}
-		user = &TGUser{ID: u.ID, Username: u.Username}
-
-		data, err := storage.Bytes(nil)
+		data, err := loadSessionData(ctx, storage)
 		if err == nil {
 			sessionData = data
 		}
@@ -112,8 +141,13 @@ func (m *ClientManager) SignIn(ctx context.Context, apiID int, apiHash, phone, c
 	return user, sessionData, "", nil
 }
 
-// SubmitPassword submits the 2FA password for the session
-func (m *ClientManager) SubmitPassword(ctx context.Context, sessionID string, apiID int, apiHash, password string) (*TGUser, []byte, error) {
+// SubmitPassword submits the 2FA password for the session.
+func (m *ClientManager) SubmitPassword(
+	ctx context.Context,
+	sessionID string,
+	apiID int,
+	apiHash, password string,
+) (*TGUser, []byte, error) {
 	storage := NewPersistentSessionStorage(m.crypter, m.repo, sessionID)
 	client := m.newClient(apiID, apiHash, "SMS Session", storage)
 
@@ -125,16 +159,18 @@ func (m *ClientManager) SubmitPassword(ctx context.Context, sessionID string, ap
 			return err
 		}
 
-		srp, err := telegram.SolvePassword(password, accountPassword.SRPID, accountPassword.SRPB, accountPassword.CurrentAlgo)
+		inputPassword, err := auth.PasswordHash(
+			[]byte(password),
+			accountPassword.SRPID,
+			accountPassword.SRPB,
+			accountPassword.SecureRandom,
+			accountPassword.CurrentAlgo,
+		)
 		if err != nil {
 			return fmt.Errorf("solve password: %w", err)
 		}
 
-		auth, err := client.API().AuthCheckPassword(ctx, &tg.InputCheckPasswordSRP{
-			SRPID: accountPassword.SRPID,
-			A:     srp.A,
-			M1:    srp.M1,
-		})
+		auth, err := client.API().AuthCheckPassword(ctx, inputPassword)
 		if err != nil {
 			return err
 		}
@@ -160,8 +196,13 @@ func (m *ClientManager) SubmitPassword(ctx context.Context, sessionID string, ap
 	return user, nil, nil
 }
 
-// SignInWithSession signs in the user with the given phone number and code using persistent session storage
-func (m *ClientManager) SignInWithSession(ctx context.Context, sessionID string, apiID int, apiHash, phone, code, codeHash string) (*TGUser, error) {
+// SignInWithSession signs in the user with the given phone number and code using persistent session storage.
+func (m *ClientManager) SignInWithSession(
+	ctx context.Context,
+	sessionID string,
+	apiID int,
+	apiHash, phone, code, codeHash string,
+) (*TGUser, error) {
 	storage := NewPersistentSessionStorage(m.crypter, m.repo, sessionID)
 	client := m.newClient(apiID, apiHash, "SMS Session", storage)
 
@@ -194,8 +235,13 @@ func (m *ClientManager) SignInWithSession(ctx context.Context, sessionID string,
 	return user, err
 }
 
-// LogOut logs out the user from Telegram
-func (m *ClientManager) LogOut(ctx context.Context, apiID int, apiHashEncrypted, sessionData []byte, sessionName string) error {
+// LogOut logs out the user from Telegram.
+func (m *ClientManager) LogOut(
+	ctx context.Context,
+	apiID int,
+	apiHashEncrypted, sessionData []byte,
+	sessionName string,
+) error {
 	if len(sessionData) == 0 {
 		return nil
 	}

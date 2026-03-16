@@ -76,7 +76,7 @@ export const SendPhotoForm = ({ sessionId }: SendPhotoFormProps) => {
       <Input
         label="Caption (Opcional)"
         type="text"
-        placeholder="Descripcion de la foto..."
+        placeholder="Description de la foto..."
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
         disabled={sendMessage.isPending}

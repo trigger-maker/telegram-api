@@ -13,8 +13,8 @@ import (
 	"github.com/gotd/td/tg"
 )
 
-// StartSession starts a session and begins listening for events
-func (p *SessionPool) StartSession(ctx context.Context, sess *domain.TelegramSession) error {
+// StartSession starts a session and begins listening for events.
+func (p *SessionPool) StartSession(_ context.Context, sess *domain.TelegramSession) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -22,7 +22,7 @@ func (p *SessionPool) StartSession(ctx context.Context, sess *domain.TelegramSes
 		return nil
 	}
 
-	apiHashBytes, err := p.manager.Decrypt(sess.ApiHashEncrypted)
+	apiHashBytes, err := p.manager.Decrypt(sess.APIHashEncrypted)
 	if err != nil {
 		return fmt.Errorf("decrypt api_hash: %w", err)
 	}
@@ -30,7 +30,7 @@ func (p *SessionPool) StartSession(ctx context.Context, sess *domain.TelegramSes
 	storage := NewPersistentSessionStorage(p.manager.crypter, p.repo, sess.ID.String())
 
 	dispatcher := tg.NewUpdateDispatcher()
-	client := telegram.NewClient(sess.ApiID, string(apiHashBytes), telegram.Options{
+	client := telegram.NewClient(sess.APIID, string(apiHashBytes), telegram.Options{
 		SessionStorage: storage,
 		UpdateHandler:  dispatcher,
 		Device: telegram.DeviceConfig{
@@ -42,6 +42,7 @@ func (p *SessionPool) StartSession(ctx context.Context, sess *domain.TelegramSes
 		},
 	})
 
+	// #nosec G118 -- Cancel function is stored in active.Cancel and called later
 	sessionCtx, cancel := context.WithCancel(context.Background())
 
 	active := &ActiveSession{
@@ -73,7 +74,7 @@ func (p *SessionPool) StartSession(ctx context.Context, sess *domain.TelegramSes
 	return nil
 }
 
-// StopSession stops a session
+// StopSession stops a session.
 func (p *SessionPool) StopSession(sessionID uuid.UUID) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -93,7 +94,7 @@ func (p *SessionPool) StopSession(sessionID uuid.UUID) {
 	}
 }
 
-// GetActiveSession retrieves an active session
+// GetActiveSession retrieves an active session.
 func (p *SessionPool) GetActiveSession(sessionID uuid.UUID) (*ActiveSession, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
@@ -101,14 +102,14 @@ func (p *SessionPool) GetActiveSession(sessionID uuid.UUID) (*ActiveSession, boo
 	return active, exists
 }
 
-// ActiveCount returns the number of active sessions
+// ActiveCount returns the number of active sessions.
 func (p *SessionPool) ActiveCount() int {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return len(p.sessions)
 }
 
-// ListActive returns IDs of active sessions
+// ListActive returns IDs of active sessions.
 func (p *SessionPool) ListActive() []uuid.UUID {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
@@ -119,7 +120,7 @@ func (p *SessionPool) ListActive() []uuid.UUID {
 	return ids
 }
 
-// StartAllActive starts all active sessions from the database
+// StartAllActive starts all active sessions from the database.
 func (p *SessionPool) StartAllActive(ctx context.Context) error {
 	sessions, err := p.repo.ListAllActive(ctx)
 	if err != nil {

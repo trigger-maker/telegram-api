@@ -23,7 +23,7 @@ import (
 // @Param archived query bool false "Include archived chats"
 // @Param refresh query bool false "Force cache refresh"
 // @Success 200 {object} Response{data=domain.ChatsResponse}
-// @Router /sessions/{id}/chats [get]
+// @Router /sessions/{id}/chats [get].
 func (h *ChatHandler) GetChats(c *fiber.Ctx) error {
 	sessionID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -73,7 +73,7 @@ func (h *ChatHandler) GetChats(c *fiber.Ctx) error {
 // @Param id path string true "Session ID"
 // @Param chatId path int true "Chat ID"
 // @Success 200 {object} Response{data=domain.Chat}
-// @Router /sessions/{id}/chats/{chatId} [get]
+// @Router /sessions/{id}/chats/{chatId} [get].
 func (h *ChatHandler) GetChatInfo(c *fiber.Ctx) error {
 	sessionID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -116,7 +116,7 @@ func (h *ChatHandler) GetChatInfo(c *fiber.Ctx) error {
 // @Param offset_id query int false "Message ID to start from"
 // @Param offset_date query int false "Unix timestamp to start from"
 // @Success 200 {object} Response{data=domain.HistoryResponse}
-// @Router /sessions/{id}/chats/{chatId}/history [get]
+// @Router /sessions/{id}/chats/{chatId}/history [get].
 func (h *ChatHandler) GetChatHistory(c *fiber.Ctx) error {
 	sessionID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

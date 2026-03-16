@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// JWTClaims represents JWT token claims
+// JWTClaims represents JWT token claims.
 type JWTClaims struct {
 	UserID   string      `json:"uid"`
 	Username string      `json:"username"`
@@ -20,9 +20,9 @@ type JWTClaims struct {
 	jwt.RegisteredClaims
 }
 
-// ValidateToken validates a JWT token and returns claims
+// ValidateToken validates a JWT token and returns claims.
 func (s *AuthService) ValidateToken(tokenStr string) (*JWTClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenStr, &JWTClaims{}, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &JWTClaims{}, func(_ *jwt.Token) (interface{}, error) {
 		return []byte(s.config.JWT.Secret), nil
 	})
 
@@ -38,12 +38,12 @@ func (s *AuthService) ValidateToken(tokenStr string) (*JWTClaims, error) {
 	return claims, nil
 }
 
-// GetUserByID retrieves a user by ID
+// GetUserByID retrieves a user by ID.
 func (s *AuthService) GetUserByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
 	return s.userRepo.GetByID(ctx, id)
 }
 
-// generateAccessToken generates a JWT access token for a user
+// generateAccessToken generates a JWT access token for a user.
 func (s *AuthService) generateAccessToken(user *domain.User) (string, error) {
 	expiresAt := time.Now().Add(time.Duration(s.config.JWT.ExpiryHours) * time.Hour)
 
@@ -63,8 +63,12 @@ func (s *AuthService) generateAccessToken(user *domain.User) (string, error) {
 	return token.SignedString([]byte(s.config.JWT.Secret))
 }
 
-// generateRefreshToken generates a refresh token for a user
-func (s *AuthService) generateRefreshToken(ctx context.Context, userID uuid.UUID, ipAddr, userAgent string) (string, error) {
+// generateRefreshToken generates a refresh token for a user.
+func (s *AuthService) generateRefreshToken(
+	ctx context.Context,
+	userID uuid.UUID,
+	ipAddr, userAgent string,
+) (string, error) {
 	tokenBytes, err := crypto.GenerateRandomBytes(32)
 	if err != nil {
 		return "", err

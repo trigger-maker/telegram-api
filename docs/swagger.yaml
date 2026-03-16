@@ -20,10 +20,12 @@ definitions:
     enum:
     - sms
     - qr
+    - tdata
     type: string
     x-enum-varnames:
     - AuthMethodSMS
     - AuthMethodQR
+    - AuthMethodTData
   domain.BulkTextRequest:
     description: Envío masivo de texto a múltiples destinatarios
     properties:
@@ -338,6 +340,33 @@ definitions:
     - photo_url
     - to
     type: object
+  domain.SubmitPasswordRequest:
+    properties:
+      password:
+        description: 2FA password
+        type: string
+    required:
+    - password
+    type: object
+  domain.ImportTDataRequest:
+    properties:
+      api_hash:
+        description: API Hash from my.telegram.org
+        type: string
+      api_id:
+        description: API ID from my.telegram.org
+        type: integer
+      session_name:
+        description: Session name (optional)
+        type: string
+      tdata:
+        description: TData files (key_data.json, etc.)
+        type: file
+    required:
+    - api_id
+    - api_hash
+    - tdata
+    type: object
   domain.ResolveRequest:
     properties:
       phone:
@@ -383,6 +412,8 @@ definitions:
     - password_required
     - authenticated
     - failed
+    - banned
+    - frozen
     type: string
     x-enum-varnames:
     - SessionPending
@@ -390,10 +421,14 @@ definitions:
     - SessionPasswordRequired
     - SessionAuthenticated
     - SessionFailed
+    - SessionBanned
+    - SessionFrozen
   domain.TelegramSession:
     properties:
       api_id:
         type: integer
+      auth_method:
+        $ref: '#/definitions/domain.AuthMethod'
       auth_state:
         $ref: '#/definitions/domain.SessionStatus'
       created_at:
@@ -568,8 +603,8 @@ info:
   contact: {}
   description: API REST para gestionar múltiples sesiones de Telegram via MTProto
   title: Telegram API
-  version: 0.1.0
-paths:
+  version: 0.3.0
+  paths:
   /auth/login:
     post:
       consumes:
@@ -989,7 +1024,7 @@ paths:
       - Chats
   /sessions/{id}/contacts:
     get:
-      description: Obtiene la lista de contactos de Telegram
+      description: Obtiene la lista de contacts de Telegram
       parameters:
       - description: Session ID
         in: path
@@ -1010,7 +1045,7 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Listar contactos
+      summary: Listar contacts
       tags:
       - Contacts
   /sessions/{id}/messages/audio:
@@ -1332,13 +1367,18 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: OK. When 2FA is enabled, returns hint for password
           schema:
             allOf:
             - $ref: '#/definitions/handler.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/domain.TelegramSession'
+                  allOf:
+                  - $ref: '#/definitions/domain.TelegramSession'
+                  - properties:
+                      hint:
+                        description: 2FA password hint (only when password_required)
+                        type: string
               type: object
         "400":
           description: Bad Request
@@ -1351,6 +1391,103 @@ paths:
       security:
       - BearerAuth: []
       summary: Verificar código SMS
+      tags:
+      - Sessions
+  /sessions/{id}/submit-password:
+    post:
+      consumes:
+      - application/json
+      description: Completa autenticación con 2FA password
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 2FA Password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SubmitPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.TelegramSession'
+              type: object
+        "400":
+          description: Bad Request - INVALID_PASSWORD
+          schema:
+            $ref: '#/definitions/handler.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.Response'
+        "409":
+          description: Conflict - ALREADY_AUTHENTICATED
+          schema:
+            $ref: '#/definitions/handler.Response'
+      security:
+      - BearerAuth: []
+      summary: Submit 2FA Password
+      tags:
+      - Sessions
+  /sessions/import-tdata:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Importa sesión desde Telegram Desktop
+      parameters:
+      - description: API ID from my.telegram.org
+        in: formData
+        name: api_id
+        required: true
+        type: integer
+      - description: API Hash from my.telegram.org
+        in: formData
+        name: api_hash
+        required: true
+        type: string
+      - description: Session name (optional)
+        in: formData
+        name: session_name
+        required: false
+        type: string
+      - description: TData files (key_data.json, etc.)
+        in: formData
+        name: tdata
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/handler.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.TelegramSession'
+              type: object
+        "400":
+          description: Bad Request - VALIDATION
+          schema:
+            $ref: '#/definitions/handler.Response'
+        "422":
+          description: Unprocessable Entity - TDATA_INVALID
+          schema:
+            $ref: '#/definitions/handler.Response'
+      security:
+      - BearerAuth: []
+      summary: Import TData Session
       tags:
       - Sessions
   /sessions/{id}/webhook:

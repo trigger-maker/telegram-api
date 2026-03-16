@@ -235,7 +235,7 @@ if [ "$DEV_MODE" = "frontend" ] || [ "$DEV_MODE" = "fullstack" ]; then
 fi
 
 echo ""
-echo -e "${CYAN}📊 Comandos útiles:${NC}"
+echo -e "${CYAN}📊 Commandos útiles:${NC}"
 echo ""
 echo -e "   ${YELLOW}Ver logs:${NC}        docker compose logs -f"
 

@@ -4,7 +4,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// Response represents the standard API response
+// Response represents the standard API response.
 type Response struct {
 	Success bool           `json:"success"`
 	Data    interface{}    `json:"data,omitempty"`
@@ -12,14 +12,14 @@ type Response struct {
 	Meta    *MetaResponse  `json:"meta,omitempty"`
 }
 
-// ErrorResponse represents an API error
+// ErrorResponse represents an API error.
 type ErrorResponse struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Details interface{} `json:"details,omitempty"`
 }
 
-// MetaResponse represents pagination metadata
+// MetaResponse represents pagination metadata.
 type MetaResponse struct {
 	Page       int   `json:"page,omitempty"`
 	PerPage    int   `json:"per_page,omitempty"`
@@ -27,16 +27,16 @@ type MetaResponse struct {
 	TotalPages int   `json:"total_pages,omitempty"`
 }
 
-// ValidationError represents an individual validation error
+// ValidationError represents an individual validation error.
 type ValidationError struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
 }
 
-// Global validator
+// Global validator.
 var validate = validator.New()
 
-// ValidateStruct validates a struct and returns formatted errors
+// ValidateStruct validates a struct and returns formatted errors.
 func ValidateStruct(s interface{}) []ValidationError {
 	err := validate.Struct(s)
 	if err == nil {
@@ -53,7 +53,7 @@ func ValidateStruct(s interface{}) []ValidationError {
 	return errors
 }
 
-// getValidationMessage returns a readable message for each validation type
+// getValidationMessage returns a readable message for each validation type.
 func getValidationMessage(e validator.FieldError) string {
 	switch e.Tag() {
 	case "required":
@@ -77,7 +77,7 @@ func getValidationMessage(e validator.FieldError) string {
 	}
 }
 
-// NewSuccessResponse creates a success response
+// NewSuccessResponse creates a success response.
 func NewSuccessResponse(data interface{}) Response {
 	return Response{
 		Success: true,
@@ -85,7 +85,7 @@ func NewSuccessResponse(data interface{}) Response {
 	}
 }
 
-// NewErrorResponse creates an error response
+// NewErrorResponse creates an error response.
 func NewErrorResponse(code int, message string) Response {
 	return Response{
 		Success: false,
@@ -96,7 +96,7 @@ func NewErrorResponse(code int, message string) Response {
 	}
 }
 
-// NewPaginatedResponse creates a paginated response
+// NewPaginatedResponse creates a paginated response.
 func NewPaginatedResponse(data interface{}, page, perPage int, total int64) Response {
 	totalPages := int(total) / perPage
 	if int(total)%perPage > 0 {

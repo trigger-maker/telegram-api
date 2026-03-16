@@ -76,7 +76,7 @@ export const SendAudioForm = ({ sessionId }: SendAudioFormProps) => {
       <Input
         label="Caption (Opcional)"
         type="text"
-        placeholder="Descripcion del audio..."
+        placeholder="Description del audio..."
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
         disabled={sendMessage.isPending}

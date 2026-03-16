@@ -84,7 +84,7 @@ export const useChatHistory = (
 }
 
 /**
- * Hook para obtener la lista de contactos con paginación
+ * Hook para obtener la lista de contacts con paginación
  */
 export const useContacts = (sessionId: string, params?: GetContactsParams) => {
   return useQuery<ContactsResponse>({
@@ -96,7 +96,7 @@ export const useContacts = (sessionId: string, params?: GetContactsParams) => {
 }
 
 /**
- * Hook para obtener contactos con infinite scroll
+ * Hook para obtener contacts con infinite scroll
  */
 export const useInfiniteContacts = (sessionId: string, search?: string, limit: number = 50) => {
   return useInfiniteQuery({

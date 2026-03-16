@@ -15,7 +15,7 @@ import (
 // @Success 200 {object} handler.Response
 // @Failure 400 {object} handler.Response
 // @Failure 404 {object} handler.Response
-// @Router /sessions/{id}/qr/regenerate [post]
+// @Router /sessions/{id}/qr/regenerate [post].
 func (h *SessionHandler) RegenerateQR(c *fiber.Ctx) error {
 	sessionID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

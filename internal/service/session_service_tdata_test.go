@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Test 1: ImportTData with invalid api_id - validation error
+// Test 1: ImportTData with invalid api_id - validation error.
 func TestSessionService_ImportTData_InvalidApiID(t *testing.T) {
 	ctx := context.Background()
 	userID := uuid.New()
@@ -31,7 +31,7 @@ func TestSessionService_ImportTData_InvalidApiID(t *testing.T) {
 	assert.Contains(t, err.Error(), "api_id")
 }
 
-// Test 2: ImportTData with empty api_hash - validation error
+// Test 2: ImportTData with empty api_hash - validation error.
 func TestSessionService_ImportTData_EmptyApiHash(t *testing.T) {
 	ctx := context.Background()
 	userID := uuid.New()
@@ -52,7 +52,7 @@ func TestSessionService_ImportTData_EmptyApiHash(t *testing.T) {
 	assert.Contains(t, err.Error(), "api_hash")
 }
 
-// Test 3: ImportTData with no files - validation error
+// Test 3: ImportTData with no files - validation error.
 func TestSessionService_ImportTData_NoFiles(t *testing.T) {
 	ctx := context.Background()
 	userID := uuid.New()
@@ -71,7 +71,7 @@ func TestSessionService_ImportTData_NoFiles(t *testing.T) {
 	assert.Contains(t, err.Error(), "files")
 }
 
-// Test 4: ImportTData with valid input structure - passes validation
+// Test 4: ImportTData with valid input structure - passes validation.
 func TestSessionService_ImportTData_ValidInput(t *testing.T) {
 	ctx := context.Background()
 	userID := uuid.New()
@@ -90,6 +90,6 @@ func TestSessionService_ImportTData_ValidInput(t *testing.T) {
 	// but it should pass validation
 	// Since tgManager is nil, it will panic, so we expect that
 	assert.Panics(t, func() {
-		service.ImportTData(ctx, userID, 12345, "test_api_hash", "test_session", tdataFiles)
+		_, _ = service.ImportTData(ctx, userID, 12345, "test_api_hash", "test_session", tdataFiles)
 	})
 }

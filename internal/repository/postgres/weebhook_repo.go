@@ -11,14 +11,17 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// WebhookRepository handles database operations for webhook configurations.
 type WebhookRepository struct {
 	db *pgxpool.Pool
 }
 
+// NewWebhookRepository creates a new WebhookRepository instance.
 func NewWebhookRepository(db *pgxpool.Pool) *WebhookRepository {
 	return &WebhookRepository{db: db}
 }
 
+// Create inserts or updates a webhook configuration in the database.
 func (r *WebhookRepository) Create(ctx context.Context, wh *domain.WebhookConfig) error {
 	query := `
 		INSERT INTO webhooks (
@@ -36,6 +39,7 @@ func (r *WebhookRepository) Create(ctx context.Context, wh *domain.WebhookConfig
 	return err
 }
 
+// Update updates an existing webhook configuration in the database.
 func (r *WebhookRepository) Update(ctx context.Context, wh *domain.WebhookConfig) error {
 	query := `
 		UPDATE webhooks SET 
@@ -52,6 +56,7 @@ func (r *WebhookRepository) Update(ctx context.Context, wh *domain.WebhookConfig
 	return err
 }
 
+// GetBySessionID retrieves a webhook configuration by session ID.
 func (r *WebhookRepository) GetBySessionID(ctx context.Context, sessionID uuid.UUID) (*domain.WebhookConfig, error) {
 	query := `
 		SELECT id, session_id, url, COALESCE(secret, ''), events, is_active,
@@ -74,12 +79,14 @@ func (r *WebhookRepository) GetBySessionID(ctx context.Context, sessionID uuid.U
 	return &wh, nil
 }
 
+// Delete removes a webhook configuration from the database.
 func (r *WebhookRepository) Delete(ctx context.Context, sessionID uuid.UUID) error {
 	query := `DELETE FROM webhooks WHERE session_id = $1`
 	_, err := r.db.Exec(ctx, query, sessionID)
 	return err
 }
 
+// ListActive retrieves all active webhook configurations.
 func (r *WebhookRepository) ListActive(ctx context.Context) ([]domain.WebhookConfig, error) {
 	query := `
 		SELECT id, session_id, url, COALESCE(secret, ''), events, is_active,

@@ -53,7 +53,7 @@ if [ ! -d "$FRONTEND_DIR" ]; then
     exit 1
 fi
 
-# Parsear argumentos
+# Parsear arguments
 BUILD_ARGS=""
 if [ "$1" == "--no-cache" ]; then
     BUILD_ARGS="--no-cache"

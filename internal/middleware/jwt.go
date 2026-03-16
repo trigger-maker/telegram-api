@@ -11,11 +11,15 @@ import (
 )
 
 const (
-	ContextKeyUserID   = "userID"
+	// ContextKeyUserID is the context key for user ID.
+	ContextKeyUserID = "userID"
+	// ContextKeyUsername is the context key for username.
 	ContextKeyUsername = "username"
-	ContextKeyRole     = "userRole"
+	// ContextKeyRole is the context key for user role.
+	ContextKeyRole = "userRole"
 )
 
+// JWTMiddleware returns a JWT authentication middleware.
 func JWTMiddleware(authService *service.AuthService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
@@ -67,6 +71,7 @@ func JWTMiddleware(authService *service.AuthService) fiber.Handler {
 	}
 }
 
+// RequireRole returns a middleware that requires specific user roles.
 func RequireRole(roles ...domain.Role) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userRole, ok := c.Locals(ContextKeyRole).(domain.Role)
@@ -96,6 +101,7 @@ func RequireRole(roles ...domain.Role) fiber.Handler {
 	}
 }
 
+// GetUserID retrieves the user ID from the request context.
 func GetUserID(c *fiber.Ctx) (uuid.UUID, error) {
 	userID, ok := c.Locals(ContextKeyUserID).(uuid.UUID)
 	if !ok {
@@ -104,16 +110,19 @@ func GetUserID(c *fiber.Ctx) (uuid.UUID, error) {
 	return userID, nil
 }
 
+// GetUsername retrieves the username from the request context.
 func GetUsername(c *fiber.Ctx) string {
 	username, _ := c.Locals(ContextKeyUsername).(string)
 	return username
 }
 
+// GetUserRole retrieves the user role from the request context.
 func GetUserRole(c *fiber.Ctx) domain.Role {
 	role, _ := c.Locals(ContextKeyRole).(domain.Role)
 	return role
 }
 
+// OptionalJWT returns an optional JWT authentication middleware.
 func OptionalJWT(authService *service.AuthService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")

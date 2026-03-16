@@ -11,7 +11,7 @@ import (
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} Response
-// @Router /pool/status [get]
+// @Router /pool/status [get].
 func (h *WebhookHandler) PoolStatus(c *fiber.Ctx) error {
 	activeIDs := h.pool.ListActive()
 

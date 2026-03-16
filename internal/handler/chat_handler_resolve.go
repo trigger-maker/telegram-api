@@ -19,7 +19,7 @@ import (
 // @Param id path string true "Session ID"
 // @Param body body domain.ResolveRequest true "Username or phone"
 // @Success 200 {object} Response{data=domain.ResolvedPeer}
-// @Router /sessions/{id}/resolve [post]
+// @Router /sessions/{id}/resolve [post].
 func (h *ChatHandler) ResolvePeer(c *fiber.Ctx) error {
 	sessionID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

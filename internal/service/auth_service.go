@@ -1,3 +1,4 @@
+// Package service provides business logic services.
 package service
 
 import (
@@ -5,7 +6,7 @@ import (
 	"telegram-api/internal/domain"
 )
 
-// AuthService manages authentication operations
+// AuthService manages authentication operations.
 type AuthService struct {
 	userRepo  domain.UserRepository
 	tokenRepo domain.RefreshTokenRepository
@@ -13,7 +14,7 @@ type AuthService struct {
 	config    *config.Config
 }
 
-// NewAuthService creates a new AuthService instance
+// NewAuthService creates a new AuthService instance.
 func NewAuthService(
 	userRepo domain.UserRepository,
 	tokenRepo domain.RefreshTokenRepository,

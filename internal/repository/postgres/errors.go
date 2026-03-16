@@ -1,3 +1,4 @@
+// Package postgres provides PostgreSQL repository implementations.
 package postgres
 
 import (
@@ -25,8 +26,7 @@ func wrapDBError(err error, op string) error {
 			Str("pg_column", pgErr.ColumnName).
 			Msg("PostgreSQL error")
 
-		switch pgErr.Code {
-		case "23505": // unique_violation
+		if pgErr.Code == "23505" { // unique_violation
 			if pgErr.ConstraintName == "users_username_key" {
 				return domain.ErrUserAlreadyExists
 			}

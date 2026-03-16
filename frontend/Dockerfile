@@ -6,10 +6,10 @@ WORKDIR /app
 # Instalar pnpm
 RUN npm install -g pnpm@10
 
-# Copiar archivos de dependencias
+# Copiar archivos de dependencies
 COPY package.json pnpm-lock.yaml ./
 
-# Instalar dependencias
+# Instalar dependencies
 RUN pnpm install --frozen-lockfile
 
 # Copiar codigo fuente
@@ -19,7 +19,7 @@ COPY . .
 ARG VITE_API_URL=https://backend.telegram-api.fututel.com/api/v1
 ENV VITE_API_URL=$VITE_API_URL
 
-# Build de produccion
+# Build de production
 RUN pnpm build
 
 # ==================== STAGE 2: Production ====================
@@ -31,7 +31,7 @@ RUN apk add --no-cache curl
 # Copiar archivos compilados
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copiar configuracion personalizada de nginx
+# Copiar configuration personalizada de nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Exponer puerto

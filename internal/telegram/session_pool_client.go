@@ -9,7 +9,7 @@ import (
 	"github.com/gotd/td/telegram"
 )
 
-// runClient runs the Telegram client and manages connection state
+// runClient runs the Telegram client and manages connection state.
 func (p *SessionPool) runClient(ctx context.Context, active *ActiveSession, client *telegram.Client) {
 	err := client.Run(ctx, func(ctx context.Context) error {
 		active.mu.Lock()
@@ -30,7 +30,7 @@ func (p *SessionPool) runClient(ctx context.Context, active *ActiveSession, clie
 	active.mu.Unlock()
 
 	if err != nil && ctx.Err() == nil {
-		action, _, wrappedErr := HandleMTProtoError(ctx, active.SessionID, err, p.repo)
+		action, _, _ := HandleMTProtoError(ctx, active.SessionID, err, p.repo)
 		logger.Error().Err(err).
 			Str("session_id", active.SessionID.String()).
 			Msg("Telegram client disconnected with error")

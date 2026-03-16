@@ -6,13 +6,17 @@ import (
 
 	"telegram-api/internal/domain"
 
+	"github.com/google/uuid"
 	"github.com/gotd/td/telegram/message"
 	"github.com/gotd/td/tg"
-	"github.com/google/uuid"
 )
 
-// SendMessage sends a message using the session
-func (m *ClientManager) SendMessage(ctx context.Context, sess *domain.TelegramSession, req *domain.SendMessageRequest) error {
+// SendMessage sends a message using the session.
+func (m *ClientManager) SendMessage(
+	ctx context.Context,
+	sess *domain.TelegramSession,
+	req *domain.SendMessageRequest,
+) error {
 	if m.pool == nil {
 		return domain.ErrSessionNotActive
 	}
@@ -25,8 +29,12 @@ func (m *ClientManager) SendMessage(ctx context.Context, sess *domain.TelegramSe
 	return m.SendMessageWithAPIClient(ctx, active.API, req)
 }
 
-// SendMessageWithAPIClient sends a message using the Telegram API client
-func (m *ClientManager) SendMessageWithAPIClient(ctx context.Context, api *tg.Client, req *domain.SendMessageRequest) error {
+// SendMessageWithAPIClient sends a message using the Telegram API client.
+func (m *ClientManager) SendMessageWithAPIClient(
+	ctx context.Context,
+	api *tg.Client,
+	req *domain.SendMessageRequest,
+) error {
 	if api == nil {
 		return domain.ErrSessionNotActive
 	}

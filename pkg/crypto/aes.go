@@ -1,3 +1,4 @@
+// Package crypto provides cryptographic operations including AES encryption and bcrypt hashing.
 package crypto
 
 import (
@@ -13,18 +14,21 @@ import (
 )
 
 var (
-	ErrInvalidKey         = errors.New("clave de encriptación inválida")
-	ErrDecryptionFailed   = errors.New("fallo al desencriptar datos")
+	// ErrInvalidKey represents an invalid encryption key error.
+	ErrInvalidKey = errors.New("clave de encriptación inválida")
+	// ErrDecryptionFailed represents a decryption failure error.
+	ErrDecryptionFailed = errors.New("fallo al desencriptar datos")
+	// ErrCiphertextTooShort represents a ciphertext too short error.
 	ErrCiphertextTooShort = errors.New("texto cifrado muy corto")
 )
 
-// Crypter maneja operaciones de encriptación/desencriptación
+// Crypter maneja operaciones de encriptación/desencriptación.
 type Crypter struct {
 	key []byte
 }
 
-// NewCrypter crea una nueva instancia de Crypter
-// key debe ser una cadena hexadecimal de 64 caracteres (32 bytes para AES-256)
+// NewCrypter crea una nueva instancia de Crypter.
+// key debe ser una cadena hexadecimal de 64 caracteres (32 bytes para AES-256).
 func NewCrypter(hexKey string) (*Crypter, error) {
 	key, err := hex.DecodeString(hexKey)
 	if err != nil {
@@ -38,7 +42,7 @@ func NewCrypter(hexKey string) (*Crypter, error) {
 	return &Crypter{key: key}, nil
 }
 
-// Encrypt encripta datos usando AES-256-GCM
+// Encrypt encripta datos usando AES-256-GCM.
 func (c *Crypter) Encrypt(plaintext []byte) ([]byte, error) {
 	block, err := aes.NewCipher(c.key)
 	if err != nil {
@@ -61,7 +65,7 @@ func (c *Crypter) Encrypt(plaintext []byte) ([]byte, error) {
 	return ciphertext, nil
 }
 
-// Decrypt desencripta datos encriptados con AES-256-GCM
+// Decrypt desencripta datos encriptados con AES-256-GCM.
 func (c *Crypter) Decrypt(ciphertext []byte) ([]byte, error) {
 	block, err := aes.NewCipher(c.key)
 	if err != nil {
@@ -87,32 +91,32 @@ func (c *Crypter) Decrypt(ciphertext []byte) ([]byte, error) {
 	return plaintext, nil
 }
 
-// HashPassword genera hash bcrypt de una contraseña
+// HashPassword genera hash bcrypt de una contraseña.
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
 }
 
-// CheckPassword verifica si la contraseña coincide con el hash
+// CheckPassword verifica si la contraseña coincide con el hash.
 func CheckPassword(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
 
-// HashToken genera un hash SHA-256 de un token (para refresh tokens)
+// HashToken genera un hash SHA-256 de un token (para refresh tokens).
 func HashToken(token string) string {
 	hash := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(hash[:])
 }
 
-// GenerateRandomBytes genera bytes aleatorios
+// GenerateRandomBytes genera bytes aleatorios.
 func GenerateRandomBytes(n int) ([]byte, error) {
 	b := make([]byte, n)
 	_, err := rand.Read(b)
 	return b, err
 }
 
-// GenerateRandomHex genera una cadena hexadecimal aleatoria
+// GenerateRandomHex genera una cadena hexadecimal aleatoria.
 func GenerateRandomHex(length int) (string, error) {
 	bytes, err := GenerateRandomBytes(length / 2)
 	if err != nil {

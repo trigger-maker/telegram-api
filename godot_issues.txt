@@ -1,0 +1,100 @@
+cmd/api/main.go:74:17: Error return value of `rdb.Close` is not checked (errcheck)
+	defer rdb.Close()
+	               ^
+internal/database/database.go:87:15: Error return value of `s.Redis.Close` is not checked (errcheck)
+	s.Redis.Close()
+	             ^
+internal/handler/auth_handler.go:114:14: Error return value of `c.BodyParser` is not checked (errcheck)
+	c.BodyParser(&req)
+	            ^
+internal/handler/auth_handler.go:115:15: Error return value of `h.auth.Logout` is not checked (errcheck)
+	h.auth.Logout(c.Context(), req.RefreshToken)
+	             ^
+internal/handler/regression_test.go:155:35: Error return value of `(*encoding/json.Decoder).Decode` is not checked (errcheck)
+	json.NewDecoder(resp.Body).Decode(&result)
+	                                 ^
+internal/handler/regression_test.go:200:35: Error return value of `(*encoding/json.Decoder).Decode` is not checked (errcheck)
+	json.NewDecoder(resp.Body).Decode(&result)
+	                                 ^
+internal/handler/regression_test.go:232:35: Error return value of `(*encoding/json.Decoder).Decode` is not checked (errcheck)
+	json.NewDecoder(resp.Body).Decode(&result)
+	                                 ^
+internal/handler/session_handler_tdata.go:64:19: Error return value of `file.Close` is not checked (errcheck)
+		defer file.Close()
+		                ^
+internal/handler/session_handler_tdata_test.go:29:19: Error return value of `writer.WriteField` is not checked (errcheck)
+	writer.WriteField("api_hash", "test_api_hash_32_chars_long")
+	                 ^
+internal/handler/session_handler_tdata_test.go:30:19: Error return value of `writer.WriteField` is not checked (errcheck)
+	writer.WriteField("session_name", "test_session")
+	                 ^
+internal/handler/session_handler_tdata_test.go:33:12: Error return value of `part.Write` is not checked (errcheck)
+	part.Write([]byte("mock key data"))
+	          ^
+internal/handler/session_handler_tdata_test.go:35:14: Error return value of `writer.Close` is not checked (errcheck)
+	writer.Close()
+	            ^
+internal/handler/session_handler_tdata_test.go:61:19: Error return value of `writer.WriteField` is not checked (errcheck)
+	writer.WriteField("api_id", "12345")
+	                 ^
+internal/handler/session_handler_tdata_test.go:65:12: Error return value of `part.Write` is not checked (errcheck)
+	part.Write([]byte("mock key data"))
+	          ^
+internal/handler/session_handler_tdata_test.go:67:14: Error return value of `writer.Close` is not checked (errcheck)
+	writer.Close()
+	            ^
+internal/handler/session_handler_tdata_test.go:97:14: Error return value of `writer.Close` is not checked (errcheck)
+	writer.Close()
+	            ^
+internal/handler/session_handler_tdata_test.go:128:12: Error return value of `part.Write` is not checked (errcheck)
+	part.Write([]byte("mock key data"))
+	          ^
+internal/service/session_service_tdata_test.go:93:22: Error return value of `service.ImportTData` is not checked (errcheck)
+		service.ImportTData(ctx, userID, 12345, "test_api_hash", "test_session", tdataFiles)
+		                   ^
+internal/telegram/event_dispatche.go:130:18: Error return value of `resp.Body.Close` is not checked (errcheck)
+		resp.Body.Close()
+		               ^
+internal/telegram/sender_download.go:31:23: Error return value of `resp.Body.Close` is not checked (errcheck)
+	defer resp.Body.Close()
+	                     ^
+internal/telegram/sender_download.go:44:11: Error return value of `tmp.Close` is not checked (errcheck)
+	tmp.Close()
+	         ^
+internal/telegram/sender_download.go:47:12: Error return value of `os.Remove` is not checked (errcheck)
+		os.Remove(tmp.Name())
+		         ^
+internal/telegram/sender_media.go:22:17: Error return value of `os.Remove` is not checked (errcheck)
+	defer os.Remove(filePath)
+	               ^
+internal/telegram/sender_media.go:46:17: Error return value of `os.Remove` is not checked (errcheck)
+	defer os.Remove(filePath)
+	               ^
+internal/telegram/sender_pool_test.go:64:10: Error return value of `w.Write` is not checked (errcheck)
+		w.Write([]byte("fake image data"))
+		       ^
+internal/telegram/sender_pool_test.go:269:10: Error return value of `w.Write` is not checked (errcheck)
+		w.Write([]byte("test data"))
+		       ^
+internal/telegram/sender_pool_test.go:378:10: Error return value of `w.Write` is not checked (errcheck)
+		w.Write([]byte("test data"))
+		       ^
+docs/docs.go:2361:1: Comment should end in a period (godot)
+// SwaggerInfo holds exported Swagger Info so clients can modify it
+^
+internal/config/config.go:39:1: Comment should end in a period (godot)
+// CacheConfig configura TTLs de cache en segundos
+^
+internal/domain/chat.go:18:1: Comment should end in a period (godot)
+// Chat representa un diálogo/chat de Telegram
+^
+internal/domain/errors.go:35:31: ST1005: error strings should not be capitalized (staticcheck)
+	ErrTelegramError           = errors.New("Telegram error")
+	                             ^
+internal/telegram/sender_pool_test.go:469:3: SA9003: empty branch (staticcheck)
+		if err == nil {
+		^
+32 issues:
+* errcheck: 27
+* godot: 3
+* staticcheck: 2

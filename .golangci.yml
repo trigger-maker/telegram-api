@@ -1,0 +1,96 @@
+version: "2"
+
+linters:
+  enable:
+    - gocyclo
+    - govet
+    - staticcheck
+    - errcheck
+    - unused
+    - gocritic
+    - revive
+    - dupl
+    - goconst
+    - misspell
+    - lll
+    - funlen
+    - gocognit
+    - godot
+    - gosec
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+linters-settings:
+  gocyclo:
+    min-complexity: 6
+
+  govet:
+    enable-all: true
+
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  revive:
+    severity: warning
+    rules:
+      - name: exported
+        severity: warning
+      - name: var-naming
+        severity: warning
+
+  dupl:
+    threshold: 100
+
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+
+  misspell:
+    locale: US
+
+  lll:
+    line-length: 120
+    tab-width: 1
+
+  funlen:
+    lines: 50
+    statements: 30
+
+  gocognit:
+    min-complexity: 15
+
+  godot:
+    scope: declarations
+    capital: false
+
+  gosec:
+    excludes:
+      - G104
+
+formatters-settings:
+  gofmt:
+    simplify: true
+
+  goimports:
+    local-prefixes: github.com/your-org/telegram-api
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-files:
+    - frontend/node_modules/.*
+
+run:
+  timeout: 5m
+  go: "1.23"
+  tests: true
+  modules-download-mode: readonly
+  skip-dirs:
+    - frontend
+  skip-files:
+    - frontend/.*

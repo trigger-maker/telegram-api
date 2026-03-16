@@ -7,33 +7,46 @@ import (
 	"github.com/google/uuid"
 )
 
+// SessionStatus represents the status of a Telegram session.
 type SessionStatus string
 
 const (
-	SessionPending          SessionStatus = "pending"
-	SessionCodeSent         SessionStatus = "code_sent"
+	// SessionPending represents a pending session.
+	SessionPending SessionStatus = "pending"
+	// SessionCodeSent represents a session where code was sent.
+	SessionCodeSent SessionStatus = "code_sent"
+	// SessionPasswordRequired represents a session requiring 2FA password.
 	SessionPasswordRequired SessionStatus = "password_required"
-	SessionAuthenticated    SessionStatus = "authenticated"
-	SessionFailed           SessionStatus = "failed"
-	SessionBanned           SessionStatus = "banned"
-	SessionFrozen           SessionStatus = "frozen"
+	// SessionAuthenticated represents an authenticated session.
+	SessionAuthenticated SessionStatus = "authenticated"
+	// SessionFailed represents a failed session.
+	SessionFailed SessionStatus = "failed"
+	// SessionBanned represents a banned session.
+	SessionBanned SessionStatus = "banned"
+	// SessionFrozen represents a frozen session.
+	SessionFrozen SessionStatus = "frozen"
 )
 
+// AuthMethod represents the authentication method.
 type AuthMethod string
 
 const (
-	AuthMethodSMS  AuthMethod = "sms"
-	AuthMethodQR   AuthMethod = "qr"
+	// AuthMethodSMS represents SMS authentication.
+	AuthMethodSMS AuthMethod = "sms"
+	// AuthMethodQR represents QR code authentication.
+	AuthMethodQR AuthMethod = "qr"
+	// AuthMethodTData represents TData import authentication.
 	AuthMethodTData AuthMethod = "tdata"
 )
 
+// TelegramSession represents a Telegram session.
 type TelegramSession struct {
 	ID               uuid.UUID     `json:"id"`
 	UserID           uuid.UUID     `json:"user_id"`
 	PhoneNumber      string        `json:"phone_number"`
-	ApiID            int           `json:"api_id"`
-	ApiHash          string        `json:"-"`
-	ApiHashEncrypted []byte        `json:"-"`
+	APIID            int           `json:"api_id"`
+	APIHash          string        `json:"-"`
+	APIHashEncrypted []byte        `json:"-"`
 	SessionName      string        `json:"session_name"`
 	SessionData      []byte        `json:"-"`
 	AuthState        SessionStatus `json:"auth_state"`
@@ -45,22 +58,26 @@ type TelegramSession struct {
 	UpdatedAt        time.Time     `json:"updated_at"`
 }
 
+// CreateSessionRequest represents a request to create a session.
 type CreateSessionRequest struct {
 	Phone       string     `json:"phone,omitempty"`
-	ApiID       int        `json:"api_id" validate:"required,gt=0"`
-	ApiHash     string     `json:"api_hash" validate:"required,len=32"`
+	APIID       int        `json:"api_id" validate:"required,gt=0"`
+	APIHash     string     `json:"api_hash" validate:"required,len=32"`
 	SessionName string     `json:"session_name,omitempty"`
 	AuthMethod  AuthMethod `json:"auth_method,omitempty"`
 }
 
+// VerifyCodeRequest represents a request to verify a verification code.
 type VerifyCodeRequest struct {
 	Code string `json:"code" validate:"required,min=5,max=6"`
 }
 
+// Verify2FARequest represents a request to verify 2FA password.
 type Verify2FARequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
+// QRCodeResponse represents a QR code response.
 type QRCodeResponse struct {
 	Token      string `json:"token"`
 	URL        string `json:"url"`
@@ -68,6 +85,7 @@ type QRCodeResponse struct {
 	ExpiresIn  int    `json:"expires_in"`
 }
 
+// SessionRepository defines operations for session persistence.
 type SessionRepository interface {
 	Create(ctx context.Context, session *TelegramSession) error
 	GetByID(ctx context.Context, id uuid.UUID) (*TelegramSession, error)

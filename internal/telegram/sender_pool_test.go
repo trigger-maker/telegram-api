@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestSendMessage_WithActiveSession_ReuseTCP - Test 1: Send text through active session without new TCP
+// TestSendMessage_WithActiveSession_ReuseTCP - Test 1: Send text through active session without new TCP.
 func TestSendMessage_WithActiveSession_ReuseTCP(t *testing.T) {
 	ctx := context.Background()
 
@@ -51,17 +51,17 @@ func TestSendMessage_WithActiveSession_ReuseTCP(t *testing.T) {
 		Type: domain.MessageTypeText,
 	}
 
-// This should return ErrSessionNotActive when API is nil
+	// This should return ErrSessionNotActive when API is nil
 	err := manager.SendMessageWithAPIClient(ctx, active.API, req)
 	assert.ErrorIs(t, err, domain.ErrSessionNotActive)
 }
 
-// TestSendMessage_MediaFile_DownloadUpload - Test 2: Send media files with download, upload, delivery
+// TestSendMessage_MediaFile_DownloadUpload - Test 2: Send media files with download, upload, delivery.
 func TestSendMessage_MediaFile_DownloadUpload(t *testing.T) {
 	// Create mock HTTP server for media file
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "image/jpeg")
-		w.Write([]byte("fake image data"))
+		_, _ = w.Write([]byte("fake image data"))
 	}))
 	defer server.Close()
 
@@ -100,10 +100,11 @@ func TestSendMessage_MediaFile_DownloadUpload(t *testing.T) {
 	require.NoError(t, err)
 
 	// Clean up
-	os.Remove(filePath)
+	_ = os.Remove(filePath)
 }
 
-// TestSendMessage_NoSessionInPool_ErrSessionNotActive - Test 3: SendMessage without session in pool returns ErrSessionNotActive
+// TestSendMessage_NoSessionInPool_ErrSessionNotActive - Test 3:
+// SendMessage without session in pool returns ErrSessionNotActive.
 func TestSendMessage_NoSessionInPool_ErrSessionNotActive(t *testing.T) {
 	ctx := context.Background()
 
@@ -129,7 +130,7 @@ func TestSendMessage_NoSessionInPool_ErrSessionNotActive(t *testing.T) {
 	assert.ErrorIs(t, err, domain.ErrSessionNotActive)
 }
 
-// TestSendMessage_UnreachableMediaURL_Timeout - Test 4: Timeout for unreachable media_url after 30 seconds
+// TestSendMessage_UnreachableMediaURL_Timeout - Test 4: Timeout for unreachable media_url after 30 seconds.
 func TestSendMessage_UnreachableMediaURL_Timeout(t *testing.T) {
 	// Create manager with short timeout for testing
 	manager := &ClientManager{
@@ -145,7 +146,7 @@ func TestSendMessage_UnreachableMediaURL_Timeout(t *testing.T) {
 	assert.Error(t, err)
 }
 
-// TestSendMessage_20ConsecutiveSends_OneTCPConnection - Test 5: 20 consecutive sends use 1 TCP connection
+// TestSendMessage_20ConsecutiveSends_OneTCPConnection - Test 5: 20 consecutive sends use 1 TCP connection.
 func TestSendMessage_20ConsecutiveSends_OneTCPConnection(t *testing.T) {
 	ctx := context.Background()
 
@@ -197,7 +198,7 @@ func TestSendMessage_20ConsecutiveSends_OneTCPConnection(t *testing.T) {
 	assert.Equal(t, 20, connectionCount)
 }
 
-// TestSendMessage_AfterDCSwitch_UpdatedConnection - Test 6: Send after DC switch uses updated connection
+// TestSendMessage_AfterDCSwitch_UpdatedConnection - Test 6: Send after DC switch uses updated connection.
 func TestSendMessage_AfterDCSwitch_UpdatedConnection(t *testing.T) {
 	ctx := context.Background()
 
@@ -252,7 +253,7 @@ func TestSendMessage_AfterDCSwitch_UpdatedConnection(t *testing.T) {
 	assert.ErrorIs(t, err, domain.ErrSessionNotActive)
 }
 
-// TestDownloadFile_WithTimeout - Helper test for download with timeout
+// TestDownloadFile_WithTimeout - Helper test for download with timeout.
 func TestDownloadFile_WithTimeout(t *testing.T) {
 	ctx := context.Background()
 
@@ -264,9 +265,9 @@ func TestDownloadFile_WithTimeout(t *testing.T) {
 	}
 
 	// Create mock HTTP server
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "image/jpeg")
-		w.Write([]byte("test data"))
+		_, _ = w.Write([]byte("test data"))
 	}))
 	defer server.Close()
 
@@ -280,10 +281,10 @@ func TestDownloadFile_WithTimeout(t *testing.T) {
 	require.NoError(t, err)
 
 	// Clean up
-	os.Remove(filePath)
+	_ = os.Remove(filePath)
 }
 
-// TestSendMessage_Errors - Test error handling
+// TestSendMessage_Errors - Test error handling.
 func TestSendMessage_Errors(t *testing.T) {
 	ctx := context.Background()
 
@@ -326,7 +327,7 @@ func TestSendMessage_Errors(t *testing.T) {
 	})
 }
 
-// TestDownloadFile_UnreachableURL - Test download with unreachable URL
+// TestDownloadFile_UnreachableURL - Test download with unreachable URL.
 func TestDownloadFile_UnreachableURL(t *testing.T) {
 	ctx := context.Background()
 
@@ -341,7 +342,7 @@ func TestDownloadFile_UnreachableURL(t *testing.T) {
 	assert.Error(t, err)
 }
 
-// TestSendMessage_InvalidRecipient - Test with invalid recipient
+// TestSendMessage_InvalidRecipient - Test with invalid recipient.
 func TestSendMessage_InvalidRecipient(t *testing.T) {
 	ctx := context.Background()
 
@@ -368,37 +369,17 @@ func TestSendMessage_InvalidRecipient(t *testing.T) {
 	assert.ErrorIs(t, err, domain.ErrSessionNotActive)
 }
 
-// TestSendMessage_VariousMessageTypes - Test different message types
-func TestSendMessage_VariousMessageTypes(t *testing.T) {
-	ctx := context.Background()
+// messageTestType defines a test case for message sending.
+type messageTestType struct {
+	name     string
+	req      *domain.SendMessageRequest
+	wantErr  bool
+	errCheck func(error) bool
+}
 
-	// Create mock HTTP server for media
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "image/jpeg")
-		w.Write([]byte("test data"))
-	}))
-	defer server.Close()
-
-	manager := &ClientManager{
-		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
-		},
-	}
-
-	active := &ActiveSession{
-		SessionID:   uuid.New(),
-		SessionName: "TestSession",
-		TelegramID:  123456789,
-		API:         nil,
-		IsConnected: true,
-	}
-
-	tests := []struct {
-		name     string
-		req      *domain.SendMessageRequest
-		wantErr  bool
-		errCheck func(error) bool
-	}{
+// getMessageTestCases returns all message test cases.
+func getMessageTestCases() []messageTestType {
+	return []messageTestType{
 		{
 			name: "text message",
 			req: &domain.SendMessageRequest{
@@ -424,23 +405,61 @@ func TestSendMessage_VariousMessageTypes(t *testing.T) {
 			},
 		},
 	}
+}
+
+// runMessageTest runs a single message test case.
+func runMessageTest(
+	ctx context.Context,
+	t *testing.T,
+	manager *ClientManager,
+	active *ActiveSession,
+	tt messageTestType,
+) {
+	err := manager.SendMessageWithAPIClient(ctx, active.API, tt.req)
+	if tt.wantErr {
+		assert.Error(t, err)
+		if tt.errCheck != nil {
+			assert.True(t, tt.errCheck(err))
+		}
+	} else {
+		assert.NoError(t, err)
+	}
+}
+
+// TestSendMessage_VariousMessageTypes - Test different message types.
+func TestSendMessage_VariousMessageTypes(t *testing.T) {
+	ctx := context.Background()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "image/jpeg")
+		_, _ = w.Write([]byte("test data"))
+	}))
+	defer server.Close()
+
+	manager := &ClientManager{
+		httpClient: &http.Client{
+			Timeout: 30 * time.Second,
+		},
+	}
+
+	active := &ActiveSession{
+		SessionID:   uuid.New(),
+		SessionName: "TestSession",
+		TelegramID:  123456789,
+		API:         nil,
+		IsConnected: true,
+	}
+
+	tests := getMessageTestCases()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := manager.SendMessageWithAPIClient(ctx, active.API, tt.req)
-			if tt.wantErr {
-				assert.Error(t, err)
-				if tt.errCheck != nil {
-					assert.True(t, tt.errCheck(err))
-				}
-			} else {
-				assert.NoError(t, err)
-			}
+			runMessageTest(ctx, t, manager, active, tt)
 		})
 	}
 }
 
-// TestDownloadFile_ErrorHandling - Test download file error handling
+// TestDownloadFile_ErrorHandling - Test download file error handling.
 func TestDownloadFile_ErrorHandling(t *testing.T) {
 	ctx := context.Background()
 
@@ -455,10 +474,10 @@ func TestDownloadFile_ErrorHandling(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("404 response", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	t.Run("404 response", func(_ *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("not found"))
+			_, _ = w.Write([]byte("not found"))
 		}))
 		defer server.Close()
 
@@ -469,6 +488,7 @@ func TestDownloadFile_ErrorHandling(t *testing.T) {
 		if err == nil {
 			// File was downloaded successfully (even with 404)
 			// This is expected behavior for downloadFileWithTimeout
+			_ = err // Explicitly ignore error
 		}
 	})
 
@@ -479,9 +499,9 @@ func TestDownloadFile_ErrorHandling(t *testing.T) {
 			},
 		}
 
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			time.Sleep(1 * time.Second)
-			w.Write([]byte("data"))
+			_, _ = w.Write([]byte("data"))
 		}))
 		defer server.Close()
 
@@ -490,7 +510,7 @@ func TestDownloadFile_ErrorHandling(t *testing.T) {
 	})
 }
 
-// TestSendMessage_PoolOperations - Test pool operations
+// TestSendMessage_PoolOperations - Test pool operations.
 func TestSendMessage_PoolOperations(t *testing.T) {
 	pool := NewSessionPool(nil, nil, nil)
 	manager := &ClientManager{
@@ -531,7 +551,7 @@ func TestSendMessage_PoolOperations(t *testing.T) {
 	})
 }
 
-// TestClientManager_SetPool - Test SetPool method
+// TestClientManager_SetPool - Test SetPool method.
 func TestClientManager_SetPool(t *testing.T) {
 	pool := NewSessionPool(nil, nil, nil)
 	manager := &ClientManager{
@@ -546,7 +566,7 @@ func TestClientManager_SetPool(t *testing.T) {
 	assert.Equal(t, pool, manager.pool)
 }
 
-// TestDownloadFile_Success - Test successful file download
+// TestDownloadFile_Success - Test successful file download.
 func TestDownloadFile_Success(t *testing.T) {
 	manager := &ClientManager{
 		httpClient: &http.Client{
@@ -554,9 +574,9 @@ func TestDownloadFile_Success(t *testing.T) {
 		},
 	}
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "image/jpeg")
-		w.Write([]byte("test image data"))
+		_, _ = w.Write([]byte("test image data"))
 	}))
 	defer server.Close()
 
@@ -565,15 +585,16 @@ func TestDownloadFile_Success(t *testing.T) {
 	assert.NotEmpty(t, filePath)
 
 	// Verify file content
+	// #nosec G304 -- Reading test file downloaded in test
 	content, err := os.ReadFile(filePath)
 	assert.NoError(t, err)
 	assert.Equal(t, []byte("test image data"), content)
 
 	// Clean up
-	os.Remove(filePath)
+	_ = os.Remove(filePath)
 }
 
-// TestDownloadFile_WithExtension - Test download with different extensions
+// TestDownloadFile_WithExtension - Test download with different extensions.
 func TestDownloadFile_WithExtension(t *testing.T) {
 	manager := &ClientManager{
 		httpClient: &http.Client{
@@ -605,8 +626,8 @@ func TestDownloadFile_WithExtension(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("data"))
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				_, _ = w.Write([]byte("data"))
 			}))
 			defer server.Close()
 
@@ -615,7 +636,7 @@ func TestDownloadFile_WithExtension(t *testing.T) {
 			assert.Contains(t, filePath, tt.wantExt)
 
 			// Clean up
-			os.Remove(filePath)
+			_ = os.Remove(filePath)
 		})
 	}
 }

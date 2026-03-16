@@ -12,7 +12,7 @@ import (
 	"github.com/gotd/td/tg"
 )
 
-// SessionPoolInterface defines interface for SessionPool
+// SessionPoolInterface defines interface for SessionPool.
 type SessionPoolInterface interface {
 	StartSession(ctx context.Context, sess *domain.TelegramSession) error
 	StopSession(sessionID uuid.UUID)
@@ -20,7 +20,7 @@ type SessionPoolInterface interface {
 	ListActive() []uuid.UUID
 }
 
-// SessionPool manages active Telegram clients
+// SessionPool manages active Telegram clients.
 type SessionPool struct {
 	sessions    map[uuid.UUID]*ActiveSession
 	mu          sync.RWMutex
@@ -30,7 +30,7 @@ type SessionPool struct {
 	dispatcher  *EventDispatcher
 }
 
-// ActiveSession represents an active session listening for events
+// ActiveSession represents an active session listening for events.
 type ActiveSession struct {
 	SessionID    uuid.UUID
 	SessionName  string
@@ -44,7 +44,7 @@ type ActiveSession struct {
 	mu           sync.RWMutex
 }
 
-// NewSessionPool creates a new session pool
+// NewSessionPool creates a new session pool.
 func NewSessionPool(
 	manager *ClientManager,
 	repo domain.SessionRepository,
