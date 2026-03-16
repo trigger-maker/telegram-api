@@ -11,7 +11,10 @@ Multi-session REST API for Telegram using MTProto. Manages multiple Telegram acc
 
 - ✅ **Multi-session** - Manage multiple Telegram accounts simultaneously
 - ✅ **JWT Authentication** - Registration, login, refresh tokens
-- ✅ **Telegram Auth** - Via SMS or QR code with automatic regeneration
+- ✅ **Telegram Auth** - Via SMS, QR code, or import from Telegram Desktop
+- ✅ **2FA Support** - Two-factor authentication with password
+- ✅ **Persistent Sessions** - Sessions persist across service restarts
+- ✅ **MTProto Error Handling** - Centralized handling of Telegram errors
 - ✅ **Messaging** - Text, photos, videos, audio, documents
 - ✅ **Bulk Messaging** - Bulk messaging with configurable delay
 - ✅ **Webhooks** - Receive real-time events (messages, statuses, etc)
@@ -143,6 +146,8 @@ ENCRYPTION_KEY=exactly_32_characters_key!!
 | GET | `/api/v1/sessions` | List sessions |
 | GET | `/api/v1/sessions/:id` | Get session |
 | POST | `/api/v1/sessions/:id/verify` | Verify SMS code |
+| POST | `/api/v1/sessions/:id/submit-password` | Submit 2FA password |
+| POST | `/api/v1/sessions/import-tdata` | Import session from Telegram Desktop |
 | DELETE | `/api/v1/sessions/:id` | Delete session |
 
 ### 💬 Messages
@@ -217,6 +222,40 @@ curl -X POST http://localhost:7789/api/v1/sessions \
 # QR regenerates automatically (max 3 attempts)
 ```
 
+### 2FA Password Flow
+
+```bash
+# 1. Verify SMS code for account with 2FA enabled
+curl -X POST http://localhost:7789/api/v1/sessions/{id}/verify \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"code": "12345"}'
+
+# Response: {"auth_state": "password_required", "hint": "your hint"}
+
+# 2. Submit 2FA password
+curl -X POST http://localhost:7789/api/v1/sessions/{id}/submit-password \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"password": "your_2fa_password"}'
+
+# Response: {"auth_state": "authenticated", "is_active": true}
+```
+
+### TData Import Flow
+
+```bash
+# Import session from Telegram Desktop
+curl -X POST http://localhost:7789/api/v1/sessions/import-tdata \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "api_id=12345678" \
+  -F "api_hash=your_api_hash" \
+  -F "session_name=my_tdata_account" \
+  -F "map0=@/path/to/map0" \
+  -F "map1=@/path/to/map1" \
+  -F "D877F783D5D3EF8C=@/path/to/D877F783D5D3EF8C"
+
+# Response: {"session_id": "...", "auth_state": "authenticated", "is_active": true}
+```
+
 ## 📤 Sending Messages
 
 ```bash
@@ -263,6 +302,8 @@ curl -X POST http://localhost:7789/api/v1/sessions/{id}/webhook/start
 - `user.typing` - User typing
 - `session.started` - Session started
 - `session.stopped` - Session stopped
+- `session.banned` - Session banned by Telegram
+- `session.frozen` - Session frozen by Telegram
 - `session.error` - Session error
 
 ## 🐳 Deploy
