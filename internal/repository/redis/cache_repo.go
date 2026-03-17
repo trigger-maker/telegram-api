@@ -151,7 +151,7 @@ func (r *CacheRepository) GetRateLimitCount(ctx context.Context, key string) (in
 // SetWithNX saves only if key does not exist (useful for locks).
 func (r *CacheRepository) SetWithNX(ctx context.Context, key string, value interface{}, ttlSeconds int) (bool, error) {
 	ttl := time.Duration(ttlSeconds) * time.Second
-	ok, err := r.client.SetNX(ctx, key, value, ttl).Result()
+	ok, err := r.client.Set(ctx, key, value, ttl).NX().Result()
 	if err != nil {
 		return false, wrapRedisError(err, "setNX")
 	}
