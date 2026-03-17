@@ -35,11 +35,6 @@ docker-compose.override.yml
 *.log
 logs/
 
-# ==================== Frontend ====================
-frontend/node_modules/
-frontend/dist/
-frontend/.env
-
 # ==================== Temp ====================
 tmp/
 temp/

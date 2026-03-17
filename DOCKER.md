@@ -6,11 +6,6 @@ Complete guide to deploy the full Telegram API stack with Docker.
 
 ```
 ┌─────────────────────────────────────────┐
-│         Frontend (React + Nginx)        │
-│           http://localhost:3000         │
-└────────────────┬────────────────────────┘
-                  │
-┌────────────────▼────────────────────────┐
 │          Backend API (Go)               │
 │           http://localhost:7789         │
 └────────────┬──────────────┬─────────────┘
@@ -61,13 +56,6 @@ docker-compose up -d --build
 - **Healthcheck:** `wget http://localhost:8080/health`
 - **Depends on:** PostgreSQL, Redis
 
-### Frontend (React)
-- **Port:** 3000 (external) → 80 (internal)
-- **Image:** `ghmedinac/telegram-frontend:latest`
-- **Server:** Nginx
-- **Healthcheck:** `wget http://localhost/`
-- **Depends on:** Backend API
-
 ## 🛠️ Useful Commands
 
 ### View logs
@@ -76,7 +64,6 @@ docker-compose up -d --build
 docker-compose logs -f
 
 # Specific service
-docker-compose logs -f frontend
 docker-compose logs -f api
 docker-compose logs -f postgres
 docker-compose logs -f redis
@@ -92,8 +79,6 @@ docker-compose ps
 # All
 docker-compose restart
 
-# Specific one
-docker-compose restart frontend
 ```
 
 ### Stop services
@@ -110,15 +95,10 @@ docker-compose down -v
 # Without cache
 docker-compose build --no-cache
 
-# Single service
-docker-compose build --no-cache frontend
 ```
 
 ### Execute commands in containers
 ```bash
-# Shell in frontend
-docker exec -it telegram_frontend sh
-
 # Shell in backend
 docker exec -it telegram_api_app sh
 
@@ -152,7 +132,6 @@ ENCRYPTION_KEY=${ENCRYPTION_KEY}
 docker-compose ps
 
 # Inspect a container
-docker inspect telegram_frontend | grep -A 10 Health
 ```
 
 ### Resources used
@@ -161,15 +140,6 @@ docker stats
 ```
 
 ## 🐛 Troubleshooting
-
-### Frontend doesn't load
-```bash
-# Check logs
-docker-compose logs frontend
-
-# Verify backend is available
-docker exec -it telegram_frontend wget -O- http://api:8080/health
-```
 
 ### Backend doesn't connect to DB
 ```bash
@@ -258,7 +228,5 @@ docker-compose up -d --force-recreate
 
 ## 📝 Notes
 
-- Frontend proxies to backend through Nginx (see `frontend/nginx.conf`)
 - Healthchecks ensure services depend correctly
 - Images use multi-stage builds to optimize size
-- Frontend uses Node 22 Alpine + Nginx Alpine (very lightweight)

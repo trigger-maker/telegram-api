@@ -39,27 +39,7 @@ The script will ask you what you're developing:
 # Select: 1) Backend
 ```
 
-### 2️⃣ Frontend (React)
-- Builds only the frontend image
-- Deploys: PostgreSQL + Redis + Backend + Frontend
-- Port: 3000
-
-```bash
-./deploy-dev.sh
-# Select: 2) Frontend
-```
-
-### 3️⃣ Full Stack (Both)
-- Builds backend and frontend
-- Deploys entire stack
-- Ports: 3000 (frontend), 7789 (backend)
-
-```bash
-./deploy-dev.sh
-# Select: 3) Both
-```
-
-### 4️⃣ Infrastructure Only
+### 2️⃣ Infrastructure Only
 - Doesn't build images
 - Deploys only PostgreSQL + Redis
 - Useful for local development without Docker
@@ -83,35 +63,6 @@ vim cmd/api/main.go
 
 # 3. View logs
 docker compose logs -f api
-```
-
-### Frontend Development
-
-```bash
-# 1. Modify frontend code
-vim frontend/src/pages/dashboard/DashboardPage.tsx
-
-# 2. Deploy
-./deploy-dev.sh 0.1.1
-# Select: 2) Frontend
-
-# 3. View logs
-docker compose logs -f frontend
-```
-
-### Full Stack Development
-
-```bash
-# 1. Modify backend and frontend
-vim cmd/api/main.go
-vim frontend/src/App.tsx
-
-# 2. Deploy both
-./deploy-dev.sh 0.1.2
-# Select: 3) Both
-
-# 3. View all logs
-docker compose logs -f
 ```
 
 ## 🏷️ Versioning
@@ -139,17 +90,14 @@ The script uses **semantic versioning**:
 The script creates tags:
 - `ghmedinac/telegram-api:latest`
 - `ghmedinac/telegram-api:0.1.0`
-- `ghmedinac/telegram-frontend:latest`
-- `ghmedinac/telegram-frontend:0.1.0`
 
 ## 📦 What the script does
 
-1. **Detects development mode** (backend/frontend/fullstack/infra)
+1. **Detects development mode** (backend/infra)
 2. **Verifies required environment variables**
 3. **Stops old services** based on mode
 4. **Builds only necessary images**
    - Backend: `docker compose build --no-cache api`
-   - Frontend: `docker compose build --no-cache frontend`
 5. **Creates version tags**
    - `latest` and specific `version`
 6. **Asks if you want to push** to Docker Hub
@@ -170,7 +118,6 @@ docker compose logs -f
 
 # Single service
 docker compose logs -f api
-docker compose logs -f frontend
 docker compose logs -f postgres
 docker compose logs -f redis
 ```
@@ -182,7 +129,6 @@ docker compose restart
 
 # Single service
 docker compose restart api
-docker compose restart frontend
 ```
 
 ### Stop
@@ -201,12 +147,6 @@ docker compose down -v
 ```bash
 # Backend
 docker compose build --no-cache api
-
-# Frontend
-docker compose build --no-cache frontend
-
-# Both
-docker compose build --no-cache
 ```
 
 ## 🐛 Troubleshooting
@@ -215,16 +155,6 @@ docker compose build --no-cache
 Use `docker compose` (without dash):
 ```bash
 docker compose --version
-```
-
-### Frontend doesn't update
-```bash
-# Rebuild without cache
-docker compose build --no-cache frontend
-docker compose up -d frontend
-
-# Clear browser cache
-Ctrl + Shift + R
 ```
 
 ### Backend doesn't connect to DB
@@ -263,13 +193,11 @@ docker stats
 ### Inspect a container
 ```bash
 docker compose exec api sh
-docker compose exec frontend sh
 ```
 
 ### View healthchecks
 ```bash
 docker inspect telegram_api_app | grep -A 10 Health
-docker inspect telegram_frontend | grep -A 10 Health
 ```
 
 ## 🔐 Security
@@ -300,7 +228,6 @@ source .env
 ### 1. Local build
 ```bash
 ./deploy-dev.sh 1.0.0
-# Select: 3) Both
 # Push: y (yes)
 ```
 
@@ -308,7 +235,6 @@ source .env
 ```bash
 # Pull images
 docker pull ghmedinac/telegram-api:1.0.0
-docker pull ghmedinac/telegram-frontend:1.0.0
 
 # Configure variables
 export JWT_SECRET="..."
