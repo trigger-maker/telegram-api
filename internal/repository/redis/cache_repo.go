@@ -151,11 +151,16 @@ func (r *CacheRepository) GetRateLimitCount(ctx context.Context, key string) (in
 // SetWithNX saves only if key does not exist (useful for locks).
 func (r *CacheRepository) SetWithNX(ctx context.Context, key string, value interface{}, ttlSeconds int) (bool, error) {
 	ttl := time.Duration(ttlSeconds) * time.Second
-	ok, err := r.client.Set(ctx, key, value, ttl).NX().Result()
+	// Use SetArgs with NX option for go-redis v9 compatibility.
+	result, err := r.client.SetArgs(ctx, key, value, redis.SetArgs{
+		Mode: "NX",
+		TTL:  ttl,
+	}).Result()
 	if err != nil {
 		return false, wrapRedisError(err, "setNX")
 	}
-	return ok, nil
+	// Redis returns "OK" if key was set, empty string if key already existed.
+	return result == "OK", nil
 }
 
 // GetTTL obtiene el tiempo restante de vida de una clave.
