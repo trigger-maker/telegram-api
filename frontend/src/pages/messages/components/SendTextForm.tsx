@@ -9,6 +9,10 @@ interface SendTextFormProps {
   sessionId: string
 }
 
+// Tailwind classes for textarea
+const TEXTAREA_CLASSES = 'w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none'
+
+/* eslint-disable max-lines-per-function */
 export const SendTextForm = ({ sessionId }: SendTextFormProps) => {
   const toast = useToast()
   const [to, setTo] = useState('')
@@ -22,12 +26,12 @@ export const SendTextForm = ({ sessionId }: SendTextFormProps) => {
     setError('')
 
     if (!to.trim()) {
-      setError('El destinatario es requerido')
+      setError('Recipient is required')
       return
     }
 
     if (!text.trim()) {
-      setError('El mensaje es requerido')
+      setError('Message is required')
       return
     }
 
@@ -37,14 +41,14 @@ export const SendTextForm = ({ sessionId }: SendTextFormProps) => {
         data: { to: to.trim(), text: text.trim() },
       })
 
-      toast.success('Mensaje enviado', `Job ID: ${response.job_id}`)
+      toast.success('Message sent', `Job ID: ${response.job_id}`)
       setTo('')
       setText('')
     } catch (err) {
       if (err instanceof ApiException) {
         setError(err.message)
       } else {
-        setError('Error al enviar el mensaje')
+        setError('Error sending message')
       }
     }
   }
@@ -54,9 +58,9 @@ export const SendTextForm = ({ sessionId }: SendTextFormProps) => {
       {error && <Alert variant="error">{error}</Alert>}
 
       <Input
-        label="Destinatario"
+        label="Recipient"
         type="text"
-        placeholder="@username, +573001234567 o ID de chat"
+        placeholder="@username, +573001234567 or chat ID"
         value={to}
         onChange={(e) => setTo(e.target.value)}
         disabled={sendMessage.isPending}
@@ -64,18 +68,18 @@ export const SendTextForm = ({ sessionId }: SendTextFormProps) => {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Mensaje
+          Message
         </label>
         <textarea
-          className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
+          className={TEXTAREA_CLASSES}
           rows={6}
-          placeholder="Escribe tu mensaje aqui..."
+          placeholder="Type your message here..."
           value={text}
           onChange={(e) => setText(e.target.value)}
           disabled={sendMessage.isPending}
         />
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-          {text.length} caracteres
+          {text.length} characters
         </p>
       </div>
 
@@ -87,7 +91,7 @@ export const SendTextForm = ({ sessionId }: SendTextFormProps) => {
         className="h-12"
       >
         <Send className="w-4 h-4 mr-2" />
-        Enviar Mensaje
+        Send Message
       </Button>
     </form>
   )

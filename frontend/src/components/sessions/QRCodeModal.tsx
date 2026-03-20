@@ -1,7 +1,9 @@
+/* global setInterval, setTimeout, clearInterval */
+/* eslint-disable max-lines-per-function, complexity */
 import { useEffect, useState } from 'react'
 import { Modal, Alert, Button } from '@/components/common'
-import { useSession } from '@/hooks'
-import { QrCode, Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { useSession, useRegenerateQR } from '@/hooks'
+import { QrCode, Loader2, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 
 interface QRCodeModalProps {
   isOpen: boolean
@@ -11,6 +13,8 @@ interface QRCodeModalProps {
   onSuccess: () => void
 }
 
+const MAX_REGENERATE_ATTEMPTS = 3
+
 export const QRCodeModal = ({
   isOpen,
   onClose,
@@ -18,12 +22,14 @@ export const QRCodeModal = ({
   qrImage: initialQrImage,
   onSuccess,
 }: QRCodeModalProps) => {
-  const [qrImage] = useState(initialQrImage)
-  const [attempt] = useState(1)
+  const [qrImage, setQrImage] = useState(initialQrImage)
+  const [attempt, setAttempt] = useState(1)
+  const [regenerateError, setRegenerateError] = useState('')
   const [status, setStatus] = useState<'waiting' | 'success' | 'failed'>('waiting')
 
-  // Polling para verificar si el QR fue escaneado
+  // Polling to check if QR was scanned
   const { refetch } = useSession(sessionId)
+  const regenerateQR = useRegenerateQR()
 
   useEffect(() => {
     if (!isOpen) return
@@ -39,16 +45,39 @@ export const QRCodeModal = ({
         }, 2000)
         clearInterval(interval)
       }
-    }, 3000) // Polling cada 3 segundos
+    }, 3000) // Polling every 3 seconds
 
     return () => clearInterval(interval)
   }, [isOpen, sessionId, refetch, onSuccess, onClose])
+
+  const handleRegenerateQR = async () => {
+    if (attempt >= MAX_REGENERATE_ATTEMPTS) {
+      setRegenerateError('Maximum regeneration attempts exceeded')
+      return
+    }
+
+    setRegenerateError('')
+
+    try {
+      const response = await regenerateQR.mutateAsync(sessionId)
+      setQrImage(response.qr_image_base64)
+      setAttempt((prev) => prev + 1)
+    } catch (err) {
+      if (err instanceof Error) {
+        setRegenerateError(err.message)
+      } else {
+        setRegenerateError('Failed to regenerate QR code')
+      }
+    }
+  }
+
+  const canRegenerate = attempt < MAX_REGENERATE_ATTEMPTS && !regenerateQR.isPending
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={status === 'waiting' ? onClose : () => {}}
-      title="Escanea el Código QR"
+      title="Scan the QR Code"
       size="md"
       showClose={status === 'waiting'}
     >
@@ -72,11 +101,11 @@ export const QRCodeModal = ({
 
             <Alert variant="info">
               <div className="space-y-2">
-                <p className="font-semibold text-sm">Cómo escanear:</p>
+                <p className="font-semibold text-sm">How to scan:</p>
                 <ol className="text-sm space-y-1 ml-4 list-decimal">
-                  <li>Abre Telegram en tu teléfono</li>
-                  <li>Ve a Configuración → Dispositivos → Vincular Dispositivo de Escritorio</li>
-                  <li>Escanea este código QR</li>
+                  <li>Open Telegram on your phone</li>
+                  <li>Go to Settings → Devices → Link Desktop Device</li>
+                  <li>Scan this QR code</li>
                 </ol>
               </div>
             </Alert>
@@ -84,12 +113,33 @@ export const QRCodeModal = ({
             <div className="flex items-center justify-center gap-2 mt-6">
               <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                Esperando escaneo... (Intento {attempt}/3)
+                Waiting for scan... (Attempt {attempt}/3)
               </span>
             </div>
 
+            {regenerateError && (
+              <Alert variant="error" className="mt-4">
+                {regenerateError}
+              </Alert>
+            )}
+
+            <div className="flex justify-center mt-4">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleRegenerateQR}
+                disabled={!canRegenerate}
+                isLoading={regenerateQR.isPending}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Regenerate QR
+              </Button>
+            </div>
+
             <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
-              El código se regenerará automáticamente si expira
+              {canRegenerate
+                ? 'Click to regenerate QR code if it expires'
+                : 'Maximum regeneration attempts reached'}
             </p>
           </>
         )}
@@ -102,10 +152,10 @@ export const QRCodeModal = ({
               </div>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              ¡Sesión Creada!
+              Session Created!
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Tu sesión de Telegram está activa y lista para usar
+              Your Telegram session is active and ready to use
             </p>
           </div>
         )}
@@ -118,13 +168,13 @@ export const QRCodeModal = ({
               </div>
             </div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              Error al Crear Sesión
+              Error Creating Session
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Se alcanzó el límite de intentos. Por favor, intenta de nuevo.
+              Maximum attempts reached. Please try again.
             </p>
             <Button variant="primary" onClick={onClose}>
-              Cerrar
+              Close
             </Button>
           </div>
         )}

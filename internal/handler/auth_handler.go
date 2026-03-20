@@ -30,12 +30,12 @@ func (h *AuthHandler) RegisterRoutes(r fiber.Router) {
 }
 
 // Register godoc
-// @Summary Registrar usuario
-// @Description Crea una nueva cuenta de usuario
+// @Summary Register user
+// @Description Creates a new user account
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param body body domain.CreateUserRequest true "Datos del usuario"
+// @Param body body domain.CreateUserRequest true "User data"
 // @Success 201 {object} handler.Response{data=domain.UserInfo}
 // @Failure 400 {object} handler.Response
 // @Failure 409 {object} handler.Response
@@ -57,7 +57,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 
 // Login godoc
 // @Summary Login
-// @Description Autentica usuario y retorna tokens
+// @Description Authenticates user and returns tokens
 // @Tags Auth
 // @Accept json
 // @Produce json
@@ -79,7 +79,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 
 // Refresh godoc
 // @Summary Renovar tokens
-// @Description Genera nuevos tokens usando refresh token
+// @Description Generates new tokens using refresh token
 // @Tags Auth
 // @Accept json
 // @Produce json
@@ -102,8 +102,8 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 }
 
 // Logout godoc
-// @Summary Cerrar sesión
-// @Description Revoca el refresh token
+// @Summary Logout
+// @Description Revokes the refresh token
 // @Tags Auth
 // @Accept json
 // @Produce json
@@ -125,8 +125,8 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 }
 
 // Me godoc
-// @Summary Info usuario actual
-// @Description Retorna información del usuario autenticado
+// @Summary Current user info
+// @Description Returns information of the authenticated user
 // @Tags Auth
 // @Produce json
 // @Security BearerAuth

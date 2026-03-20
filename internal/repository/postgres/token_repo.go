@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Queries SQL para refresh tokens.
+// SQL queries for refresh tokens.
 const (
 	// #nosec G101 -- SQL queries without hardcoded credentials
 	queryCreateToken = `
@@ -50,18 +50,18 @@ const (
 		WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > $2`
 )
 
-// RefreshTokenRepository implementa domain.RefreshTokenRepository.
-// Single Responsibility: Solo maneja operaciones de refresh tokens.
+// RefreshTokenRepository implements domain.RefreshTokenRepository.
+// Single Responsibility: Only handles refresh token operations.
 type RefreshTokenRepository struct {
 	pool *pgxpool.Pool
 }
 
-// NewRefreshTokenRepository crea una nueva instancia del repositorio.
+// NewRefreshTokenRepository creates a new instance of the repository.
 func NewRefreshTokenRepository(pool *pgxpool.Pool) *RefreshTokenRepository {
 	return &RefreshTokenRepository{pool: pool}
 }
 
-// Create crea un nuevo refresh token.
+// Create creates a new refresh token.
 func (r *RefreshTokenRepository) Create(ctx context.Context, token *domain.RefreshToken) error {
 	_, err := r.pool.Exec(ctx, queryCreateToken,
 		token.ID,
@@ -78,7 +78,7 @@ func (r *RefreshTokenRepository) Create(ctx context.Context, token *domain.Refre
 	return nil
 }
 
-// GetByTokenHash obtiene un token por su hash.
+// GetByTokenHash gets a token by its hash.
 func (r *RefreshTokenRepository) GetByTokenHash(ctx context.Context, tokenHash string) (*domain.RefreshToken, error) {
 	token := &domain.RefreshToken{}
 	var ipAddr *string
@@ -107,7 +107,7 @@ func (r *RefreshTokenRepository) GetByTokenHash(ctx context.Context, tokenHash s
 	return token, nil
 }
 
-// Revoke revoca un token específico.
+// Revoke revokes a specific token.
 func (r *RefreshTokenRepository) Revoke(ctx context.Context, id uuid.UUID) error {
 	result, err := r.pool.Exec(ctx, queryRevokeToken, id, time.Now())
 	if err != nil {
@@ -119,7 +119,7 @@ func (r *RefreshTokenRepository) Revoke(ctx context.Context, id uuid.UUID) error
 	return nil
 }
 
-// RevokeAllForUser revoca todos los tokens de un usuario.
+// RevokeAllForUser revokes all tokens of a user.
 func (r *RefreshTokenRepository) RevokeAllForUser(ctx context.Context, userID uuid.UUID) error {
 	_, err := r.pool.Exec(ctx, queryRevokeAllUserTokens, userID, time.Now())
 	if err != nil {
@@ -128,7 +128,7 @@ func (r *RefreshTokenRepository) RevokeAllForUser(ctx context.Context, userID uu
 	return nil
 }
 
-// DeleteExpired elimina tokens expirados o revocados.
+// DeleteExpired deletes expired or revoked tokens.
 func (r *RefreshTokenRepository) DeleteExpired(ctx context.Context) (int64, error) {
 	result, err := r.pool.Exec(ctx, queryDeleteExpiredTokens, time.Now())
 	if err != nil {
@@ -137,7 +137,7 @@ func (r *RefreshTokenRepository) DeleteExpired(ctx context.Context) (int64, erro
 	return result.RowsAffected(), nil
 }
 
-// GetActiveByUserID obtiene todos los tokens activos de un usuario.
+// GetActiveByUserID gets all active tokens of a user.
 func (r *RefreshTokenRepository) GetActiveByUserID(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -146,7 +146,12 @@ func (r *RefreshTokenRepository) GetActiveByUserID(
 	if err != nil {
 		return nil, wrapDBError(err, "get active tokens")
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			// Log error but don't override existing error.
+			_ = err
+		}
+	}()
 
 	var tokens []*domain.RefreshToken
 	for rows.Next() {
@@ -180,7 +185,7 @@ func (r *RefreshTokenRepository) GetActiveByUserID(
 	return tokens, nil
 }
 
-// CountActiveByUserID cuenta tokens activos de un usuario.
+// CountActiveByUserID counts active tokens of a user.
 func (r *RefreshTokenRepository) CountActiveByUserID(ctx context.Context, userID uuid.UUID) (int64, error) {
 	var count int64
 	err := r.pool.QueryRow(ctx, queryCountActiveTokensByUser, userID, time.Now()).Scan(&count)
@@ -190,7 +195,7 @@ func (r *RefreshTokenRepository) CountActiveByUserID(ctx context.Context, userID
 	return count, nil
 }
 
-// nullableString convierte string vacío a nil para campos nullable.
+// nullableString converts empty string to nil for nullable fields.
 func nullableString(s string) *string {
 	if s == "" {
 		return nil

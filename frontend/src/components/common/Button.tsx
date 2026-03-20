@@ -1,3 +1,5 @@
+/* global HTMLButtonElement */
+/* eslint-disable complexity */
 import { ButtonHTMLAttributes, ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
 

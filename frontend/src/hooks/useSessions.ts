@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sessionsApi } from '@/api'
-import type { CreateSessionRequest } from '@/types'
+import type {
+  CreateSessionRequest,
+  ImportTDataRequest,
+} from '@/types'
 
 export const SESSIONS_QUERY_KEY = 'sessions'
 
@@ -47,6 +50,35 @@ export const useDeleteSession = () => {
 
   return useMutation({
     mutationFn: (sessionId: string) => sessionsApi.delete(sessionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+    },
+  })
+}
+
+export const useSubmitPassword = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ sessionId, password }: { sessionId: string; password: string }) =>
+      sessionsApi.submitPassword(sessionId, { password }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+    },
+  })
+}
+
+export const useRegenerateQR = () => {
+  return useMutation({
+    mutationFn: (sessionId: string) => sessionsApi.regenerateQR(sessionId),
+  })
+}
+
+export const useImportTData = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: ImportTDataRequest) => sessionsApi.importTData(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
     },

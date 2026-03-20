@@ -78,7 +78,7 @@
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Cerrar sesión",
+                "summary": "Logout",
                 "parameters": [
                     {
                         "description": "Refresh token",
@@ -220,7 +220,7 @@
                 "summary": "Registrar usuario",
                 "parameters": [
                     {
-                        "description": "Datos del usuario",
+                        "description": "User data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -493,7 +493,7 @@
                 "tags": [
                     "Sessions"
                 ],
-                "summary": "Eliminar sesión",
+                "summary": "Delete session",
                 "parameters": [
                     {
                         "type": "string",
@@ -770,7 +770,7 @@
                 "tags": [
                     "Messages"
                 ],
-                "summary": "Enviar audio",
+                "summary": "Send audio",
                 "parameters": [
                     {
                         "type": "string",
@@ -901,7 +901,7 @@
                 "tags": [
                     "Messages"
                 ],
-                "summary": "Enviar documento",
+                "summary": "Send document",
                 "parameters": [
                     {
                         "type": "string",
@@ -965,7 +965,7 @@
                 "tags": [
                     "Messages"
                 ],
-                "summary": "Enviar foto",
+                "summary": "Send photo",
                 "parameters": [
                     {
                         "type": "string",
@@ -1029,7 +1029,7 @@
                 "tags": [
                     "Messages"
                 ],
-                "summary": "Enviar texto",
+                "summary": "Send text",
                 "parameters": [
                     {
                         "type": "string",
@@ -1099,7 +1099,7 @@
                 "tags": [
                     "Messages"
                 ],
-                "summary": "Enviar video",
+                "summary": "Send video",
                 "parameters": [
                     {
                         "type": "string",
@@ -1562,7 +1562,7 @@
                         "required": true
                     },
                     {
-                        "description": "Configuración",
+                        "description": "Settings",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1605,7 +1605,7 @@
                 "tags": [
                     "Webhooks"
                 ],
-                "summary": "Eliminar webhook",
+                "summary": "Delete webhook",
                 "parameters": [
                     {
                         "type": "string",

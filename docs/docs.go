@@ -84,7 +84,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Cerrar sesión",
+                "summary": "Logout",
                 "parameters": [
                     {
                         "description": "Refresh token",
@@ -226,7 +226,7 @@ const docTemplate = `{
                 "summary": "Registrar usuario",
                 "parameters": [
                     {
-                        "description": "Datos del usuario",
+                        "description": "User data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -501,7 +501,7 @@ const docTemplate = `{
                 "tags": [
                     "Sessions"
                 ],
-                "summary": "Eliminar sesión",
+                "summary": "Delete session",
                 "parameters": [
                     {
                         "type": "string",
@@ -778,7 +778,7 @@ const docTemplate = `{
                 "tags": [
                     "Messages"
                 ],
-                "summary": "Enviar audio",
+                "summary": "Send audio",
                 "parameters": [
                     {
                         "type": "string",
@@ -909,7 +909,7 @@ const docTemplate = `{
                 "tags": [
                     "Messages"
                 ],
-                "summary": "Enviar documento",
+                "summary": "Send document",
                 "parameters": [
                     {
                         "type": "string",
@@ -973,7 +973,7 @@ const docTemplate = `{
                 "tags": [
                     "Messages"
                 ],
-                "summary": "Enviar foto",
+                "summary": "Send photo",
                 "parameters": [
                     {
                         "type": "string",
@@ -1037,7 +1037,7 @@ const docTemplate = `{
                 "tags": [
                     "Messages"
                 ],
-                "summary": "Enviar texto",
+                "summary": "Send text",
                 "parameters": [
                     {
                         "type": "string",
@@ -1107,7 +1107,7 @@ const docTemplate = `{
                 "tags": [
                     "Messages"
                 ],
-                "summary": "Enviar video",
+                "summary": "Send video",
                 "parameters": [
                     {
                         "type": "string",
@@ -1570,7 +1570,7 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Configuración",
+                        "description": "Settings",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -1613,7 +1613,7 @@ const docTemplate = `{
                 "tags": [
                     "Webhooks"
                 ],
-                "summary": "Eliminar webhook",
+                "summary": "Delete webhook",
                 "parameters": [
                     {
                         "type": "string",

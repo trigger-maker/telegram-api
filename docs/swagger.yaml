@@ -660,7 +660,7 @@ info:
             $ref: '#/definitions/handler.Response'
       security:
       - BearerAuth: []
-      summary: Cerrar sesión
+      summary: Logout
       tags:
       - Auth
   /auth/me:
@@ -727,7 +727,7 @@ info:
       - application/json
       description: Crea una nueva cuenta de usuario
       parameters:
-      - description: Datos del usuario
+      - description: User data
         in: body
         name: body
         required: true
@@ -877,7 +877,7 @@ info:
             $ref: '#/definitions/handler.Response'
       security:
       - BearerAuth: []
-      summary: Eliminar sesión
+      summary: Delete session
       tags:
       - Sessions
     get:
@@ -1083,7 +1083,7 @@ info:
             $ref: '#/definitions/handler.Response'
       security:
       - BearerAuth: []
-      summary: Enviar audio
+      summary: Send audio
       tags:
       - Messages
   /sessions/{id}/messages/bulk:
@@ -1161,7 +1161,7 @@ info:
             $ref: '#/definitions/handler.Response'
       security:
       - BearerAuth: []
-      summary: Enviar documento
+      summary: Send document
       tags:
       - Messages
   /sessions/{id}/messages/photo:
@@ -1199,7 +1199,7 @@ info:
             $ref: '#/definitions/handler.Response'
       security:
       - BearerAuth: []
-      summary: Enviar foto
+      summary: Send photo
       tags:
       - Messages
   /sessions/{id}/messages/text:
@@ -1241,7 +1241,7 @@ info:
             $ref: '#/definitions/handler.Response'
       security:
       - BearerAuth: []
-      summary: Enviar texto
+      summary: Send text
       tags:
       - Messages
   /sessions/{id}/messages/video:
@@ -1279,7 +1279,7 @@ info:
             $ref: '#/definitions/handler.Response'
       security:
       - BearerAuth: []
-      summary: Enviar video
+      summary: Send video
       tags:
       - Messages
   /sessions/{id}/qr/regenerate:
@@ -1508,7 +1508,7 @@ info:
             $ref: '#/definitions/handler.Response'
       security:
       - BearerAuth: []
-      summary: Eliminar webhook
+      summary: Delete webhook
       tags:
       - Webhooks
     get:
@@ -1546,7 +1546,7 @@ info:
         name: id
         required: true
         type: string
-      - description: Configuración
+      - description: Settings
         in: body
         name: body
         required: true

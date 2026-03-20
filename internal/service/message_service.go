@@ -47,7 +47,7 @@ func NewMessageService(
 const (
 	queueKey  = "tg:msg:queue"
 	jobPrefix = "tg:msg:job:"
-	jobTTL    = 86400 // 24 horas
+	jobTTL    = 86400 // 24 hours
 )
 
 // SendMessage sends a single message via Telegram.
@@ -88,7 +88,10 @@ func (s *MessageService) SendMessage(
 		job.SendAt = time.Now()
 	}
 
-	jobData, _ := json.Marshal(job)
+	jobData, err := json.Marshal(job)
+	if err != nil {
+		logger.Error().Err(err).Msg("Error marshaling job")
+	}
 	_ = s.cache.Set(ctx, jobPrefix+job.ID, string(jobData), jobTTL)
 
 	if req.DelayMs > 0 {
@@ -218,7 +221,10 @@ func (s *MessageService) SendMessageWithClient(
 		job.SendAt = time.Now()
 	}
 
-	jobData, _ := json.Marshal(job)
+	jobData, err := json.Marshal(job)
+	if err != nil {
+		logger.Error().Err(err).Msg("Error marshaling job")
+	}
 	_ = s.cache.Set(ctx, jobPrefix+job.ID, string(jobData), jobTTL)
 
 	if req.DelayMs > 0 {
@@ -305,6 +311,9 @@ func (s *MessageService) processJobWithClient(ctx context.Context, job *domain.M
 }
 
 func (s *MessageService) updateJob(ctx context.Context, job *domain.MessageJob) {
-	jobData, _ := json.Marshal(job)
+	jobData, err := json.Marshal(job)
+	if err != nil {
+		logger.Error().Err(err).Msg("Error marshaling job")
+	}
 	_ = s.cache.Set(ctx, jobPrefix+job.ID, string(jobData), jobTTL)
 }

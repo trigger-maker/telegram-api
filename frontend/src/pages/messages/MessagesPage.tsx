@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function, complexity */
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Send, Image, Video, Music, FileText, Users, ArrowLeft } from 'lucide-react'
@@ -23,7 +24,7 @@ export const MessagesPage = () => {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
-          <p className="text-gray-600 dark:text-gray-400">Cargando...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </Layout>
     )
@@ -34,7 +35,7 @@ export const MessagesPage = () => {
       <Layout>
         <div className="max-w-4xl mx-auto">
           <Alert variant="error">
-            Esta sesión no está activa. Por favor, activa la sesión primero.
+            This session is not active. Please activate the session first.
           </Alert>
         </div>
       </Layout>
@@ -55,7 +56,7 @@ export const MessagesPage = () => {
           </button>
           <div className="min-w-0">
             <h1 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white truncate">
-              Enviar Mensajes
+              Send Messages
             </h1>
             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 truncate">
               {session.session_name} {session.telegram_username && `(@${session.telegram_username})`}
@@ -67,12 +68,12 @@ export const MessagesPage = () => {
           <div className="overflow-x-auto">
             <Tabs
               tabs={[
-                { id: 'text', label: 'Texto', icon: <Send className="w-4 h-4" /> },
-                { id: 'photo', label: 'Foto', icon: <Image className="w-4 h-4" /> },
+                { id: 'text', label: 'Text', icon: <Send className="w-4 h-4" /> },
+                { id: 'photo', label: 'Photo', icon: <Image className="w-4 h-4" /> },
                 { id: 'video', label: 'Video', icon: <Video className="w-4 h-4" /> },
                 { id: 'audio', label: 'Audio', icon: <Music className="w-4 h-4" /> },
-                { id: 'file', label: 'Archivo', icon: <FileText className="w-4 h-4" /> },
-                { id: 'bulk', label: 'Masivo', icon: <Users className="w-4 h-4" /> },
+                { id: 'file', label: 'File', icon: <FileText className="w-4 h-4" /> },
+                { id: 'bulk', label: 'Bulk', icon: <Users className="w-4 h-4" /> },
               ]}
               activeTab={activeTab}
               onChange={setActiveTab}

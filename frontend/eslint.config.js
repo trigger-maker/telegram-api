@@ -27,6 +27,19 @@ export default [
         navigator: "readonly",
         localStorage: "readonly",
         sessionStorage: "readonly",
+        React: "readonly",
+        HTMLInputElement: "readonly",
+        HTMLDivElement: "readonly",
+        File: "readonly",
+        FileReader: "readonly",
+        Blob: "readonly",
+        URL: "readonly",
+        FormData: "readonly",
+        ScrollBehavior: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        IntersectionObserver: "readonly",
+        IntersectionObserverEntry: "readonly",
       },
     },
     plugins: {
@@ -64,6 +77,36 @@ export default [
       "no-console": "warn",
       "prefer-const": "error",
       "no-var": "error",
+      "no-redeclare": ["error", { builtinGlobals: false }],
+    },
+  },
+  {
+    files: ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
+    languageOptions: {
+      globals: {
+        describe: "readonly",
+        it: "readonly",
+        test: "readonly",
+        expect: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        vi: "readonly",
+        File: "readonly",
+      },
+    },
+    rules: {
+      "max-lines-per-function": "off",
+      "complexity": "off",
+    },
+  },
+  {
+    files: ["vite.config.ts"],
+    languageOptions: {
+      globals: {
+        __dirname: "readonly",
+      },
     },
   },
 ];

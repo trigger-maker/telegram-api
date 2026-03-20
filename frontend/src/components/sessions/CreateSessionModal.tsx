@@ -1,19 +1,21 @@
 import { useState } from 'react'
-import { Smartphone, QrCode, HelpCircle } from 'lucide-react'
+import { Smartphone, QrCode, HelpCircle, Database } from 'lucide-react'
 import { Modal, Button, Input, Tabs, Alert } from '@/components/common'
 import { TelegramGuide } from './TelegramGuide'
 import { useCreateSession } from '@/hooks'
-import { ApiException } from '@/types'
+import { ApiException, CreateSessionRequest, CreateSessionResponse } from '@/types'
 
 interface CreateSessionModalProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: (sessionId: string, data: any) => void
+  onSuccess: (sessionId: string, data: CreateSessionResponse) => void
+  onImportTData?: () => void
 }
 
-export const CreateSessionModal = ({ isOpen, onClose, onSuccess }: CreateSessionModalProps) => {
+/* eslint-disable max-lines-per-function, complexity */
+export const CreateSessionModal = ({ isOpen, onClose, onSuccess, onImportTData }: CreateSessionModalProps) => {
   const [activeTab, setActiveTab] = useState('form')
-  const [authMethod, setAuthMethod] = useState<'sms' | 'qr'>('sms')
+  const [authMethod, setAuthMethod] = useState<'sms' | 'qr' | 'tdata'>('sms')
   const [formData, setFormData] = useState({
     session_name: '',
     phone: '',
@@ -28,24 +30,24 @@ export const CreateSessionModal = ({ isOpen, onClose, onSuccess }: CreateSession
     e.preventDefault()
     setError('')
 
-    // Validaciones
+    // Validations
     if (!formData.session_name.trim()) {
-      setError('El nombre de la sesión es requerido')
+      setError('Session name is required')
       return
     }
 
     if (!formData.api_id || !formData.api_hash) {
-      setError('API ID y API Hash son requeridos')
+      setError('API ID and API Hash are required')
       return
     }
 
     if (authMethod === 'sms' && !formData.phone.trim()) {
-      setError('El número de teléfono es requerido para SMS')
+      setError('Phone number is required for SMS')
       return
     }
 
     try {
-      const payload: any = {
+      const payload: CreateSessionRequest = {
         session_name: formData.session_name,
         api_id: parseInt(formData.api_id),
         api_hash: formData.api_hash,
@@ -62,7 +64,7 @@ export const CreateSessionModal = ({ isOpen, onClose, onSuccess }: CreateSession
       if (err instanceof ApiException) {
         setError(err.message)
       } else {
-        setError('Error al crear la sesión')
+        setError('Error creating session')
       }
     }
   }
@@ -88,15 +90,15 @@ export const CreateSessionModal = ({ isOpen, onClose, onSuccess }: CreateSession
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Nueva Sesión de Telegram"
+      title="New Telegram Session"
       size="lg"
     >
       <div className="p-4 sm:p-6">
         <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
           <Tabs
             tabs={[
-              { id: 'form', label: 'Crear Sesión', icon: <Smartphone className="w-4 h-4" /> },
-              { id: 'guide', label: 'Credenciales', icon: <HelpCircle className="w-4 h-4" /> },
+              { id: 'form', label: 'Create Session', icon: <Smartphone className="w-4 h-4" /> },
+              { id: 'guide', label: 'Credentials', icon: <HelpCircle className="w-4 h-4" /> },
             ]}
             activeTab={activeTab}
             onChange={setActiveTab}
@@ -115,9 +117,9 @@ export const CreateSessionModal = ({ isOpen, onClose, onSuccess }: CreateSession
               )}
 
               <Input
-                label="Nombre de la Sesión"
+                label="Session Name"
                 type="text"
-                placeholder="Mi Sesión de Telegram"
+                placeholder="My Telegram Session"
                 value={formData.session_name}
                 onChange={(e) => setFormData({ ...formData, session_name: e.target.value })}
                 disabled={createSession.isPending}
@@ -145,26 +147,28 @@ export const CreateSessionModal = ({ isOpen, onClose, onSuccess }: CreateSession
 
               <div className="space-y-3">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Método de Autenticación
+                  Authentication Method
                 </label>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <button
                     type="button"
                     onClick={() => setAuthMethod('sms')}
                     disabled={createSession.isPending}
-                    className={`
-                      p-4 rounded-lg border-2 transition-all
-                      ${authMethod === 'sms'
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      authMethod === 'sms'
                         ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
-                      }
-                    `}
+                    }`}
                   >
-                    <Smartphone className={`w-6 h-6 mx-auto mb-2 ${authMethod === 'sms' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'}`} />
+                    <Smartphone
+                      className={`w-6 h-6 mx-auto mb-2 ${
+                        authMethod === 'sms' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'
+                      }`}
+                    />
                     <p className="text-sm font-medium text-gray-900 dark:text-white">SMS</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Código por mensaje
+                      Code via SMS
                     </p>
                   </button>
 
@@ -172,18 +176,46 @@ export const CreateSessionModal = ({ isOpen, onClose, onSuccess }: CreateSession
                     type="button"
                     onClick={() => setAuthMethod('qr')}
                     disabled={createSession.isPending}
-                    className={`
-                      p-4 rounded-lg border-2 transition-all
-                      ${authMethod === 'qr'
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      authMethod === 'qr'
                         ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
-                      }
-                    `}
+                    }`}
                   >
-                    <QrCode className={`w-6 h-6 mx-auto mb-2 ${authMethod === 'qr' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'}`} />
+                    <QrCode
+                      className={`w-6 h-6 mx-auto mb-2 ${
+                        authMethod === 'qr' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'
+                      }`}
+                    />
                     <p className="text-sm font-medium text-gray-900 dark:text-white">QR Code</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Escanea con Telegram
+                      Scan with Telegram
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMethod('tdata')
+                      if (onImportTData) {
+                        onImportTData()
+                      }
+                    }}
+                    disabled={createSession.isPending}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      authMethod === 'tdata'
+                        ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700'
+                    }`}
+                  >
+                    <Database
+                      className={`w-6 h-6 mx-auto mb-2 ${
+                        authMethod === 'tdata' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'
+                      }`}
+                    />
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">TData</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Import from Desktop
                     </p>
                   </button>
                 </div>
@@ -191,7 +223,7 @@ export const CreateSessionModal = ({ isOpen, onClose, onSuccess }: CreateSession
 
               {authMethod === 'sms' && (
                 <Input
-                  label="Número de Teléfono"
+                  label="Phone Number"
                   type="tel"
                   placeholder="+573001234567"
                   value={formData.phone}
@@ -203,8 +235,17 @@ export const CreateSessionModal = ({ isOpen, onClose, onSuccess }: CreateSession
               {authMethod === 'qr' && (
                 <Alert variant="info">
                   <p className="text-sm">
-                    Se generará un código QR que podrás escanear desde tu aplicación de Telegram.
-                    El QR se regenerará automáticamente si expira (máximo 3 intentos).
+                    A QR code will be generated that you can scan from your Telegram app.
+                    The QR will be automatically regenerated if it expires (maximum 3 attempts).
+                  </p>
+                </Alert>
+              )}
+
+              {authMethod === 'tdata' && (
+                <Alert variant="info">
+                  <p className="text-sm">
+                    Import an existing session from Telegram Desktop. You need to export
+                    the TData files from your Telegram Desktop installation first.
                   </p>
                 </Alert>
               )}
@@ -217,7 +258,7 @@ export const CreateSessionModal = ({ isOpen, onClose, onSuccess }: CreateSession
                   disabled={createSession.isPending}
                   fullWidth
                 >
-                  Cancelar
+                  Cancel
                 </Button>
                 <Button
                   type="submit"
@@ -225,7 +266,7 @@ export const CreateSessionModal = ({ isOpen, onClose, onSuccess }: CreateSession
                   isLoading={createSession.isPending}
                   fullWidth
                 >
-                  {authMethod === 'sms' ? 'Enviar Código' : 'Generar QR'}
+                  {authMethod === 'sms' ? 'Send Code' : authMethod === 'qr' ? 'Generate QR' : 'Import TData'}
                 </Button>
               </div>
             </form>

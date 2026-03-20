@@ -135,11 +135,11 @@ func TestClientManager_ImportTData_ValidInput(t *testing.T) {
 		"key_datas": []byte("mock key data"),
 	}
 
-	// This will fail because we don't have real tdata files,
-	// but it should pass validation
+	// This will fail because we don't have real tdata files.
+	// but it should pass validation.
 	_, err = manager.ImportTData(ctx, 12345, "test_api_hash", "test_session", sessionID, tdataFiles)
 
-	// Should fail with ErrTDataInvalid (not validation error)
+	// Should fail with ErrTDataInvalid (not validation error).
 	assert.Error(t, err)
 	assert.Equal(t, domain.ErrTDataInvalid, errors.Unwrap(err))
 }

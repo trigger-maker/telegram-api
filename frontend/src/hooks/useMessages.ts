@@ -12,16 +12,16 @@ import type {
 
 export const MESSAGE_QUERY_KEY = 'messages'
 
-// Helper para invalidar el historial de chat después de enviar un mensaje
+// Helper to invalidate chat history after sending a message
 const useInvalidateChatHistory = () => {
   const queryClient = useQueryClient()
 
   return (sessionId: string, chatId?: string) => {
-    // Invalidar todos los historiales de esta sesión
+    // Invalidate all histories of this session
     queryClient.invalidateQueries({
       queryKey: ['chats', 'history', sessionId],
     })
-    // Si tenemos el chatId específico, invalidar ese también
+    // If we have the specific chatId, invalidate that too
     if (chatId) {
       const numericChatId = parseInt(chatId, 10)
       if (!isNaN(numericChatId)) {
@@ -40,7 +40,7 @@ export const useSendTextMessage = () => {
     mutationFn: ({ sessionId, data }: { sessionId: string; data: SendTextRequest }) =>
       messagesApi.sendText(sessionId, data),
     onSuccess: (_, variables) => {
-      // Invalidar el cache del historial para que se refresque
+      // Invalidate the history cache so it refreshes
       invalidateHistory(variables.sessionId, variables.data.to)
     },
   })
@@ -106,6 +106,6 @@ export const useMessageStatus = (jobId: string) => {
     queryKey: [MESSAGE_QUERY_KEY, jobId],
     queryFn: () => messagesApi.getStatus(jobId),
     enabled: !!jobId,
-    refetchInterval: 3000, // Polling cada 3 segundos
+    refetchInterval: 3000, // Polling every 3 seconds
   })
 }

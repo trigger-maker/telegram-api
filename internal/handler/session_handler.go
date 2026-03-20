@@ -34,8 +34,8 @@ func (h *SessionHandler) RegisterRoutes(r fiber.Router) {
 }
 
 // Create godoc
-// @Summary Crear sesión Telegram
-// @Description Inicia autenticación con Telegram (SMS o QR). Para QR, el sistema escucha automáticamente en background.
+// @Summary Create Telegram session
+// @Description Initiates authentication with Telegram (SMS or QR). For QR, the system listens automatically in background.
 // @Tags Sessions
 // @Accept json
 // @Produce json
@@ -80,19 +80,19 @@ func (h *SessionHandler) Create(c *fiber.Ctx) error {
 
 	if req.AuthMethod == domain.AuthMethodQR {
 		response["qr_image_base64"] = data
-		response["message"] = "QR generado. El sistema escucha automáticamente " +
-			"(3 intentos, 2 min c/u). Use GET /sessions/:id para verificar estado."
+		response["message"] = "QR generated. The system listens automatically " +
+			"(3 attempts, 2 min each). Use GET /sessions/:id to verify status."
 	} else {
 		response["phone_code_hash"] = data
-		response["next_step"] = "POST /sessions/" + session.ID.String() + "/verify con {code}"
+		response["next_step"] = "POST /sessions/" + session.ID.String() + "/verify with {code}"
 	}
 
 	return c.Status(201).JSON(NewSuccessResponse(response))
 }
 
 // VerifyCode godoc
-// @Summary Verificar código SMS
-// @Description Completa autenticación con el código recibido por SMS
+// @Summary Verify SMS code
+// @Description Completes authentication with the code received by SMS
 // @Tags Sessions
 // @Accept json
 // @Produce json
@@ -123,8 +123,8 @@ func (h *SessionHandler) VerifyCode(c *fiber.Ctx) error {
 }
 
 // List godoc
-// @Summary Listar sesiones
-// @Description Retorna todas las sesiones Telegram del usuario
+// @Summary List sessions
+// @Description Returns all Telegram sessions of the user
 // @Tags Sessions
 // @Produce json
 // @Security BearerAuth
@@ -146,8 +146,8 @@ func (h *SessionHandler) List(c *fiber.Ctx) error {
 }
 
 // Get godoc
-// @Summary Obtener sesión
-// @Description Retorna detalle de una sesión. Use para verificar si QR fue escaneado (is_active=true).
+// @Summary Get session
+// @Description Returns details of a session. Use to verify if QR was scanned (is_active=true).
 // @Tags Sessions
 // @Produce json
 // @Security BearerAuth
@@ -187,8 +187,8 @@ func (h *SessionHandler) Get(c *fiber.Ctx) error {
 }
 
 // Delete godoc
-// @Summary Eliminar sesión
-// @Description Elimina una sesión Telegram
+// @Summary Delete session
+// @Description Deletes a Telegram session
 // @Tags Sessions
 // @Produce json
 // @Security BearerAuth

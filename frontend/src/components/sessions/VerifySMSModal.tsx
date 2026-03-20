@@ -1,3 +1,5 @@
+/* global React */
+/* eslint-disable max-lines-per-function */
 import { useState } from 'react'
 import { Modal, Button, Input, Alert } from '@/components/common'
 import { useVerifyCode } from '@/hooks'
@@ -9,7 +11,7 @@ interface VerifySMSModalProps {
   onClose: () => void
   sessionId: string
   phoneNumber: string
-  onSuccess: () => void
+  onSuccess: (hint?: string) => void
 }
 
 export const VerifySMSModal = ({
@@ -29,20 +31,22 @@ export const VerifySMSModal = ({
     setError('')
 
     if (!code || code.length < 5) {
-      setError('El código debe tener al menos 5 dígitos')
+      setError('Code must be at least 5 digits')
       return
     }
 
     try {
-      await verifyCode.mutateAsync({ sessionId, code })
+      const response = await verifyCode.mutateAsync({ sessionId, code })
       setCode('')
-      onSuccess()
+      // Pass hint if session requires 2FA password
+      const hint = response.hint
+      onSuccess(hint)
       onClose()
     } catch (err) {
       if (err instanceof ApiException) {
         setError(err.message)
       } else {
-        setError('Error al verificar el código')
+        setError('Error verifying code')
       }
     }
   }
@@ -57,7 +61,7 @@ export const VerifySMSModal = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Verificar Código SMS"
+      title="Verify SMS Code"
       size="sm"
     >
       <div className="p-6">
@@ -68,7 +72,7 @@ export const VerifySMSModal = ({
         </div>
 
         <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
-          Hemos enviado un código de verificación a{' '}
+          We have sent a verification code to{' '}
           <span className="font-semibold text-gray-900 dark:text-white">{phoneNumber}</span>
         </p>
 
@@ -80,7 +84,7 @@ export const VerifySMSModal = ({
           )}
 
           <Input
-            label="Código de Verificación"
+            label="Verification Code"
             type="text"
             placeholder="12345"
             value={code}
@@ -98,7 +102,7 @@ export const VerifySMSModal = ({
               disabled={verifyCode.isPending}
               fullWidth
             >
-              Cancelar
+              Cancel
             </Button>
             <Button
               type="submit"
@@ -106,13 +110,13 @@ export const VerifySMSModal = ({
               isLoading={verifyCode.isPending}
               fullWidth
             >
-              Verificar
+              Verify
             </Button>
           </div>
         </form>
 
         <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
-          ¿No recibiste el código? Espera un memento y revisa tus mensajes de Telegram.
+          Didn't receive the code? Wait a moment and check your Telegram messages.
         </p>
       </div>
     </Modal>

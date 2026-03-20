@@ -1,3 +1,5 @@
+/* global HTMLInputElement */
+/* eslint-disable complexity */
 import { InputHTMLAttributes, forwardRef } from 'react'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {

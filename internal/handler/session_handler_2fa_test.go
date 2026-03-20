@@ -64,7 +64,8 @@ func submitPasswordTestHelper(
 
 	req := map[string]string{"password": password}
 
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	assert.NoError(t, err)
 	httpReq := httptest.NewRequest("POST", "/test/"+sessionID.String(), bytes.NewReader(body))
 	httpReq.Header.Set("Content-Type", "application/json")
 
@@ -166,7 +167,8 @@ func TestSessionHandler_CreateSession_No2FA(t *testing.T) {
 			AuthState:   domain.SessionCodeSent,
 		}, "phone_code_hash_123", nil)
 
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	assert.NoError(t, err)
 	httpReq := httptest.NewRequest("POST", "/test", bytes.NewReader(body))
 	httpReq.Header.Set("Content-Type", "application/json")
 
@@ -206,7 +208,8 @@ func TestSessionHandler_VerifyCode_With2FA(t *testing.T) {
 	mockService.On("VerifyCode", mock.Anything, sessionID, "123456").
 		Return(session, "", nil)
 
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	assert.NoError(t, err)
 	httpReq := httptest.NewRequest("POST", "/test/"+sessionID.String(), bytes.NewReader(body))
 	httpReq.Header.Set("Content-Type", "application/json")
 
@@ -252,7 +255,8 @@ func TestSessionHandler_SubmitPassword_Correct(t *testing.T) {
 	mockService.On("SubmitPassword", mock.Anything, sessionID, "correct_password").
 		Return(session, nil)
 
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	assert.NoError(t, err)
 	httpReq := httptest.NewRequest("POST", "/test/"+sessionID.String(), bytes.NewReader(body))
 	httpReq.Header.Set("Content-Type", "application/json")
 

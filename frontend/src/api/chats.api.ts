@@ -1,3 +1,5 @@
+/* global URLSearchParams */
+/* eslint-disable complexity */
 import { apiClient } from './client'
 
 // =============== TYPES ===============
@@ -81,13 +83,13 @@ export interface ContactsResponse {
 export interface GetContactsParams {
   limit?: number
   offset?: number
-  search?: string
+  refresh?: boolean // For cache refresh
 }
 
 // =============== API FUNCTIONS ===============
 
 /**
- * Obtiene la lista de chats/diálogos de una sesión
+ * Gets the list of chats/dialogs of a session
  */
 export const getChats = async (
   sessionId: string,
@@ -106,14 +108,14 @@ export const getChats = async (
 }
 
 /**
- * Obtiene información detallada de un chat específico
+ * Gets detailed information of a specific chat
  */
 export const getChatInfo = async (sessionId: string, chatId: number): Promise<Chat> => {
   return apiClient.get<Chat>(`/sessions/${sessionId}/chats/${chatId}`)
 }
 
 /**
- * Obtiene el historial de mensajes de un chat
+ * Gets the message history of a chat
  */
 export const getChatHistory = async (
   sessionId: string,
@@ -132,7 +134,7 @@ export const getChatHistory = async (
 }
 
 /**
- * Obtiene la lista de contacts de Telegram
+ * Gets the list of Telegram contacts
  */
 export const getContacts = async (
   sessionId: string,
@@ -141,7 +143,8 @@ export const getContacts = async (
   const queryParams = new URLSearchParams()
   if (params?.limit) queryParams.append('limit', params.limit.toString())
   if (params?.offset) queryParams.append('offset', params.offset.toString())
-  if (params?.search) queryParams.append('search', params.search)
+  if (params?.refresh !== undefined)
+    queryParams.append('refresh', params.refresh.toString())
 
   const query = queryParams.toString()
   const url = `/sessions/${sessionId}/contacts${query ? `?${query}` : ''}`

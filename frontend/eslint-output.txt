@@ -1,0 +1,32 @@
+
+> frontend@0.0.0 lint
+> eslint .
+
+Warning: React version not specified in eslint-plugin-react settings. See https://github.com/jsx-eslint/eslint-plugin-react#configuration .
+
+/home/bgrusnak/Projects/tm/telegram-api/frontend/src/pages/chats/components/ChatView.tsx
+  311:103  error    Arrow function has a complexity of 8. Maximum allowed is 6                                                                                                                                                                                      complexity
+  350:9    warning  The 'getScrollBehavior' function makes the dependencies of useEffect Hook (at line 362) change on every render. Move it inside the useEffect callback. Alternatively, wrap the definition of 'getScrollBehavior' in its own useCallback() Hook  react-hooks/exhaustive-deps
+
+/home/bgrusnak/Projects/tm/telegram-api/frontend/src/pages/contacts/ContactsPage.tsx
+  284:44  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  284:49  error    Arrow function has a complexity of 7. Maximum allowed is 6                                                                                                                                                                                                complexity
+  285:20  error    React Hook "useMemo" is called in function "extractContactsData" that is neither a React function component nor a custom React Hook function. React component names must start with an uppercase letter. React Hook names must start with the word "use"  react-hooks/rules-of-hooks
+  287:46  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  353:47  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                           react/no-unescaped-entities
+  353:60  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                           react/no-unescaped-entities
+  397:29  error    Arrow function has too many lines (62). Maximum allowed is 50                                                                                                                                                                                             max-lines-per-function
+  555:19  error    'navigate' is not defined                                                                                                                                                                                                                                 no-undef
+  559:29  error    Arrow function has too many lines (53). Maximum allowed is 50                                                                                                                                                                                             max-lines-per-function
+  559:32  error    Arrow function has a complexity of 7. Maximum allowed is 6                                                                                                                                                                                                complexity
+
+/home/bgrusnak/Projects/tm/telegram-api/frontend/src/pages/webhooks/WebhooksPage.tsx
+  599:27  error  Arrow function has too many lines (71). Maximum allowed is 50  max-lines-per-function
+  675:28  error  Arrow function has too many lines (76). Maximum allowed is 50  max-lines-per-function
+  905:26  error  Arrow function has too many lines (76). Maximum allowed is 50  max-lines-per-function
+  948:19  error  'navigate' is not defined                                      no-undef
+  985:29  error  Arrow function has too many lines (65). Maximum allowed is 50  max-lines-per-function
+  987:9   error  'navigate' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+
+✖ 18 problems (15 errors, 3 warnings)
+

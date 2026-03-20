@@ -4,10 +4,10 @@ export const AUTH_TOKEN_KEY = 'auth_token'
 export const REFRESH_TOKEN_KEY = 'refresh_token'
 export const USER_KEY = 'user_data'
 
-// URL base del frontend para archivos públicos
+// Base frontend URL for public files
 export const FRONTEND_URL = 'https://frontend.telegram-api.fututel.com'
 
-// URL base para uploads
+// Base URL for uploads
 export const UPLOADS_BASE_URL = `${FRONTEND_URL}/uploads`
 
 export const ROUTES = {
@@ -36,15 +36,20 @@ export const AUTH_METHODS = {
   QR: 'qr',
 } as const
 
-// Tipos de archivo permitidos
+// Allowed file types
 export const ALLOWED_FILE_TYPES = {
   image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
   video: ['video/mp4', 'video/webm', 'video/quicktime'],
   audio: ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp3'],
-  file: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'],
+  file: [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+  ],
 }
 
-// Tamaños máximos (en bytes)
+// Maximum sizes (in bytes)
 export const MAX_FILE_SIZES = {
   image: 10 * 1024 * 1024, // 10MB
   video: 50 * 1024 * 1024, // 50MB
@@ -52,32 +57,57 @@ export const MAX_FILE_SIZES = {
   file: 50 * 1024 * 1024,  // 50MB
 }
 
-// Eventos de webhook disponibles
+// Available webhook events
 export const WEBHOOK_EVENTS = [
-  { id: 'message.new', label: 'Nuevo mensaje', description: 'Cuando llega un nuevo mensaje' },
-  { id: 'message.edit', label: 'Mensaje editado', description: 'Cuando se edita un mensaje' },
-  { id: 'message.delete', label: 'Mensaje eliminado', description: 'Cuando se elimina un mensaje' },
-  { id: 'user.online', label: 'Usuario conectado', description: 'Cuando un usuario se conecta' },
-  { id: 'user.offline', label: 'Usuario desconectado', description: 'Cuando un usuario se desconecta' },
-  { id: 'user.typing', label: 'Usuario escribiendo', description: 'Cuando un usuario está escribiendo' },
-  { id: 'session.started', label: 'Sesión iniciada', description: 'Cuando se inicia una sesión' },
-  { id: 'session.stopped', label: 'Sesión detenida', description: 'Cuando se detiene una sesión' },
-  { id: 'session.error', label: 'Error de sesión', description: 'Cuando hay un error en la sesión' },
+  { id: 'message.new', label: 'New message', description: 'When a new message arrives' },
+  { id: 'message.edit', label: 'Message edited', description: 'When a message is edited' },
+  { id: 'message.delete', label: 'Message deleted', description: 'When a message is deleted' },
+  { id: 'user.online', label: 'User connected', description: 'When a user connects' },
+  { id: 'user.offline', label: 'User disconnected', description: 'When a user disconnects' },
+  { id: 'user.typing', label: 'User typing', description: 'When a user is typing' },
+  { id: 'session.started', label: 'Session started', description: 'When a session starts' },
+  { id: 'session.stopped', label: 'Session stopped', description: 'When a session stops' },
+  { id: 'session.error', label: 'Session error', description: 'When there is a session error' },
 ]
 
-// Estados de sesión con colores
+// Session states with colors
 export const SESSION_STATE_CONFIG = {
-  pending: { label: 'Pendiente', color: 'yellow', bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-600 dark:text-yellow-400' },
-  code_sent: { label: 'Codigo enviado', color: 'blue', bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400' },
-  password_required: { label: 'Requiere password', color: 'orange', bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-600 dark:text-orange-400' },
-  authenticated: { label: 'Autenticada', color: 'green', bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-600 dark:text-green-400' },
-  failed: { label: 'Fallida', color: 'red', bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400' },
+  pending: {
+    label: 'Pending',
+    color: 'yellow',
+    bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+    text: 'text-yellow-600 dark:text-yellow-400',
+  },
+  code_sent: {
+    label: 'Code sent',
+    color: 'blue',
+    bg: 'bg-blue-100 dark:bg-blue-900/30',
+    text: 'text-blue-600 dark:text-blue-400',
+  },
+  password_required: {
+    label: 'Password required',
+    color: 'orange',
+    bg: 'bg-orange-100 dark:bg-orange-900/30',
+    text: 'text-orange-600 dark:text-orange-400',
+  },
+  authenticated: {
+    label: 'Authenticated',
+    color: 'green',
+    bg: 'bg-green-100 dark:bg-green-900/30',
+    text: 'text-green-600 dark:text-green-400',
+  },
+  failed: {
+    label: 'Failed',
+    color: 'red',
+    bg: 'bg-red-100 dark:bg-red-900/30',
+    text: 'text-red-600 dark:text-red-400',
+  },
 }
 
-// Tipos de chat
+// Chat types
 export const CHAT_TYPES = {
-  private: { label: 'Privado', icon: 'User' },
-  group: { label: 'Grupo', icon: 'Users' },
-  supergroup: { label: 'Supergrupo', icon: 'Users' },
-  channel: { label: 'Canal', icon: 'Radio' },
+  private: { label: 'Private', icon: 'User' },
+  group: { label: 'Group', icon: 'Users' },
+  supergroup: { label: 'Supergroup', icon: 'Users' },
+  channel: { label: 'Channel', icon: 'Radio' },
 }

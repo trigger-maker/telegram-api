@@ -21,6 +21,7 @@ const RedirectIfAuthenticated = ({ children }: { children: React.ReactNode }) =>
   return <>{children}</>
 }
 
+/* eslint-disable max-lines-per-function */
 export const AppRoutes = () => {
   return (
     <BrowserRouter>

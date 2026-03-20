@@ -52,8 +52,8 @@ func (s *ChatService) createClient(ctx context.Context, sess *domain.TelegramSes
 			DeviceModel:    sess.SessionName,
 			SystemVersion:  "1.0",
 			AppVersion:     "1.0.0",
-			SystemLangCode: "es",
-			LangCode:       "es",
+			SystemLangCode: "en",
+			LangCode:       "en",
 		},
 	}), nil
 }

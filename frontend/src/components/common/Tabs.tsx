@@ -12,6 +12,17 @@ interface TabsProps {
   onChange: (tabId: string) => void
 }
 
+const TAB_BUTTON_BASE_CLASSES =
+  'flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors'
+
+const TAB_BUTTON_WHITESPACE = 'whitespace-nowrap'
+
+const TAB_ACTIVE_CLASSES =
+  'border-primary-600 text-primary-600 dark:border-primary-500 dark:text-primary-400'
+
+const TAB_INACTIVE_CLASSES =
+  'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-700'
+
 export const Tabs = ({ tabs, activeTab, onChange }: TabsProps) => {
   return (
     <div className="border-b border-gray-200 dark:border-gray-800">
@@ -22,13 +33,8 @@ export const Tabs = ({ tabs, activeTab, onChange }: TabsProps) => {
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className={`
-                flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap
-                ${isActive
-                  ? 'border-primary-600 text-primary-600 dark:border-primary-500 dark:text-primary-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-700'
-                }
-              `}
+              // eslint-disable-next-line max-len
+              className={`${TAB_BUTTON_BASE_CLASSES} ${TAB_BUTTON_WHITESPACE} ${isActive ? TAB_ACTIVE_CLASSES : TAB_INACTIVE_CLASSES}`}
             >
               {tab.icon}
               <span className="hidden xs:inline sm:inline">{tab.label}</span>

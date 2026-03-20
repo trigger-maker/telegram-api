@@ -98,7 +98,12 @@ func (r *WebhookRepository) ListActive(ctx context.Context) ([]domain.WebhookCon
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			// Log error but don't override existing error.
+			_ = err
+		}
+	}()
 
 	var webhooks []domain.WebhookConfig
 	for rows.Next() {

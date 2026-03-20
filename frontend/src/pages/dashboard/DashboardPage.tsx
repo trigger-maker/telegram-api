@@ -5,7 +5,9 @@ import { Button, Alert, Card } from '@/components/common'
 import { useSessions } from '@/hooks'
 import { SessionCard } from './components/SessionCard'
 import { CreateSessionModal, VerifySMSModal, QRCodeModal } from '@/components/sessions'
+import type { CreateSessionResponse } from '@/types'
 
+/* eslint-disable max-lines-per-function, complexity */
 export const DashboardPage = () => {
   const { data: sessions, isLoading, error, refetch } = useSessions()
 
@@ -19,15 +21,15 @@ export const DashboardPage = () => {
     qr?: string
   } | null>(null)
 
-  const handleCreateSuccess = (sessionId: string, response: any) => {
+  const handleCreateSuccess = (sessionId: string, response: CreateSessionResponse) => {
     setShowCreateModal(false)
 
     if (response.phone_code_hash) {
-      // Flujo SMS
+      // SMS flow
       setCurrentSession({ id: sessionId, phone: response.session.phone_number })
       setShowVerifySMS(true)
     } else if (response.qr_image_base64) {
-      // Flujo QR
+      // QR flow
       setCurrentSession({ id: sessionId, qr: response.qr_image_base64 })
       setShowQRCode(true)
     }
@@ -60,7 +62,7 @@ export const DashboardPage = () => {
               Dashboard
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Gestiona tus sesiones de Telegram
+              Manage your Telegram sessions
             </p>
           </div>
           <Button
@@ -69,7 +71,7 @@ export const DashboardPage = () => {
             onClick={() => setShowCreateModal(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Nueva Sesion
+            New Session
           </Button>
         </div>
 
@@ -80,7 +82,7 @@ export const DashboardPage = () => {
               <Smartphone className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Total Sesiones</p>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Total Sessions</p>
               <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{totalSessions}</p>
             </div>
           </Card>
@@ -90,7 +92,7 @@ export const DashboardPage = () => {
               <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 dark:text-green-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Activas</p>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Active</p>
               <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{activeSessions}</p>
             </div>
           </Card>
@@ -100,7 +102,7 @@ export const DashboardPage = () => {
               <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Pendientes</p>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Pending</p>
               <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{pendingSessions}</p>
             </div>
           </Card>
@@ -118,7 +120,7 @@ export const DashboardPage = () => {
           <Alert variant="error">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
-              <span>Error al cargar las sesiones. Intenta nuevamente.</span>
+              <span>Error loading sessions. Please try again.</span>
             </div>
           </Alert>
         )}
@@ -130,14 +132,14 @@ export const DashboardPage = () => {
               <Smartphone className="w-10 h-10 text-gray-400" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-              No hay sesiones
+              No sessions
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-sm mx-auto">
-              Crea tu primera sesion de Telegram para comenzar a enviar mensajes
+              Create your first Telegram session to start sending messages
             </p>
             <Button variant="primary" onClick={() => setShowCreateModal(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              Crear Sesion
+              Create Session
             </Button>
           </Card>
         )}
@@ -146,7 +148,7 @@ export const DashboardPage = () => {
         {sessions && sessions.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Sesiones ({sessions.length})
+              Sessions ({sessions.length})
             </h2>
             <div className="grid gap-4">
               {sessions.map((session) => (

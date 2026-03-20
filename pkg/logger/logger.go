@@ -18,7 +18,7 @@ func Init(level string) {
 	lvl := parseLevel(level)
 	env := os.Getenv("API_ENV")
 
-	// Formato del caller: [archivo:linea]
+	// Formato del caller: [archivo:linea].
 	zerolog.CallerMarshalFunc = func(_ uintptr, file string, line int) string {
 		return filepath.Base(file) + ":" + itoa(line)
 	}

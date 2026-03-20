@@ -1,3 +1,4 @@
+ 
 import { useState, useRef, useCallback } from 'react'
 import {
   Send,
@@ -38,6 +39,19 @@ const ACCEPTED_TYPES = {
   file: '.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar',
 }
 
+const attachmentMenuClasses =
+  'absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-2 min-w-[160px] z-20'
+
+const menuItemClasses =
+  'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors'
+
+const textareaClasses =
+  'w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border-0 rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 max-h-32 text-sm sm:text-base'
+
+const sendButtonClasses =
+  'p-2.5 rounded-full bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0'
+
+/* eslint-disable max-lines-per-function, complexity */
 export const MessageInput = ({ sessionId, chatId, onMessageSent }: MessageInputProps) => {
   const [message, setMessage] = useState('')
   const [attachment, setAttachment] = useState<Attachment | null>(null)
@@ -82,7 +96,7 @@ export const MessageInput = ({ sessionId, chatId, onMessageSent }: MessageInputP
       // Validate file
       const validation = validateFile(file, type)
       if (!validation.valid) {
-        toast.error('Archivo no valido', validation.error || 'Error al validar')
+        toast.error('Invalid file', validation.error || 'Validation error')
         e.target.value = ''
         return
       }
@@ -119,21 +133,21 @@ export const MessageInput = ({ sessionId, chatId, onMessageSent }: MessageInputP
         const uploadResult = await uploadFile(attachment.file, attachment.type)
 
         if (!uploadResult.success || !uploadResult.url) {
-          toast.error('Error de subida', uploadResult.error || 'No se pudo subir el archivo')
+          toast.error('Upload error', uploadResult.error || 'Could not upload file')
           setIsUploading(false)
           return
         }
 
         // The URL could be a base64 data URL or a server URL
         // If it's base64, construct a proper URL path
-        let fileUrl = uploadResult.url
+        const fileUrl = uploadResult.url
 
         // If the uploadFile returned a base64, we need a proper URL
         // In production with real upload endpoint, the URL would be returned from server
         if (uploadResult.url.startsWith('data:')) {
           // For base64, use the constructed URL (backend should handle base64 or we need real upload)
           // For now, let's assume the backend supports base64 or we'll show an error
-          toast.warning('Aviso', 'Subiendo archivo... Por favor espera.')
+          toast.warning('Warning', 'Uploading file... Please wait.')
         }
 
         // Send message with media
@@ -166,7 +180,7 @@ export const MessageInput = ({ sessionId, chatId, onMessageSent }: MessageInputP
             break
         }
 
-        toast.success('Enviado', 'El mensaje se envio correctamente')
+        toast.success('Sent', 'Message sent successfully')
         removeAttachment()
       } else {
         // Send text message
@@ -174,14 +188,13 @@ export const MessageInput = ({ sessionId, chatId, onMessageSent }: MessageInputP
           sessionId,
           data: { to, text: message.trim() },
         })
-        toast.success('Enviado', 'Mensaje enviado')
+        toast.success('Sent', 'Message sent')
       }
 
       setMessage('')
       onMessageSent?.()
-    } catch (error) {
-      console.error('Error sending message:', error)
-      toast.error('Error', 'No se pudo enviar el mensaje')
+    } catch {
+      toast.error('Error', 'Could not send message')
     } finally {
       setIsUploading(false)
     }
@@ -256,42 +269,30 @@ export const MessageInput = ({ sessionId, chatId, onMessageSent }: MessageInputP
                 className="fixed inset-0 z-10"
                 onClick={() => setShowAttachMenu(false)}
               />
-              <div className="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-2 min-w-[160px] z-20">
-                <button
-                  onClick={() => handleAttachClick('image')}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
+              <div className={attachmentMenuClasses}>
+                <button onClick={() => handleAttachClick('image')} className={menuItemClasses}>
                   <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
                     <Image className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <span className="text-sm text-gray-700 dark:text-gray-300">Imagen</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Image</span>
                 </button>
-                <button
-                  onClick={() => handleAttachClick('video')}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
+                <button onClick={() => handleAttachClick('video')} className={menuItemClasses}>
                   <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
                     <Video className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   </div>
                   <span className="text-sm text-gray-700 dark:text-gray-300">Video</span>
                 </button>
-                <button
-                  onClick={() => handleAttachClick('audio')}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
+                <button onClick={() => handleAttachClick('audio')} className={menuItemClasses}>
                   <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
                     <Music className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   </div>
                   <span className="text-sm text-gray-700 dark:text-gray-300">Audio</span>
                 </button>
-                <button
-                  onClick={() => handleAttachClick('file')}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
+                <button onClick={() => handleAttachClick('file')} className={menuItemClasses}>
                   <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                     <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
                   </div>
-                  <span className="text-sm text-gray-700 dark:text-gray-300">Documento</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Document</span>
                 </button>
               </div>
             </>
@@ -312,10 +313,10 @@ export const MessageInput = ({ sessionId, chatId, onMessageSent }: MessageInputP
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Escribe un mensaje..."
+            placeholder="Type a message..."
             disabled={isSending}
             rows={1}
-            className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border-0 rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 max-h-32 text-sm sm:text-base"
+            className={textareaClasses}
             style={{ minHeight: '44px' }}
           />
         </div>
@@ -324,7 +325,7 @@ export const MessageInput = ({ sessionId, chatId, onMessageSent }: MessageInputP
         <button
           onClick={handleSend}
           disabled={isSending || (!message.trim() && !attachment)}
-          className="p-2.5 rounded-full bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+          className={sendButtonClasses}
         >
           {isSending ? (
             <Loader2 className="w-5 h-5 animate-spin" />
@@ -336,7 +337,7 @@ export const MessageInput = ({ sessionId, chatId, onMessageSent }: MessageInputP
 
       {/* Hint - only show on desktop */}
       <p className="hidden sm:block mt-2 text-xs text-gray-400 dark:text-gray-500 text-center">
-        Enter para enviar, Shift+Enter para nueva linea
+        Enter to send, Shift+Enter for new line
       </p>
     </div>
   )

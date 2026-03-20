@@ -37,8 +37,8 @@ func (p *SessionPool) StartSession(_ context.Context, sess *domain.TelegramSessi
 			DeviceModel:    sess.SessionName,
 			SystemVersion:  "1.0",
 			AppVersion:     "1.0.0",
-			SystemLangCode: "es",
-			LangCode:       "es",
+			SystemLangCode: "en",
+			LangCode:       "en",
 		},
 	})
 

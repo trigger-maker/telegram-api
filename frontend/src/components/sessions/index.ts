@@ -1,4 +1,6 @@
 export * from './CreateSessionModal'
 export * from './VerifySMSModal'
 export * from './QRCodeModal'
+export * from './SubmitPasswordModal'
+export * from './ImportTDataModal'
 export * from './TelegramGuide'

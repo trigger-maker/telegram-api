@@ -230,7 +230,7 @@ func extractErrorCode(err error) string {
 
 	errStr := err.Error()
 
-	// Check for known error codes
+	// Check for known error codes.
 	errorCodes := []string{
 		"SESSION_REVOKED",
 		"AUTH_KEY_UNREGISTERED",
@@ -246,7 +246,7 @@ func extractErrorCode(err error) string {
 
 	for _, code := range errorCodes {
 		if strings.Contains(errStr, code) {
-			// For FLOOD_WAIT_X and SLOWMODE_WAIT_X, extract the full code with number
+			// For FLOOD_WAIT_X and SLOWMODE_WAIT_X, extract the full code with number.
 			if strings.Contains(code, "_WAIT_") {
 				re := regexp.MustCompile(`(?:FLOOD_WAIT_|SLOWMODE_WAIT_)(\d+)`)
 				matches := re.FindStringSubmatch(errStr)

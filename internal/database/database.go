@@ -23,7 +23,7 @@ type Services struct {
 func NewServices(ctx context.Context) (*Services, error) {
 	dsn := os.Getenv("DB_URL")
 	if dsn == "" {
-		return nil, fmt.Errorf("DB_URL no encontrada")
+		return nil, fmt.Errorf("DB_URL not found")
 	}
 
 	dbConfig, err := pgxpool.ParseConfig(dsn)
@@ -37,7 +37,7 @@ func NewServices(ctx context.Context) (*Services, error) {
 
 	pool, err := pgxpool.NewWithConfig(ctx, dbConfig)
 	if err != nil {
-		return nil, fmt.Errorf("conexión pg: %w", err)
+		return nil, fmt.Errorf("pg connection: %w", err)
 	}
 
 	if err := pool.Ping(ctx); err != nil {
@@ -68,18 +68,18 @@ func NewServices(ctx context.Context) (*Services, error) {
 func (s *Services) Migrate() error {
 	files, err := filepath.Glob("db/migrations/*.sql")
 	if err != nil {
-		return fmt.Errorf("glob migraciones: %w", err)
+		return fmt.Errorf("glob migrations: %w", err)
 	}
 
 	for _, f := range files {
 		// #nosec G304 -- Reading migration files from trusted directory
 		schema, err := os.ReadFile(f)
 		if err != nil {
-			return fmt.Errorf("leer %s: %w", f, err)
+			return fmt.Errorf("read %s: %w", f, err)
 		}
 
 		if _, err := s.DB.Exec(context.Background(), string(schema)); err != nil {
-			return fmt.Errorf("ejecutar %s: %w", f, err)
+			return fmt.Errorf("execute %s: %w", f, err)
 		}
 		log.Printf("✅ Migración aplicada: %s", filepath.Base(f))
 	}
@@ -89,7 +89,9 @@ func (s *Services) Migrate() error {
 
 // Close closes all database connections.
 func (s *Services) Close() {
-	s.DB.Close()
+	if err := s.DB.Close(); err != nil {
+		log.Printf("postgres close error: %v", err)
+	}
 	if err := s.Redis.Close(); err != nil {
 		log.Printf("redis close error: %v", err)
 	}

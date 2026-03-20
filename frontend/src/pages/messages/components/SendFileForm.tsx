@@ -1,3 +1,5 @@
+/* global React */
+/* eslint-disable max-lines-per-function */
 import { useState } from 'react'
 import { Button, Input, Alert, FileUpload } from '@/components/common'
 import { useSendFileMessage } from '@/hooks'
@@ -23,12 +25,12 @@ export const SendFileForm = ({ sessionId }: SendFileFormProps) => {
     setError('')
 
     if (!to.trim()) {
-      setError('El destinatario es requerido')
+      setError('Recipient is required')
       return
     }
 
     if (!fileUrl.trim()) {
-      setError('El archivo es requerido')
+      setError('File is required')
       return
     }
 
@@ -38,7 +40,7 @@ export const SendFileForm = ({ sessionId }: SendFileFormProps) => {
         data: { to: to.trim(), file_url: fileUrl.trim(), caption: caption.trim() || undefined },
       })
 
-      toast.success('Archivo enviado', `Job ID: ${response.job_id}`)
+      toast.success('File sent', `Job ID: ${response.job_id}`)
       setTo('')
       setFileUrl('')
       setCaption('')
@@ -46,7 +48,7 @@ export const SendFileForm = ({ sessionId }: SendFileFormProps) => {
       if (err instanceof ApiException) {
         setError(err.message)
       } else {
-        setError('Error al enviar el archivo')
+        setError('Error sending file')
       }
     }
   }
@@ -56,9 +58,9 @@ export const SendFileForm = ({ sessionId }: SendFileFormProps) => {
       {error && <Alert variant="error">{error}</Alert>}
 
       <Input
-        label="Destinatario"
+        label="Recipient"
         type="text"
-        placeholder="@username, +573001234567 o ID de chat"
+        placeholder="@username, +573001234567 or chat ID"
         value={to}
         onChange={(e) => setTo(e.target.value)}
         disabled={sendMessage.isPending}
@@ -66,17 +68,17 @@ export const SendFileForm = ({ sessionId }: SendFileFormProps) => {
 
       <FileUpload
         type="file"
-        label="Archivo"
+        label="File"
         value={fileUrl}
         onChange={setFileUrl}
-        placeholder="https://tu-servidor.com/documento.pdf"
+        placeholder="https://your-server.com/document.pdf"
         disabled={sendMessage.isPending}
       />
 
       <Input
-        label="Caption (Opcional)"
+        label="Caption (Optional)"
         type="text"
-        placeholder="Description del archivo..."
+        placeholder="File description..."
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
         disabled={sendMessage.isPending}
@@ -90,7 +92,7 @@ export const SendFileForm = ({ sessionId }: SendFileFormProps) => {
         className="h-12"
       >
         <Send className="w-4 h-4 mr-2" />
-        Enviar Archivo
+        Send File
       </Button>
     </form>
   )

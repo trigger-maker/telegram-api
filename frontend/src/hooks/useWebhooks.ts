@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   getWebhookConfig,
@@ -17,7 +18,7 @@ const webhookKeys = {
 }
 
 /**
- * Hook para obtener la configuration del webhook de una sesion
+ * Hook to get the webhook configuration of a session
  */
 export const useWebhookConfig = (sessionId: string, options?: { enabled?: boolean }) => {
   return useQuery({
@@ -25,25 +26,25 @@ export const useWebhookConfig = (sessionId: string, options?: { enabled?: boolea
     queryFn: () => getWebhookConfig(sessionId),
     enabled: options?.enabled !== false && !!sessionId,
     retry: false,
-    staleTime: 10000, // 10 segundos
+    staleTime: 10000, // 10 seconds
   })
 }
 
 /**
- * Hook para obtener el estado del pool de sesiones activas
+ * Hook to get the state of the active sessions pool
  */
 export const usePoolStatus = (options?: { enabled?: boolean; refetchInterval?: number }) => {
   return useQuery({
     queryKey: webhookKeys.pool(),
     queryFn: getPoolStatus,
     enabled: options?.enabled !== false,
-    refetchInterval: options?.refetchInterval ?? 5000, // Refrescar cada 5s por defecto
+    refetchInterval: options?.refetchInterval ?? 5000, // Refresh every 5s by default
     staleTime: 3000,
   })
 }
 
 /**
- * Hook para crear un webhook
+ * Hook to create a webhook
  */
 export const useCreateWebhook = () => {
   const queryClient = useQueryClient()
@@ -58,7 +59,7 @@ export const useCreateWebhook = () => {
 }
 
 /**
- * Hook para eliminar un webhook
+ * Hook to delete a webhook
  */
 export const useDeleteWebhook = () => {
   const queryClient = useQueryClient()
@@ -73,7 +74,7 @@ export const useDeleteWebhook = () => {
 }
 
 /**
- * Hook para iniciar la escucha del webhook
+ * Hook to start webhook listening
  */
 export const useStartWebhook = () => {
   const queryClient = useQueryClient()
@@ -88,7 +89,7 @@ export const useStartWebhook = () => {
 }
 
 /**
- * Hook para detener la escucha del webhook
+ * Hook to stop webhook listening
  */
 export const useStopWebhook = () => {
   const queryClient = useQueryClient()
@@ -103,7 +104,7 @@ export const useStopWebhook = () => {
 }
 
 /**
- * Hook combinado para gestionar webhooks con todas las operaciones
+ * Combined hook to manage webhooks with all operations
  */
 export const useWebhook = (sessionId: string) => {
   const config = useWebhookConfig(sessionId)
@@ -113,7 +114,7 @@ export const useWebhook = (sessionId: string) => {
   const startMutation = useStartWebhook()
   const stopMutation = useStopWebhook()
 
-  // Verificar si esta sesion esta activamente escuchando en el pool
+  // Check if this session is actively listening in the pool
   const isListening = pool.data?.sessions?.some(
     (s) => s.session_id === sessionId && s.is_connected
   ) ?? false
@@ -121,7 +122,7 @@ export const useWebhook = (sessionId: string) => {
   const poolSession = pool.data?.sessions?.find((s) => s.session_id === sessionId)
 
   return {
-    // Estado
+    // State
     config: config.data,
     isLoading: config.isLoading,
     isError: config.isError,
@@ -130,7 +131,7 @@ export const useWebhook = (sessionId: string) => {
     poolSession,
     poolStatus: pool.data,
 
-    // Acciones
+    // Actions
     create: async (data: WebhookCreateRequest, autoStart = false) => {
       const result = await createMutation.mutateAsync({ sessionId, data })
       if (autoStart) {
@@ -146,7 +147,7 @@ export const useWebhook = (sessionId: string) => {
       pool.refetch()
     },
 
-    // Estados de mutaciones
+    // Mutation states
     isCreating: createMutation.isPending,
     isDeleting: deleteMutation.isPending,
     isStarting: startMutation.isPending,

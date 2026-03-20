@@ -42,50 +42,50 @@ const (
 
 // ==================== REQUEST DTOs ====================
 
-// TextMessageRequest para enviar mensaje de texto.
-// @Description Mensaje de texto simple.
+// TextMessageRequest to send text message.
+// @Description Simple text message.
 type TextMessageRequest struct {
 	To   string `json:"to" validate:"required" example:"@username o +573001234567"`
-	Text string `json:"text" validate:"required" example:"Hola desde la API!"`
+	Text string `json:"text" validate:"required" example:"Hello from the API!"`
 }
 
-// PhotoMessageRequest para enviar foto.
-// @Description Mensaje con foto.
+// PhotoMessageRequest to send photo.
+// @Description Message with photo.
 type PhotoMessageRequest struct {
 	To       string `json:"to" validate:"required" example:"@username"`
 	PhotoURL string `json:"photo_url" validate:"required,url" example:"https://example.com/image.jpg"`
-	Caption  string `json:"caption,omitempty" example:"Mira esta imagen"`
+	Caption  string `json:"caption,omitempty" example:"Look at this image"`
 }
 
-// VideoMessageRequest para enviar video.
-// @Description Mensaje con video.
+// VideoMessageRequest to send video.
+// @Description Message with video.
 type VideoMessageRequest struct {
 	To       string `json:"to" validate:"required" example:"@username"`
 	VideoURL string `json:"video_url" validate:"required,url" example:"https://example.com/video.mp4"`
-	Caption  string `json:"caption,omitempty" example:"Video interesante"`
+	Caption  string `json:"caption,omitempty" example:"Interesting video"`
 }
 
-// AudioMessageRequest para enviar audio.
-// @Description Mensaje con audio.
+// AudioMessageRequest to send audio.
+// @Description Message with audio.
 type AudioMessageRequest struct {
 	To       string `json:"to" validate:"required" example:"@username"`
 	AudioURL string `json:"audio_url" validate:"required,url" example:"https://example.com/audio.mp3"`
-	Caption  string `json:"caption,omitempty" example:"Escucha esto"`
+	Caption  string `json:"caption,omitempty" example:"Listen to this"`
 }
 
-// FileMessageRequest para enviar documento.
-// @Description Mensaje con archivo/documento.
+// FileMessageRequest to send document.
+// @Description Message with file/document.
 type FileMessageRequest struct {
 	To      string `json:"to" validate:"required" example:"@username"`
 	FileURL string `json:"file_url" validate:"required,url" example:"https://example.com/doc.pdf"`
-	Caption string `json:"caption,omitempty" example:"Documento adjunto"`
+	Caption string `json:"caption,omitempty" example:"Attached document"`
 }
 
-// BulkTextRequest para envío masivo.
-// @Description Envío masivo de texto a múltiples destinatarios.
+// BulkTextRequest for bulk sending.
+// @Description Bulk sending of text to multiple recipients.
 type BulkTextRequest struct {
 	Recipients []string `json:"recipients" validate:"required,min=1" example:"@user1,@user2,+573001234567"`
-	Text       string   `json:"text" validate:"required" example:"Mensaje para todos"`
+	Text       string   `json:"text" validate:"required" example:"Message for everyone"`
 	DelayMs    int      `json:"delay_ms,omitempty" example:"3000"`
 }
 
@@ -113,8 +113,8 @@ type BulkMessageRequest struct {
 
 // ==================== RESPONSE DTOs ====================
 
-// MessageResponse respuesta al enviar mensaje.
-// @Description Respuesta de envío de mensaje.
+// MessageResponse response when sending message.
+// @Description Message sending response.
 type MessageResponse struct {
 	JobID   string        `json:"job_id" example:"550e8400-e29b-41d4-a716-446655440000"`
 	Status  MessageStatus `json:"status" example:"pending"`

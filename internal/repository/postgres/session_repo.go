@@ -129,7 +129,12 @@ func (r *SessionRepository) ListByUserID(ctx context.Context, userID uuid.UUID) 
 		logger.Error().Err(err).Str("user_id", userID.String()).Msg("Error query ListByUserID")
 		return nil, wrapDBError(err, "list sessions")
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			// Log error but don't override existing error.
+			_ = err
+		}
+	}()
 
 	var sessions []domain.TelegramSession
 	for rows.Next() {
@@ -164,7 +169,12 @@ func (r *SessionRepository) ListAllActive(ctx context.Context) ([]domain.Telegra
 		logger.Error().Err(err).Msg("Error query ListAllActive")
 		return nil, wrapDBError(err, "list active sessions")
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			// Log error but don't override existing error.
+			_ = err
+		}
+	}()
 
 	var sessions []domain.TelegramSession
 	for rows.Next() {

@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
@@ -21,6 +22,25 @@ import { useAuth } from '@/contexts'
 import { useSessions } from '@/hooks'
 import { useSidebar } from './Layout'
 
+// Tailwind class constants for better line length management
+const ACTIVE_NAV_CLASSES = 'bg-primary-600 text-white shadow-lg shadow-primary-600/25'
+const INACTIVE_NAV_CLASSES =
+  'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+const BADGE_CLASSES =
+  'px-2 py-0.5 text-xs font-semibold bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400 rounded-full'
+const ACTIVE_SESSION_CLASSES = 'bg-primary-50 dark:bg-primary-900/20'
+const INACTIVE_SESSION_CLASSES = 'hover:bg-gray-100 dark:hover:bg-gray-800'
+const ACTIVE_SUBITEM_CLASSES =
+  'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
+const INACTIVE_SUBITEM_CLASSES =
+  'text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+const LOGO_CONTAINER_CLASSES =
+  'w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-lg shadow-primary-600/20'
+const LOGO_CONTAINER_COLLAPSED_CLASSES =
+  'w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center mx-auto'
+const COLLAPSE_BUTTON_CLASSES =
+  'hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full shadow-sm items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
+
 interface NavItemProps {
   to: string
   icon: React.ReactNode
@@ -30,17 +50,21 @@ interface NavItemProps {
   onClick?: () => void
 }
 
-const NavItem = ({ to, icon, label, collapsed, badge, onClick }: NavItemProps) => {
+const NavItem = ({
+  to,
+  icon,
+  label,
+  collapsed,
+  badge,
+  onClick,
+}: NavItemProps) => {
   return (
     <NavLink
       to={to}
       onClick={onClick}
       className={({ isActive }) => `
         flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
-        ${isActive
-          ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/25'
-          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
-        }
+        ${isActive ? ACTIVE_NAV_CLASSES : INACTIVE_NAV_CLASSES}
         ${collapsed ? 'justify-center' : ''}
       `}
     >
@@ -49,7 +73,7 @@ const NavItem = ({ to, icon, label, collapsed, badge, onClick }: NavItemProps) =
         <>
           <span className="font-medium flex-1">{label}</span>
           {badge !== undefined && badge > 0 && (
-            <span className="px-2 py-0.5 text-xs font-semibold bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400 rounded-full">
+            <span className={BADGE_CLASSES}>
               {badge}
             </span>
           )}
@@ -72,117 +96,318 @@ interface SessionNavItemProps {
   onToggle: () => void
 }
 
-const SessionNavItem = ({ session, collapsed, onNavigate, isExpanded, onToggle }: SessionNavItemProps) => {
+// Helper component for collapsed session view
+const CollapsedSessionItem = ({
+  session,
+  onNavigate,
+  isActive,
+}: {
+  session: SessionNavItemProps['session']
+  onNavigate?: () => void
+  isActive: boolean
+}) => (
+  <NavLink
+    to={`/messages/${session.id}`}
+    onClick={onNavigate}
+    className={`
+      flex items-center justify-center p-2 rounded-lg transition-all duration-200
+      ${isActive ? ACTIVE_SESSION_CLASSES : INACTIVE_SESSION_CLASSES}
+    `}
+    title={session.session_name}
+  >
+    <div className={`w-2 h-2 rounded-full ${session.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
+  </NavLink>
+)
+
+// Helper component for session header
+const SessionHeader = ({
+  session,
+  isActive,
+  isExpanded,
+  onToggle,
+}: {
+  session: SessionNavItemProps['session']
+  isActive: boolean
+  isExpanded: boolean
+  onToggle: () => void
+}) => (
+  <button
+    onClick={onToggle}
+    className={`
+      w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200
+      ${isActive ? ACTIVE_SESSION_CLASSES : INACTIVE_SESSION_CLASSES}
+    `}
+  >
+    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${session.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
+    <span
+      className={`text-sm font-medium truncate flex-1 text-left ${
+        isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'
+      }`}
+    >
+      {session.session_name}
+    </span>
+    {session.is_active && (
+      <ChevronDown
+        className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+      />
+    )}
+  </button>
+)
+
+// Helper component for session subitems
+const SessionSubitems = ({
+  session,
+  onNavigate,
+}: {
+  session: SessionNavItemProps['session']
+  onNavigate?: () => void
+}) => (
+  <div className="pl-5 space-y-0.5 overflow-hidden animate-accordion-down">
+    <NavLink
+      to={`/messages/${session.id}`}
+      onClick={onNavigate}
+      className={({ isActive }) => `
+        flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors
+        ${isActive ? ACTIVE_SUBITEM_CLASSES : INACTIVE_SUBITEM_CLASSES}
+      `}
+    >
+      <Send className="w-3.5 h-3.5" />
+      <span>Messages</span>
+    </NavLink>
+    <NavLink
+      to={`/chats/${session.id}`}
+      onClick={onNavigate}
+      className={({ isActive }) => `
+        flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors
+        ${isActive ? ACTIVE_SUBITEM_CLASSES : INACTIVE_SUBITEM_CLASSES}
+      `}
+    >
+      <MessageSquare className="w-3.5 h-3.5" />
+      <span>Chats</span>
+    </NavLink>
+    <NavLink
+      to={`/contacts/${session.id}`}
+      onClick={onNavigate}
+      className={({ isActive }) => `
+        flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors
+        ${isActive ? ACTIVE_SUBITEM_CLASSES : INACTIVE_SUBITEM_CLASSES}
+      `}
+    >
+      <Users className="w-3.5 h-3.5" />
+      <span>Contacts</span>
+    </NavLink>
+    <NavLink
+      to={`/webhooks/${session.id}`}
+      onClick={onNavigate}
+      className={({ isActive }) => `
+        flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors
+        ${isActive ? ACTIVE_SUBITEM_CLASSES : INACTIVE_SUBITEM_CLASSES}
+      `}
+    >
+      <Webhook className="w-3.5 h-3.5" />
+      <span>Webhooks</span>
+    </NavLink>
+  </div>
+)
+
+const SessionNavItem = ({
+  session,
+  collapsed,
+  onNavigate,
+  isExpanded,
+  onToggle,
+}: SessionNavItemProps) => {
   const location = useLocation()
   const isActive = location.pathname.includes(session.id)
 
   if (collapsed) {
-    return (
-      <NavLink
-        to={`/messages/${session.id}`}
-        onClick={onNavigate}
-        className={`
-          flex items-center justify-center p-2 rounded-lg transition-all duration-200
-          ${isActive
-            ? 'bg-primary-100 dark:bg-primary-900/30'
-            : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-          }
-        `}
-        title={session.session_name}
-      >
-        <div className={`w-2 h-2 rounded-full ${session.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
-      </NavLink>
-    )
+    return <CollapsedSessionItem session={session} onNavigate={onNavigate} isActive={isActive} />
   }
 
   return (
     <div className="space-y-1">
-      {/* Session header - clickable to expand/collapse */}
-      <button
-        onClick={onToggle}
-        className={`
-          w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200
-          ${isActive
-            ? 'bg-primary-50 dark:bg-primary-900/20'
-            : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-          }
-        `}
-      >
-        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${session.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
-        <span className={`text-sm font-medium truncate flex-1 text-left ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'}`}>
-          {session.session_name}
-        </span>
-        {session.is_active && (
-          <ChevronDown
-            className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-          />
-        )}
-      </button>
-
-      {/* Expandable menu items */}
+      <SessionHeader session={session} isActive={isActive} isExpanded={isExpanded} onToggle={onToggle} />
       {session.is_active && isExpanded && (
-        <div className="pl-5 space-y-0.5 overflow-hidden animate-accordion-down">
-          <NavLink
-            to={`/messages/${session.id}`}
-            onClick={onNavigate}
-            className={({ isActive }) => `
-              flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors
-              ${isActive
-                ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                : 'text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-              }
-            `}
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>Mensajes</span>
-          </NavLink>
-          <NavLink
-            to={`/chats/${session.id}`}
-            onClick={onNavigate}
-            className={({ isActive }) => `
-              flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors
-              ${isActive
-                ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                : 'text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-              }
-            `}
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span>Chats</span>
-          </NavLink>
-          <NavLink
-            to={`/contacts/${session.id}`}
-            onClick={onNavigate}
-            className={({ isActive }) => `
-              flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors
-              ${isActive
-                ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                : 'text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-              }
-            `}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>Contacts</span>
-          </NavLink>
-          <NavLink
-            to={`/webhooks/${session.id}`}
-            onClick={onNavigate}
-            className={({ isActive }) => `
-              flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors
-              ${isActive
-                ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
-                : 'text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-              }
-            `}
-          >
-            <Webhook className="w-3.5 h-3.5" />
-            <span>Webhooks</span>
-          </NavLink>
-        </div>
+        <SessionSubitems session={session} onNavigate={onNavigate} />
       )}
     </div>
   )
 }
+
+// Helper component for sidebar logo section
+const SidebarLogo = ({ isCollapsed, onClose }: { isCollapsed: boolean; onClose: () => void }) => (
+  <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800">
+    {!isCollapsed && (
+      <div className="flex items-center gap-3">
+        <div className={LOGO_CONTAINER_CLASSES}>
+          <Zap className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h1 className="font-bold text-gray-900 dark:text-white">Telegram</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-500">API Manager</p>
+        </div>
+      </div>
+    )}
+    {isCollapsed && (
+      <div className={LOGO_CONTAINER_COLLAPSED_CLASSES}>
+        <Zap className="w-5 h-5 text-white" />
+      </div>
+    )}
+    {!isCollapsed && (
+      <button
+        onClick={onClose}
+        className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      >
+        <X className="w-5 h-5 text-gray-500" />
+      </button>
+    )}
+  </div>
+)
+
+// Helper component for sessions section
+const SessionsSection = ({
+  sessions,
+  isCollapsed,
+  onNavigate,
+  isSessionExpanded,
+  toggleSession,
+}: {
+  sessions: ReturnType<typeof useSessions>['data']
+  isCollapsed: boolean
+  onNavigate: () => void
+  isSessionExpanded: (id: string) => boolean
+  toggleSession: (id: string) => void
+}) => {
+  if (!sessions || sessions.length === 0) return null
+
+  return (
+    <div className="pt-4">
+      {!isCollapsed && (
+        <p className="px-3 mb-2 text-xs font-semibold text-gray-400 dark:text-gray-600 uppercase tracking-wider">
+          Sessions ({sessions.length})
+        </p>
+      )}
+      <div className="space-y-1">
+        {sessions.map((session) => (
+          <SessionNavItem
+            key={session.id}
+            session={session}
+            collapsed={isCollapsed}
+            onNavigate={onNavigate}
+            isExpanded={isSessionExpanded(session.id)}
+            onToggle={() => toggleSession(session.id)}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Helper component for collapse button
+const CollapseButton = ({
+  isCollapsed,
+  toggleCollapse,
+}: {
+  isCollapsed: boolean
+  toggleCollapse: () => void
+}) => (
+  <button
+    onClick={toggleCollapse}
+    className={`
+      w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors
+      text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800
+      ${isCollapsed ? 'justify-center' : ''}
+    `}
+    title={isCollapsed ? 'Expand menu' : 'Collapse menu'}
+  >
+    {isCollapsed ? (
+      <PanelLeft className="w-5 h-5" />
+    ) : (
+      <>
+        <PanelLeftClose className="w-5 h-5" />
+        <span className="font-medium">Collapse</span>
+      </>
+    )}
+  </button>
+)
+
+// Helper component for user info
+const UserInfo = ({ user }: { user: ReturnType<typeof useAuth>['user'] }) => (
+  <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+    <div className="flex items-center gap-3">
+      <div className="w-9 h-9 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
+        <User className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+          {user?.username}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-500 truncate">
+          {user?.email}
+        </p>
+      </div>
+    </div>
+  </div>
+)
+
+// Helper component for logout button
+const LogoutButton = ({
+  isCollapsed,
+  logout,
+}: {
+  isCollapsed: boolean
+  logout: () => void
+}) => (
+  <button
+    onClick={logout}
+    className={`
+      w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors
+      text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20
+      ${isCollapsed ? 'justify-center' : ''}
+    `}
+  >
+    <LogOut className="w-5 h-5" />
+    {!isCollapsed && <span className="font-medium">Logout</span>}
+  </button>
+)
+
+// Helper component for sidebar bottom section
+const SidebarBottom = ({
+  isCollapsed,
+  user,
+  logout,
+  toggleCollapse,
+  onNavigate,
+}: {
+  isCollapsed: boolean
+  user: ReturnType<typeof useAuth>['user']
+  logout: () => void
+  toggleCollapse: () => void
+  onNavigate: () => void
+}) => (
+  <div className="p-3 border-t border-gray-200 dark:border-gray-800 space-y-1">
+    <CollapseButton isCollapsed={isCollapsed} toggleCollapse={toggleCollapse} />
+
+    <NavItem
+      to="/profile"
+      icon={<User className="w-5 h-5" />}
+      label="Profile"
+      collapsed={isCollapsed}
+      onClick={onNavigate}
+    />
+    <NavItem
+      to="/settings"
+      icon={<Settings className="w-5 h-5" />}
+      label="Configuration"
+      collapsed={isCollapsed}
+      onClick={onNavigate}
+    />
+
+    {user && !isCollapsed && <UserInfo user={user} />}
+
+    <LogoutButton isCollapsed={isCollapsed} logout={logout} />
+  </div>
+)
 
 export const Sidebar = () => {
   const [expandedSessions, setExpandedSessions] = useState<Set<string>>(new Set())
@@ -193,14 +418,12 @@ export const Sidebar = () => {
 
   const activeSessions = sessions?.filter(s => s.is_active).length || 0
 
-  // Close sidebar on mobile when navigating
   const handleMobileNavigate = () => {
     if (window.innerWidth < 1024) {
       setIsOpen(false)
     }
   }
 
-  // Toggle session expansion
   const toggleSession = (sessionId: string) => {
     setExpandedSessions(prev => {
       const next = new Set(prev)
@@ -213,7 +436,6 @@ export const Sidebar = () => {
     })
   }
 
-  // Auto-expand session if currently viewing it
   const isSessionExpanded = (sessionId: string) => {
     if (location.pathname.includes(sessionId)) {
       return true
@@ -231,36 +453,8 @@ export const Sidebar = () => {
         lg:translate-x-0
       `}
     >
-      {/* Logo */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800">
-        {!isCollapsed && (
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-lg shadow-primary-600/20">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="font-bold text-gray-900 dark:text-white">Telegram</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-500">API Manager</p>
-            </div>
-          </div>
-        )}
-        {isCollapsed && (
-          <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center mx-auto">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
-        )}
-        {/* Close button for mobile - only when not collapsed */}
-        {!isCollapsed && (
-          <button
-            onClick={() => setIsOpen(false)}
-            className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
-        )}
-      </div>
+      <SidebarLogo isCollapsed={isCollapsed} onClose={() => setIsOpen(false)} />
 
-      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
         <NavItem
           to="/dashboard"
@@ -271,103 +465,26 @@ export const Sidebar = () => {
           onClick={handleMobileNavigate}
         />
 
-        {/* Sessions Section */}
-        {sessions && sessions.length > 0 && (
-          <div className="pt-4">
-            {!isCollapsed && (
-              <p className="px-3 mb-2 text-xs font-semibold text-gray-400 dark:text-gray-600 uppercase tracking-wider">
-                Sesiones ({sessions.length})
-              </p>
-            )}
-            <div className="space-y-1">
-              {sessions.map((session) => (
-                <SessionNavItem
-                  key={session.id}
-                  session={session}
-                  collapsed={isCollapsed}
-                  onNavigate={handleMobileNavigate}
-                  isExpanded={isSessionExpanded(session.id)}
-                  onToggle={() => toggleSession(session.id)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        <SessionsSection
+          sessions={sessions}
+          isCollapsed={isCollapsed}
+          onNavigate={handleMobileNavigate}
+          isSessionExpanded={isSessionExpanded}
+          toggleSession={toggleSession}
+        />
       </nav>
 
-      {/* Bottom section */}
-      <div className="p-3 border-t border-gray-200 dark:border-gray-800 space-y-1">
-        {/* Collapse toggle button - visible on both mobile and desktop */}
-        <button
-          onClick={toggleCollapse}
-          className={`
-            w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors
-            text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800
-            ${isCollapsed ? 'justify-center' : ''}
-          `}
-          title={isCollapsed ? 'Expandir menú' : 'Colapsar menú'}
-        >
-          {isCollapsed ? (
-            <PanelLeft className="w-5 h-5" />
-          ) : (
-            <>
-              <PanelLeftClose className="w-5 h-5" />
-              <span className="font-medium">Colapsar</span>
-            </>
-          )}
-        </button>
+      <SidebarBottom
+        isCollapsed={isCollapsed}
+        user={user}
+        logout={logout}
+        toggleCollapse={toggleCollapse}
+        onNavigate={handleMobileNavigate}
+      />
 
-        <NavItem
-          to="/profile"
-          icon={<User className="w-5 h-5" />}
-          label="Perfil"
-          collapsed={isCollapsed}
-          onClick={handleMobileNavigate}
-        />
-        <NavItem
-          to="/settings"
-          icon={<Settings className="w-5 h-5" />}
-          label="Configuration"
-          collapsed={isCollapsed}
-          onClick={handleMobileNavigate}
-        />
-
-        {/* User info */}
-        {user && !isCollapsed && (
-          <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
-                <User className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {user.username}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-500 truncate">
-                  {user.email}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <button
-          onClick={logout}
-          className={`
-            w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors
-            text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20
-            ${isCollapsed ? 'justify-center' : ''}
-          `}
-        >
-          <LogOut className="w-5 h-5" />
-          {!isCollapsed && <span className="font-medium">Cerrar sesion</span>}
-        </button>
-      </div>
-
-      {/* Collapse toggle - floating button on desktop (alternative) */}
       <button
         onClick={toggleCollapse}
-        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full shadow-sm items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className={COLLAPSE_BUTTON_CLASSES}
       >
         {isCollapsed ? (
           <ChevronRight className="w-4 h-4 text-gray-500" />

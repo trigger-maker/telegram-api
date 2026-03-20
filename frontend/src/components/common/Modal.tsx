@@ -10,6 +10,9 @@ interface ModalProps {
   showClose?: boolean
 }
 
+const MODAL_OVERLAY_CLASSES = 'fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in'
+const MODAL_CONTENT_CLASSES = 'bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-xl shadow-2xl w-full overflow-hidden animate-slide-in'
+
 export const Modal = ({
   isOpen,
   onClose,
@@ -28,9 +31,9 @@ export const Modal = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+    <div className={MODAL_OVERLAY_CLASSES}>
       <div
-        className={`bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-xl shadow-2xl w-full ${sizeClasses[size]} max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-slide-in`}
+        className={`${MODAL_CONTENT_CLASSES} ${sizeClasses[size]} max-h-[95vh] sm:max-h-[90vh]`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

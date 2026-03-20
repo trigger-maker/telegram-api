@@ -96,7 +96,7 @@ type GetChatsRequest struct {
 	Limit    int  `query:"limit"`
 	Offset   int  `query:"offset"`
 	Archived bool `query:"archived"`
-	Refresh  bool `query:"refresh"` // Forzar refresh de cache
+	Refresh  bool `query:"refresh"` // Forzar refresh de cache.
 }
 
 // GetHistoryRequest represents a request to get chat history.

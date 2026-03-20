@@ -80,8 +80,8 @@ func (m *ClientManager) newClient(
 			DeviceModel:    sessionName,
 			SystemVersion:  "1.0",
 			AppVersion:     "1.0.0",
-			SystemLangCode: "es",
-			LangCode:       "es",
+			SystemLangCode: "en",
+			LangCode:       "en",
 		},
 	})
 }

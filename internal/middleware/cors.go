@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
-// CORSConfig retorna la configuración CORS para la API.
+// CORSConfig returns the CORS configuration for the API.
 func CORSConfig() cors.Config {
 	allowedOrigins := os.Getenv("CORS_ORIGINS")
 	if allowedOrigins == "" {

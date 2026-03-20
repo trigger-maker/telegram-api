@@ -5,13 +5,14 @@ import { AUTH_TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY } from '@/config/constants'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+/* eslint-disable max-lines-per-function */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Cargar datos del usuario desde localStorage al iniciar
+    // Load user data from localStorage on startup
     const storedToken = localStorage.getItem(AUTH_TOKEN_KEY)
     const storedUser = localStorage.getItem(USER_KEY)
 
@@ -28,12 +29,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authApi.login({ username, password })
 
-      // Guardar en localStorage
+      // Save to localStorage
       localStorage.setItem(AUTH_TOKEN_KEY, response.access_token)
       localStorage.setItem(REFRESH_TOKEN_KEY, response.refresh_token)
       localStorage.setItem(USER_KEY, JSON.stringify(response.user))
 
-      // Actualizar estado
+      // Update state
       setToken(response.access_token)
       setUser(response.user)
     } finally {
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true)
     try {
       await authApi.register({ username, email, password })
-      // Después del registro, hacer login automático
+      // After registration, do automatic login
       await login(username, password)
     } finally {
       setIsLoading(false)
@@ -58,10 +59,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (refreshToken) {
         await authApi.logout(refreshToken)
       }
-    } catch (error) {
-      console.error('Error during logout:', error)
+    } catch {
+      // Silently ignore logout errors
     } finally {
-      // Limpiar todo
+      // Clear everything
       localStorage.removeItem(AUTH_TOKEN_KEY)
       localStorage.removeItem(REFRESH_TOKEN_KEY)
       localStorage.removeItem(USER_KEY)

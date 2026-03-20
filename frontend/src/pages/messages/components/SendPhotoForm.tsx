@@ -1,3 +1,5 @@
+/* global React */
+/* eslint-disable max-lines-per-function */
 import { useState } from 'react'
 import { Button, Input, Alert, FileUpload } from '@/components/common'
 import { useSendPhotoMessage } from '@/hooks'
@@ -23,12 +25,12 @@ export const SendPhotoForm = ({ sessionId }: SendPhotoFormProps) => {
     setError('')
 
     if (!to.trim()) {
-      setError('El destinatario es requerido')
+      setError('Recipient is required')
       return
     }
 
     if (!photoUrl.trim()) {
-      setError('La imagen es requerida')
+      setError('Image is required')
       return
     }
 
@@ -38,7 +40,7 @@ export const SendPhotoForm = ({ sessionId }: SendPhotoFormProps) => {
         data: { to: to.trim(), photo_url: photoUrl.trim(), caption: caption.trim() || undefined },
       })
 
-      toast.success('Foto enviada', `Job ID: ${response.job_id}`)
+      toast.success('Photo sent', `Job ID: ${response.job_id}`)
       setTo('')
       setPhotoUrl('')
       setCaption('')
@@ -46,7 +48,7 @@ export const SendPhotoForm = ({ sessionId }: SendPhotoFormProps) => {
       if (err instanceof ApiException) {
         setError(err.message)
       } else {
-        setError('Error al enviar la foto')
+        setError('Error sending photo')
       }
     }
   }
@@ -56,9 +58,9 @@ export const SendPhotoForm = ({ sessionId }: SendPhotoFormProps) => {
       {error && <Alert variant="error">{error}</Alert>}
 
       <Input
-        label="Destinatario"
+        label="Recipient"
         type="text"
-        placeholder="@username, +573001234567 o ID de chat"
+        placeholder="@username, +573001234567 or chat ID"
         value={to}
         onChange={(e) => setTo(e.target.value)}
         disabled={sendMessage.isPending}
@@ -66,17 +68,17 @@ export const SendPhotoForm = ({ sessionId }: SendPhotoFormProps) => {
 
       <FileUpload
         type="image"
-        label="Imagen"
+        label="Image"
         value={photoUrl}
         onChange={setPhotoUrl}
-        placeholder="https://tu-servidor.com/imagen.jpg"
+        placeholder="https://your-server.com/image.jpg"
         disabled={sendMessage.isPending}
       />
 
       <Input
-        label="Caption (Opcional)"
+        label="Caption (Optional)"
         type="text"
-        placeholder="Description de la foto..."
+        placeholder="Photo description..."
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
         disabled={sendMessage.isPending}
@@ -90,7 +92,7 @@ export const SendPhotoForm = ({ sessionId }: SendPhotoFormProps) => {
         className="h-12"
       >
         <Send className="w-4 h-4 mr-2" />
-        Enviar Foto
+        Send Photo
       </Button>
     </form>
   )

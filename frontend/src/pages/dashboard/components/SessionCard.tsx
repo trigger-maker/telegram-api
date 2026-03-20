@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { Smartphone, CheckCircle, Clock, XCircle, Trash2, Send, MessageCircle, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { TelegramSession } from '@/types'
@@ -19,7 +20,7 @@ export const SessionCard = ({ session }: SessionCardProps) => {
     if (session.is_active) {
       return {
         icon: CheckCircle,
-        text: 'Activa',
+        text: 'Active',
         color: 'text-green-600 dark:text-green-400',
         bg: 'bg-green-100 dark:bg-green-900/30',
       }
@@ -30,14 +31,14 @@ export const SessionCard = ({ session }: SessionCardProps) => {
       case 'code_sent':
         return {
           icon: Clock,
-          text: 'Pendiente',
+          text: 'Pending',
           color: 'text-yellow-600 dark:text-yellow-400',
           bg: 'bg-yellow-100 dark:bg-yellow-900/30',
         }
       case 'failed':
         return {
           icon: XCircle,
-          text: 'Fallida',
+          text: 'Failed',
           color: 'text-red-600 dark:text-red-400',
           bg: 'bg-red-100 dark:bg-red-900/30',
         }
@@ -59,9 +60,9 @@ export const SessionCard = ({ session }: SessionCardProps) => {
     if (confirmed) {
       try {
         await deleteSession.mutateAsync(session.id)
-        toast.success('Sesion eliminada', `La sesion "${session.session_name}" ha sido eliminada`)
+        toast.success('Session deleted', `The session "${session.session_name}" has been deleted`)
       } catch {
-        toast.error('Error interno', 'No se pudo eliminar la sesion')
+        toast.error('Internal error', 'Could not delete session')
       }
     }
   }
@@ -107,9 +108,9 @@ export const SessionCard = ({ session }: SessionCardProps) => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500 dark:text-gray-500">
-            <span>Creada: {new Date(session.created_at).toLocaleDateString('es-ES')}</span>
+            <span>Created: {new Date(session.created_at).toLocaleDateString('en-US')}</span>
             <span className="hidden sm:inline">•</span>
-            <span>Actualizada: {new Date(session.updated_at).toLocaleDateString('es-ES')}</span>
+            <span>Updated: {new Date(session.updated_at).toLocaleDateString('en-US')}</span>
           </div>
         </div>
 
@@ -139,7 +140,7 @@ export const SessionCard = ({ session }: SessionCardProps) => {
                 className="flex items-center gap-2 flex-1 sm:flex-none justify-center"
               >
                 <Send className="w-4 h-4" />
-                <span className="sm:inline">Mensajes</span>
+                <span className="sm:inline">Messages</span>
               </Button>
             </>
           )}

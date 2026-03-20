@@ -22,6 +22,9 @@ interface SettingItemProps {
   action: React.ReactNode
 }
 
+// Tailwind classes for toggle switch
+const TOGGLE_SWITCH_CLASSES = 'w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[""] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600'
+
 const SettingItem = ({ icon, title, description, action }: SettingItemProps) => (
   <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
     <div className="flex items-center gap-4">
@@ -37,6 +40,7 @@ const SettingItem = ({ icon, title, description, action }: SettingItemProps) => 
   </div>
 )
 
+/* eslint-disable max-lines-per-function */
 export const SettingsPage = () => {
   const { theme, toggleTheme } = useTheme()
   const toast = useToast()
@@ -45,15 +49,15 @@ export const SettingsPage = () => {
   const [autoRefresh, setAutoRefresh] = useState(true)
 
   const handleExportData = () => {
-    toast.info('Exportando datos', 'Preparando archivo de exportacion...')
+    toast.info('Exporting data', 'Preparing export file...')
     setTimeout(() => {
-      toast.success('Exportacion completada', 'El archivo se ha descargado')
+      toast.success('Export completed', 'The file has been downloaded')
     }, 2000)
   }
 
   const handleClearCache = () => {
     localStorage.clear()
-    toast.success('Cache limpiada', 'Los datos en cache han sido eliminados')
+    toast.success('Cache cleared', 'Cached data has been removed')
   }
 
   return (
@@ -63,7 +67,7 @@ export const SettingsPage = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Configuration</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Personaliza tu experiencia
+            Customize your experience
           </p>
         </div>
 
@@ -71,13 +75,13 @@ export const SettingsPage = () => {
         <Card className="p-6">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Palette className="w-5 h-5" />
-            Apariencia
+            Appearance
           </h3>
           <div className="space-y-3">
             <SettingItem
               icon={theme === 'dark' ? <Moon className="w-5 h-5 text-primary-600" /> : <Sun className="w-5 h-5 text-primary-600" />}
-              title="Tema"
-              description={theme === 'dark' ? 'Modo oscuro activado' : 'Modo claro activado'}
+              title="Theme"
+              description={theme === 'dark' ? 'Dark mode enabled' : 'Light mode enabled'}
               action={
                 <div className="flex items-center gap-2">
                   <button
@@ -115,13 +119,13 @@ export const SettingsPage = () => {
         <Card className="p-6">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Bell className="w-5 h-5" />
-            Notificaciones
+            Notifications
           </h3>
           <div className="space-y-3">
             <SettingItem
               icon={<Bell className="w-5 h-5 text-primary-600" />}
-              title="Notificaciones push"
-              description="Recibe alertas de nuevos mensajes"
+              title="Push notifications"
+              description="Receive alerts for new messages"
               action={
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -130,15 +134,15 @@ export const SettingsPage = () => {
                     onChange={() => setNotifications(!notifications)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                  <div className={TOGGLE_SWITCH_CLASSES}></div>
                 </label>
               }
             />
 
             <SettingItem
               icon={<Globe className="w-5 h-5 text-primary-600" />}
-              title="Auto-actualizar"
-              description="Actualizar datos automaticamente"
+              title="Auto-refresh"
+              description="Automatically refresh data"
               action={
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -147,7 +151,7 @@ export const SettingsPage = () => {
                     onChange={() => setAutoRefresh(!autoRefresh)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary-600"></div>
+                  <div className={TOGGLE_SWITCH_CLASSES}></div>
                 </label>
               }
             />
@@ -158,28 +162,28 @@ export const SettingsPage = () => {
         <Card className="p-6">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Database className="w-5 h-5" />
-            Datos
+            Data
           </h3>
           <div className="space-y-3">
             <SettingItem
               icon={<Download className="w-5 h-5 text-primary-600" />}
-              title="Exportar datos"
-              description="Descarga una copia de tus datos"
+              title="Export data"
+              description="Download a copy of your data"
               action={
                 <Button variant="secondary" onClick={handleExportData}>
                   <Download className="w-4 h-4 mr-2" />
-                  Exportar
+                  Export
                 </Button>
               }
             />
 
             <SettingItem
               icon={<Trash2 className="w-5 h-5 text-red-600" />}
-              title="Limpiar cache"
-              description="Eliminar datos almacenados localmente"
+              title="Clear cache"
+              description="Delete locally stored data"
               action={
                 <Button variant="danger" onClick={handleClearCache}>
-                  Limpiar
+                  Clear
                 </Button>
               }
             />
@@ -190,7 +194,7 @@ export const SettingsPage = () => {
         <Card className="p-6">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            Information de la API
+            API Information
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
@@ -212,10 +216,10 @@ export const SettingsPage = () => {
               </a>
             </div>
             <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Estado</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Status</p>
               <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                Operativo
+                Operational
               </span>
             </div>
           </div>
@@ -224,20 +228,20 @@ export const SettingsPage = () => {
         {/* Danger Zone */}
         <Card className="p-6 border-red-200 dark:border-red-900/50">
           <h3 className="font-semibold text-red-600 dark:text-red-400 mb-4">
-            Zona de peligro
+            Danger zone
           </h3>
           <Alert variant="error">
             <p className="text-sm">
-              Las siguientes acciones son irreversibles. Proceed con precaution.
+              The following actions are irreversible. Proceed with caution.
             </p>
           </Alert>
           <div className="mt-4 flex flex-wrap gap-3">
             <Button variant="danger">
               <Trash2 className="w-4 h-4 mr-2" />
-              Eliminar todas las sesiones
+              Delete all sessions
             </Button>
             <Button variant="danger">
-              Eliminar cuenta
+              Delete account
             </Button>
           </div>
         </Card>

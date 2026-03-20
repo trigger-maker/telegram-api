@@ -13,7 +13,7 @@ func wrapDBError(err error, op string) error {
 		return nil
 	}
 
-	// Always log the original error
+	// Always log the original error.
 	if pgErr, ok := err.(*pgconn.PgError); ok {
 		logger.Error().
 			Err(err).
@@ -33,13 +33,18 @@ func wrapDBError(err error, op string) error {
 			if pgErr.ConstraintName == "users_email_key" {
 				return domain.ErrEmailAlreadyExists
 			}
-			// Any other unique violation
+			// Any other unique violation.
 			logger.Warn().
 				Str("constraint", pgErr.ConstraintName).
 				Msg("Unhandled unique constraint violation")
 		}
+		if pgErr.Code == "23503" { // foreign_key_violation
+			if pgErr.ConstraintName == "telegram_sessions_user_id_fkey" {
+				return domain.ErrUserNotFound
+			}
+		}
 	} else {
-		// Non-PostgreSQL error
+		// Non-PostgreSQL error.
 		logger.Error().
 			Err(err).
 			Str("operation", op).

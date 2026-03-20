@@ -19,11 +19,11 @@ import (
 func TestSendMessage_WithActiveSession_ReuseTCP(t *testing.T) {
 	ctx := context.Background()
 
-	// Create mock session pool
+	// Create mock session pool.
 	pool := NewSessionPool(nil, nil, nil)
 	sessionID := uuid.New()
 
-	// Create active session with mock API
+	// Create active session with mock API.
 	active := &ActiveSession{
 		SessionID:   sessionID,
 		SessionName: "TestSession",
@@ -36,7 +36,7 @@ func TestSendMessage_WithActiveSession_ReuseTCP(t *testing.T) {
 	pool.sessions[sessionID] = active
 	pool.mu.Unlock()
 
-	// Create manager
+	// Create manager.
 	manager := &ClientManager{
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
@@ -44,32 +44,32 @@ func TestSendMessage_WithActiveSession_ReuseTCP(t *testing.T) {
 	}
 	manager.SetPool(pool)
 
-	// Create request
+	// Create request.
 	req := &domain.SendMessageRequest{
 		To:   "123456789",
 		Text: "Hello, World!",
 		Type: domain.MessageTypeText,
 	}
 
-	// This should return ErrSessionNotActive when API is nil
+	// This should return ErrSessionNotActive when API is nil.
 	err := manager.SendMessageWithAPIClient(ctx, active.API, req)
 	assert.ErrorIs(t, err, domain.ErrSessionNotActive)
 }
 
 // TestSendMessage_MediaFile_DownloadUpload - Test 2: Send media files with download, upload, delivery.
 func TestSendMessage_MediaFile_DownloadUpload(t *testing.T) {
-	// Create mock HTTP server for media file
+	// Create mock HTTP server for media file.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "image/jpeg")
 		_, _ = w.Write([]byte("fake image data"))
 	}))
 	defer server.Close()
 
-	// Create mock session pool
+	// Create mock session pool.
 	pool := NewSessionPool(nil, nil, nil)
 	sessionID := uuid.New()
 
-	// Create active session with mock API
+	// Create active session with mock API.
 	active := &ActiveSession{
 		SessionID:   sessionID,
 		SessionName: "TestSession",
@@ -82,7 +82,7 @@ func TestSendMessage_MediaFile_DownloadUpload(t *testing.T) {
 	pool.sessions[sessionID] = active
 	pool.mu.Unlock()
 
-	// Create manager with 30s timeout
+	// Create manager with 30s timeout.
 	manager := &ClientManager{
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
@@ -90,16 +90,16 @@ func TestSendMessage_MediaFile_DownloadUpload(t *testing.T) {
 	}
 	manager.SetPool(pool)
 
-	// Test download file directly
+	// Test download file directly.
 	filePath, err := manager.downloadFile(server.URL + "/photo.jpg")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, filePath)
 
-	// Verify file exists
+	// Verify file exists.
 	_, err = os.Stat(filePath)
 	require.NoError(t, err)
 
-	// Clean up
+	// Clean up.
 	_ = os.Remove(filePath)
 }
 
@@ -108,10 +108,10 @@ func TestSendMessage_MediaFile_DownloadUpload(t *testing.T) {
 func TestSendMessage_NoSessionInPool_ErrSessionNotActive(t *testing.T) {
 	ctx := context.Background()
 
-	// Create empty session pool
+	// Create empty session pool.
 	pool := NewSessionPool(nil, nil, nil)
 
-	// Create manager
+	// Create manager.
 	manager := &ClientManager{
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
@@ -119,30 +119,30 @@ func TestSendMessage_NoSessionInPool_ErrSessionNotActive(t *testing.T) {
 	}
 	manager.SetPool(pool)
 
-	// Create request
+	// Create request.
 	req := &domain.SendMessageRequest{
 		To:   "@testuser",
 		Text: "Hello",
 	}
 
-	// This should return ErrSessionNotActive when API is nil
+	// This should return ErrSessionNotActive when API is nil.
 	err := manager.SendMessageWithAPIClient(ctx, nil, req)
 	assert.ErrorIs(t, err, domain.ErrSessionNotActive)
 }
 
 // TestSendMessage_UnreachableMediaURL_Timeout - Test 4: Timeout for unreachable media_url after 30 seconds.
 func TestSendMessage_UnreachableMediaURL_Timeout(t *testing.T) {
-	// Create manager with short timeout for testing
+	// Create manager with short timeout for testing.
 	manager := &ClientManager{
 		httpClient: &http.Client{
 			Timeout: 100 * time.Millisecond,
 		},
 	}
 
-	// Test download with timeout using unreachable URL
+	// Test download with timeout using unreachable URL.
 	_, err := manager.downloadFile("http://10.255.255.1:99999/unreachable")
 
-	// Verify error occurred
+	// Verify error occurred.
 	assert.Error(t, err)
 }
 
@@ -150,11 +150,11 @@ func TestSendMessage_UnreachableMediaURL_Timeout(t *testing.T) {
 func TestSendMessage_20ConsecutiveSends_OneTCPConnection(t *testing.T) {
 	ctx := context.Background()
 
-	// Create mock session pool
+	// Create mock session pool.
 	pool := NewSessionPool(nil, nil, nil)
 	sessionID := uuid.New()
 
-	// Create active session with mock API
+	// Create active session with mock API.
 	active := &ActiveSession{
 		SessionID:   sessionID,
 		SessionName: "TestSession",
@@ -167,7 +167,7 @@ func TestSendMessage_20ConsecutiveSends_OneTCPConnection(t *testing.T) {
 	pool.sessions[sessionID] = active
 	pool.mu.Unlock()
 
-	// Create manager
+	// Create manager.
 	manager := &ClientManager{
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
@@ -175,10 +175,10 @@ func TestSendMessage_20ConsecutiveSends_OneTCPConnection(t *testing.T) {
 	}
 	manager.SetPool(pool)
 
-	// Track connection creation
+	// Track connection creation.
 	connectionCount := 0
 
-	// Send 20 messages
+	// Send 20 messages.
 	for i := 0; i < 20; i++ {
 		req := &domain.SendMessageRequest{
 			To:   "123456789",
@@ -202,11 +202,11 @@ func TestSendMessage_20ConsecutiveSends_OneTCPConnection(t *testing.T) {
 func TestSendMessage_AfterDCSwitch_UpdatedConnection(t *testing.T) {
 	ctx := context.Background()
 
-	// Create mock session pool
+	// Create mock session pool.
 	pool := NewSessionPool(nil, nil, nil)
 	sessionID := uuid.New()
 
-	// Create active session with mock API
+	// Create active session with mock API.
 	active := &ActiveSession{
 		SessionID:   sessionID,
 		SessionName: "TestSession",
@@ -219,7 +219,7 @@ func TestSendMessage_AfterDCSwitch_UpdatedConnection(t *testing.T) {
 	pool.sessions[sessionID] = active
 	pool.mu.Unlock()
 
-	// Create manager
+	// Create manager.
 	manager := &ClientManager{
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
@@ -227,7 +227,7 @@ func TestSendMessage_AfterDCSwitch_UpdatedConnection(t *testing.T) {
 	}
 	manager.SetPool(pool)
 
-	// Send message before DC switch
+	// Send message before DC switch.
 	req1 := &domain.SendMessageRequest{
 		To:   "123456789",
 		Text: "Before switch",
@@ -237,12 +237,12 @@ func TestSendMessage_AfterDCSwitch_UpdatedConnection(t *testing.T) {
 	err := manager.SendMessageWithAPIClient(ctx, active.API, req1)
 	assert.ErrorIs(t, err, domain.ErrSessionNotActive)
 
-	// Simulate DC switch - update API client
+	// Simulate DC switch - update API client.
 	active.mu.Lock()
 	active.API = nil // Still nil for test
 	active.mu.Unlock()
 
-	// Send message after DC switch
+	// Send message after DC switch.
 	req2 := &domain.SendMessageRequest{
 		To:   "123456789",
 		Text: "After switch",
@@ -257,30 +257,30 @@ func TestSendMessage_AfterDCSwitch_UpdatedConnection(t *testing.T) {
 func TestDownloadFile_WithTimeout(t *testing.T) {
 	ctx := context.Background()
 
-	// Create manager with 30s timeout
+	// Create manager with 30s timeout.
 	manager := &ClientManager{
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
 	}
 
-	// Create mock HTTP server
+	// Create mock HTTP server.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "image/jpeg")
 		_, _ = w.Write([]byte("test data"))
 	}))
 	defer server.Close()
 
-	// Download file
+	// Download file.
 	filePath, err := manager.downloadFileWithTimeout(ctx, server.URL+"/test.jpg")
 	require.NoError(t, err)
 	require.NotEmpty(t, filePath)
 
-	// Verify file exists
+	// Verify file exists.
 	_, err = os.Stat(filePath)
 	require.NoError(t, err)
 
-	// Clean up
+	// Clean up.
 	_ = os.Remove(filePath)
 }
 
@@ -337,7 +337,7 @@ func TestDownloadFile_UnreachableURL(t *testing.T) {
 		},
 	}
 
-	// Try to download from unreachable URL
+	// Try to download from unreachable URL.
 	_, err := manager.downloadFileWithTimeout(ctx, "http://localhost:99999/unreachable")
 	assert.Error(t, err)
 }
@@ -584,13 +584,13 @@ func TestDownloadFile_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, filePath)
 
-	// Verify file content
+	// Verify file content.
 	// #nosec G304 -- Reading test file downloaded in test
 	content, err := os.ReadFile(filePath)
 	assert.NoError(t, err)
 	assert.Equal(t, []byte("test image data"), content)
 
-	// Clean up
+	// Clean up.
 	_ = os.Remove(filePath)
 }
 
@@ -635,7 +635,7 @@ func TestDownloadFile_WithExtension(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Contains(t, filePath, tt.wantExt)
 
-			// Clean up
+			// Clean up.
 			_ = os.Remove(filePath)
 		})
 	}

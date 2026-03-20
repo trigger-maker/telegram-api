@@ -5,6 +5,7 @@
 .env.*.local
 *.pem
 *.key
+.pnpm-store
 
 # ==================== Binaries ====================
 /api
@@ -43,4 +44,4 @@ frontend/.env
 # ==================== Temp ====================
 tmp/
 temp/
-*.tmp
+*.tmp  

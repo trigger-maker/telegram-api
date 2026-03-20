@@ -31,7 +31,7 @@ var Version = "0.1.1"
 
 // @title Telegram API
 // @version 0.1.0
-// @description API REST para gestionar múltiples sesiones de Telegram via MTProto
+// @description API REST para gestionar múltiples sesiones de Telegram via MTProto.
 // @host localhost:7789
 // @BasePath /api/v1
 // @securityDefinitions.apikey BearerAuth
@@ -212,7 +212,7 @@ func startServer(app *fiber.App) {
 		Str("version", Version).
 		Str("swagger", "http://localhost:"+port+"/docs/").
 		Str("redoc", "http://localhost:"+port+"/redoc").
-		Msg("🚀 Servidor iniciado")
+		Msg("🚀 Server started")
 
 	if err := app.Listen(":" + port); err != nil {
 		logger.Fatal().Err(err).Msg("Server failed")
@@ -228,13 +228,17 @@ func main() {
 	}
 
 	logger.Init(cfg.Log.Level)
-	logger.Info().Str("version", Version).Msg("🚀 Telegram API iniciando...")
+	logger.Info().Str("version", Version).Msg("🚀 Telegram API starting...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	pool := setupDatabase(ctx, cfg)
-	defer pool.Close()
+	defer func() {
+		if err := pool.Close(); err != nil {
+			logger.Error().Err(err).Msg("PostgreSQL close failed")
+		}
+	}()
 
 	rdb := setupRedis(ctx, cfg)
 	defer func() {
@@ -294,7 +298,7 @@ func runMigrations(pool *pgxpool.Pool) error {
 }
 
 func printRoutes(app *fiber.App) {
-	logger.Info().Msg("📍 Rutas registradas:")
+	logger.Info().Msg("📍 Routes registered:")
 	valid := map[string]bool{"GET": true, "POST": true, "PUT": true, "DELETE": true}
 	seen := make(map[string]bool)
 	for _, r := range app.GetRoutes() {

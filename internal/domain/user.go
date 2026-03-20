@@ -72,7 +72,7 @@ type RefreshToken struct {
 	CreatedAt  time.Time  `json:"created_at"`
 }
 
-// ToUserInfo convierte User a UserInfo (datos públicos).
+// ToUserInfo converts User to UserInfo (public data).
 func (u *User) ToUserInfo() *UserInfo {
 	return &UserInfo{
 		ID:       u.ID,

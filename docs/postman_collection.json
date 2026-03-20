@@ -175,9 +175,9 @@
         },
         {
           "id": "2415d178-bb98-4ebd-8b4c-e487049f1426",
-          "name": "Cerrar sesión",
+          "name": "Logout",
           "request": {
-            "name": "Cerrar sesión",
+            "name": "Logout",
             "description": {
               "content": "Revoca el refresh token",
               "type": "text/plain"
@@ -1032,9 +1032,9 @@
         },
         {
           "id": "0403378c-ae4c-41bf-875c-df501515309c",
-          "name": "Enviar audio",
+          "name": "Send audio",
           "request": {
-            "name": "Enviar audio",
+            "name": "Send audio",
             "description": {
               "content": "Envía archivo de audio",
               "type": "text/plain"
@@ -1462,9 +1462,9 @@
         },
         {
           "id": "89eefcd2-574d-435e-98f4-15d7f503ba2c",
-          "name": "Enviar documento",
+          "name": "Send document",
           "request": {
-            "name": "Enviar documento",
+            "name": "Send document",
             "description": {
               "content": "Envía archivo/documento",
               "type": "text/plain"
@@ -1677,9 +1677,9 @@
         },
         {
           "id": "cbdc1a7f-b78a-4fab-bf45-edfd15931344",
-          "name": "Enviar foto",
+          "name": "Send photo",
           "request": {
-            "name": "Enviar foto",
+            "name": "Send photo",
             "description": {
               "content": "Envía imagen con caption opcional",
               "type": "text/plain"
@@ -1892,9 +1892,9 @@
         },
         {
           "id": "c05ea9a2-07f7-4220-9385-298a28edcb2e",
-          "name": "Enviar texto",
+          "name": "Send text",
           "request": {
-            "name": "Enviar texto",
+            "name": "Send text",
             "description": {
               "content": "Envía mensaje de texto simple",
               "type": "text/plain"
@@ -2168,9 +2168,9 @@
         },
         {
           "id": "f697a063-8c00-4759-822b-54f8d4ef9fd5",
-          "name": "Enviar video",
+          "name": "Send video",
           "request": {
-            "name": "Enviar video",
+            "name": "Send video",
             "description": {
               "content": "Envía video con caption opcional",
               "type": "text/plain"
@@ -2785,9 +2785,9 @@
         },
         {
           "id": "a976947a-d508-4cb9-952e-64f919a90e7b",
-          "name": "Eliminar webhook",
+          "name": "Delete webhook",
           "request": {
-            "name": "Eliminar webhook",
+            "name": "Delete webhook",
             "description": {
               "content": "Elimina configuración de webhook",
               "type": "text/plain"
@@ -3712,9 +3712,9 @@
         },
         {
           "id": "aec7f824-8b4f-4c72-b860-bd6a78a45caa",
-          "name": "Eliminar sesión",
+          "name": "Delete session",
           "request": {
-            "name": "Eliminar sesión",
+            "name": "Delete session",
             "description": {
               "content": "Elimina una sesión Telegram",
               "type": "text/plain"

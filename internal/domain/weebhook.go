@@ -14,8 +14,8 @@ type WebhookConfig struct {
 	ID          uuid.UUID  `json:"id"`
 	SessionID   uuid.UUID  `json:"session_id"`
 	URL         string     `json:"url"`
-	Secret      string     `json:"secret,omitempty"` // Para firmar requests
-	Events      []string   `json:"events"`           // Tipos de eventos a enviar
+	Secret      string     `json:"secret,omitempty"` // Para firmar requests.
+	Events      []string   `json:"events"`           // Tipos de eventos a enviar.
 	IsActive    bool       `json:"is_active"`
 	MaxRetries  int        `json:"max_retries"`
 	TimeoutMs   int        `json:"timeout_ms"`
@@ -84,11 +84,11 @@ type WebhookEvent struct {
 type MessageEventData struct {
 	MessageID int64     `json:"message_id"`
 	ChatID    int64     `json:"chat_id"`
-	ChatType  string    `json:"chat_type"` // private, group, channel
+	ChatType  string    `json:"chat_type"` // private, group, channel.
 	FromID    int64     `json:"from_id"`
 	FromName  string    `json:"from_name"`
 	Text      string    `json:"text,omitempty"`
-	MediaType string    `json:"media_type,omitempty"` // photo, video, audio, document
+	MediaType string    `json:"media_type,omitempty"` // photo, video, audio, document.
 	ReplyToID int64     `json:"reply_to_id,omitempty"`
 	Date      time.Time `json:"date"`
 }

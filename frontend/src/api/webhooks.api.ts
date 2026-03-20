@@ -36,14 +36,14 @@ export interface WebhookResponse {
 // =============== API FUNCTIONS ===============
 
 /**
- * Obtiene la configuración actual del webhook
+ * Gets the current webhook configuration
  */
 export const getWebhookConfig = async (sessionId: string): Promise<WebhookConfig> => {
   return apiClient.get<WebhookConfig>(`/sessions/${sessionId}/webhook`)
 }
 
 /**
- * Configura un webhook para la sesión
+ * Configures a webhook for the session
  */
 export const createWebhook = async (
   sessionId: string,
@@ -53,21 +53,21 @@ export const createWebhook = async (
 }
 
 /**
- * Elimina la configuración del webhook
+ * Deletes the webhook configuration
  */
 export const deleteWebhook = async (sessionId: string): Promise<void> => {
   return apiClient.delete(`/sessions/${sessionId}/webhook`)
 }
 
 /**
- * Inicia la escucha de eventos del webhook
+ * Starts listening to webhook events
  */
 export const startWebhook = async (sessionId: string): Promise<void> => {
   return apiClient.post(`/sessions/${sessionId}/webhook/start`)
 }
 
 /**
- * Detiene la escucha de eventos del webhook
+ * Stops listening to webhook events
  */
 export const stopWebhook = async (sessionId: string): Promise<void> => {
   return apiClient.post(`/sessions/${sessionId}/webhook/stop`)
@@ -89,7 +89,7 @@ export interface PoolStatus {
 }
 
 /**
- * Obtiene el estado del pool de sesiones activas
+ * Gets the state of the active sessions pool
  */
 export const getPoolStatus = async (): Promise<PoolStatus> => {
   return apiClient.get<PoolStatus>('/pool/status')

@@ -7,6 +7,10 @@ import { useChats, useSession } from '@/hooks'
 import { ChatList } from './components/ChatList'
 import { ChatView } from './components/ChatView'
 
+// Tailwind classes for empty state
+const EMPTY_STATE_CLASSES = 'flex items-center justify-center h-full min-h-[500px] bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700'
+
+/* eslint-disable max-lines-per-function, complexity */
 export const ChatsPage = () => {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
@@ -25,7 +29,7 @@ export const ChatsPage = () => {
   if (!sessionId) {
     return (
       <Layout>
-        <Alert variant="error">ID de sesion no valido</Alert>
+        <Alert variant="error">Invalid session ID</Alert>
       </Layout>
     )
   }
@@ -35,7 +39,7 @@ export const ChatsPage = () => {
       <Layout>
         <div className="flex flex-col items-center justify-center py-12 gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Cargando chats...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading chats...</p>
         </div>
       </Layout>
     )
@@ -44,7 +48,7 @@ export const ChatsPage = () => {
   if (!sessionData) {
     return (
       <Layout>
-        <Alert variant="error">Sesion no encontrada</Alert>
+        <Alert variant="error">Session not found</Alert>
       </Layout>
     )
   }
@@ -57,14 +61,14 @@ export const ChatsPage = () => {
         <div className="max-w-2xl mx-auto text-center py-12">
           <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Sesion no activa
+            Session not active
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Esta sesion no esta activa. Por favor, verifica la sesion primero.
+            This session is not active. Please verify the session first.
           </p>
           <Button variant="primary" onClick={() => navigate('/dashboard')}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver al Dashboard
+            Back to Dashboard
           </Button>
         </div>
       </Layout>
@@ -95,7 +99,7 @@ export const ChatsPage = () => {
           <Alert variant="error" className="mb-6">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
-              <span>Error al cargar los chats. Intenta nuevamente.</span>
+              <span>Error loading chats. Please try again.</span>
             </div>
           </Alert>
         )}
@@ -106,10 +110,10 @@ export const ChatsPage = () => {
               <MessageCircle className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              No hay chats
+              No chats
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              No se encontraron conversaciones en esta sesion
+              No conversations found in this session
             </p>
           </div>
         )}
@@ -132,11 +136,11 @@ export const ChatsPage = () => {
                 {selectedChatId ? (
                   <ChatView sessionId={sessionId} chatId={selectedChatId} />
                 ) : (
-                  <div className="flex items-center justify-center h-full min-h-[500px] bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700">
+                  <div className={EMPTY_STATE_CLASSES}>
                     <div className="text-center">
                       <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                       <p className="text-gray-500 dark:text-gray-400">
-                        Selecciona un chat para ver la conversation
+                        Select a chat to view the conversation
                       </p>
                     </div>
                   </div>
@@ -154,7 +158,7 @@ export const ChatsPage = () => {
                     className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    Volver a la lista
+                    Back to list
                   </button>
                   <ChatView sessionId={sessionId} chatId={selectedChatId} />
                 </div>

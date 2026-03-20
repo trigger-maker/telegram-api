@@ -1,3 +1,5 @@
+/* global React */
+/* eslint-disable max-lines-per-function */
 import { useState } from 'react'
 import { Button, Input, Alert, FileUpload } from '@/components/common'
 import { useSendAudioMessage } from '@/hooks'
@@ -23,12 +25,12 @@ export const SendAudioForm = ({ sessionId }: SendAudioFormProps) => {
     setError('')
 
     if (!to.trim()) {
-      setError('El destinatario es requerido')
+      setError('Recipient is required')
       return
     }
 
     if (!audioUrl.trim()) {
-      setError('El audio es requerido')
+      setError('Audio is required')
       return
     }
 
@@ -38,7 +40,7 @@ export const SendAudioForm = ({ sessionId }: SendAudioFormProps) => {
         data: { to: to.trim(), audio_url: audioUrl.trim(), caption: caption.trim() || undefined },
       })
 
-      toast.success('Audio enviado', `Job ID: ${response.job_id}`)
+      toast.success('Audio sent', `Job ID: ${response.job_id}`)
       setTo('')
       setAudioUrl('')
       setCaption('')
@@ -46,7 +48,7 @@ export const SendAudioForm = ({ sessionId }: SendAudioFormProps) => {
       if (err instanceof ApiException) {
         setError(err.message)
       } else {
-        setError('Error al enviar el audio')
+        setError('Error sending audio')
       }
     }
   }
@@ -56,9 +58,9 @@ export const SendAudioForm = ({ sessionId }: SendAudioFormProps) => {
       {error && <Alert variant="error">{error}</Alert>}
 
       <Input
-        label="Destinatario"
+        label="Recipient"
         type="text"
-        placeholder="@username, +573001234567 o ID de chat"
+        placeholder="@username, +573001234567 or chat ID"
         value={to}
         onChange={(e) => setTo(e.target.value)}
         disabled={sendMessage.isPending}
@@ -69,14 +71,14 @@ export const SendAudioForm = ({ sessionId }: SendAudioFormProps) => {
         label="Audio"
         value={audioUrl}
         onChange={setAudioUrl}
-        placeholder="https://tu-servidor.com/audio.mp3"
+        placeholder="https://your-server.com/audio.mp3"
         disabled={sendMessage.isPending}
       />
 
       <Input
-        label="Caption (Opcional)"
+        label="Caption (Optional)"
         type="text"
-        placeholder="Description del audio..."
+        placeholder="Audio description..."
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
         disabled={sendMessage.isPending}
@@ -90,7 +92,7 @@ export const SendAudioForm = ({ sessionId }: SendAudioFormProps) => {
         className="h-12"
       >
         <Send className="w-4 h-4 mr-2" />
-        Enviar Audio
+        Send Audio
       </Button>
     </form>
   )

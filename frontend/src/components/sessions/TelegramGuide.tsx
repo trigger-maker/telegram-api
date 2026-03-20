@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities, max-lines-per-function */
 import { ExternalLink, Key, Smartphone, Check } from 'lucide-react'
 import { Alert, Badge } from '@/components/common'
 
@@ -6,10 +7,10 @@ export const TelegramGuide = () => {
     <div className="space-y-6">
       <Alert variant="info">
         <div className="space-y-2">
-          <p className="font-semibold">¿Qué necesitas?</p>
+          <p className="font-semibold">What do you need?</p>
           <p className="text-sm">
-            Para crear una sesión de Telegram necesitas obtener tus credenciales de API
-            desde el sitio oficial de Telegram.
+            To create a Telegram session you need to get your API credentials
+            from the official Telegram site.
           </p>
         </div>
       </Alert>
@@ -21,10 +22,10 @@ export const TelegramGuide = () => {
           </div>
           <div className="flex-1">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-              Accede a Telegram API
+              Access Telegram API
             </h4>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-              Ve a{' '}
+              Go to{' '}
               <a
                 href="https://my.telegram.org"
                 target="_blank"
@@ -37,7 +38,7 @@ export const TelegramGuide = () => {
             </p>
             <Badge variant="info">
               <Smartphone className="w-3 h-3 mr-1 inline" />
-              Necesitas tu número de teléfono de Telegram
+              You need your Telegram phone number
             </Badge>
           </div>
         </div>
@@ -48,10 +49,10 @@ export const TelegramGuide = () => {
           </div>
           <div className="flex-1">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-              Inicia sesión
+              Login
             </h4>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Ingresa tu número de teléfono y el código que recibirás por SMS o Telegram.
+              Enter your phone number and the code you will receive by SMS or Telegram.
             </p>
           </div>
         </div>
@@ -62,10 +63,10 @@ export const TelegramGuide = () => {
           </div>
           <div className="flex-1">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-              Ve a "API development tools"
+              Go to "API development tools"
             </h4>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              En el menú principal, haz clic en "API development tools".
+              In the main menu, click on "API development tools".
             </p>
           </div>
         </div>
@@ -76,23 +77,23 @@ export const TelegramGuide = () => {
           </div>
           <div className="flex-1">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-              Crea una aplicación
+              Create an application
             </h4>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-              Completa el formulario con estos datos:
+              Complete the form with this data:
             </p>
             <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                <span><strong>App title:</strong> Tu Aplicación (ej: "Mi Bot Telegram")</span>
+                <span><strong>App title:</strong> Your App (e.g., "My Telegram Bot")</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                <span><strong>Short name:</strong> Nombre corto (ej: "mibot")</span>
+                <span><strong>Short name:</strong> Short name (e.g., "mybot")</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                <span><strong>Platform:</strong> Selecciona "Other"</span>
+                <span><strong>Platform:</strong> Select "Other"</span>
               </li>
             </ul>
           </div>
@@ -104,10 +105,10 @@ export const TelegramGuide = () => {
           </div>
           <div className="flex-1">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-              Copia tus credenciales
+              Copy your credentials
             </h4>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-              Una vez creada la aplicación, verás:
+              Once the application is created, you will see:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -139,11 +140,11 @@ export const TelegramGuide = () => {
 
       <Alert variant="warning">
         <div className="space-y-2">
-          <p className="font-semibold text-sm">⚠️ Importante</p>
+          <p className="font-semibold text-sm">⚠️ Important</p>
           <ul className="text-sm space-y-1 ml-4 list-disc">
-            <li>Guarda estas credenciales de forma segura</li>
-            <li>No las compartas con nadie</li>
-            <li>Puedes usar las mismas credenciales para múltiples sesiones</li>
+            <li>Save these credentials securely</li>
+            <li>Do not share them with anyone</li>
+            <li>You can use the same credentials for multiple sessions</li>
           </ul>
         </div>
       </Alert>

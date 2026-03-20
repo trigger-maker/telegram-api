@@ -16,6 +16,40 @@ class ApiClient {
     this.setupInterceptors()
   }
 
+  private handleUnauthorizedError(): void {
+    localStorage.removeItem(AUTH_TOKEN_KEY)
+    localStorage.removeItem(REFRESH_TOKEN_KEY)
+    window.location.href = '/login'
+  }
+
+  private createApiException(error: AxiosError<ApiResponse>): ApiException {
+    const { status, data } = error.response!
+    return new ApiException(
+      data.error?.code || 'UNKNOWN_ERROR',
+      data.error?.message || 'Unknown error',
+      status,
+      data.error?.details
+    )
+  }
+
+  private handleResponseError(error: AxiosError<ApiResponse>): never {
+    if (error.response) {
+      const { status } = error.response
+
+      if (status === 401) {
+        this.handleUnauthorizedError()
+      }
+
+      throw this.createApiException(error)
+    }
+
+    throw new ApiException(
+      'NETWORK_ERROR',
+      'Connection error. Check your internet.',
+      0
+    )
+  }
+
   private setupInterceptors(): void {
     // Request interceptor - añade el token a cada petición
     this.client.interceptors.request.use(
@@ -32,32 +66,7 @@ class ApiClient {
     // Response interceptor - maneja errores globalmente
     this.client.interceptors.response.use(
       (response) => response,
-      async (error: AxiosError<ApiResponse>) => {
-        if (error.response) {
-          const { status, data } = error.response
-
-          // Si el token expiró, redirigir al login
-          if (status === 401) {
-            localStorage.removeItem(AUTH_TOKEN_KEY)
-            localStorage.removeItem(REFRESH_TOKEN_KEY)
-            window.location.href = '/login'
-          }
-
-          // Crear excepción con información del error
-          throw new ApiException(
-            data.error?.code || 'UNKNOWN_ERROR',
-            data.error?.message || 'Error desconocido',
-            status,
-            data.error?.details
-          )
-        }
-
-        throw new ApiException(
-          'NETWORK_ERROR',
-          'Error de conexión. Verifica tu internet.',
-          0
-        )
-      }
+      async (error: AxiosError<ApiResponse>) => this.handleResponseError(error)
     )
   }
 
@@ -66,13 +75,22 @@ class ApiClient {
     return response.data.data as T
   }
 
-  public async post<T>(url: string, data?: any): Promise<T> {
+  public async post<T>(url: string, data?: unknown): Promise<T> {
     const response = await this.client.post<ApiResponse<T>>(url, data)
     return response.data.data as T
   }
 
-  public async put<T>(url: string, data?: any): Promise<T> {
+  public async put<T>(url: string, data?: unknown): Promise<T> {
     const response = await this.client.put<ApiResponse<T>>(url, data)
+    return response.data.data as T
+  }
+
+  public async postWithConfig<T>(
+    url: string,
+    data?: unknown,
+    config?: InternalAxiosRequestConfig
+  ): Promise<T> {
+    const response = await this.client.post<ApiResponse<T>>(url, data, config)
     return response.data.data as T
   }
 

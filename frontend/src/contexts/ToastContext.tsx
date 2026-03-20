@@ -1,3 +1,4 @@
+ 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react'
 
@@ -72,15 +73,18 @@ const ToastItem = ({ toast, onRemove }: ToastItemProps) => {
   const Icon = config.icon
   const duration = toast.duration ?? 5000
 
+  const toastContainerClasses = [
+    'relative flex items-start gap-3 p-4 rounded-xl border shadow-xl backdrop-blur-sm',
+    config.bg,
+    config.border,
+    'animate-slide-in-right',
+    'transform transition-all duration-300 ease-out',
+    'overflow-hidden',
+  ].join(' ')
+
   return (
     <div
-      className={`
-        relative flex items-start gap-3 p-4 rounded-xl border shadow-xl backdrop-blur-sm
-        ${config.bg} ${config.border}
-        animate-slide-in-right
-        transform transition-all duration-300 ease-out
-        overflow-hidden
-      `}
+      className={toastContainerClasses}
       role="alert"
     >
       <Icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${config.iconColor}`} />
@@ -93,7 +97,7 @@ const ToastItem = ({ toast, onRemove }: ToastItemProps) => {
       <button
         onClick={onRemove}
         className="flex-shrink-0 p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-        aria-label="Cerrar"
+        aria-label="Close"
       >
         <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
       </button>
@@ -111,6 +115,14 @@ const ToastItem = ({ toast, onRemove }: ToastItemProps) => {
   )
 }
 
+const isServerError = (message?: string): boolean => {
+  if (!message) return false
+  const lowerMessage = message.toLowerCase()
+  return lowerMessage.includes('server') ||
+         lowerMessage.includes('500') ||
+         lowerMessage.includes('network')
+}
+
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const [toasts, setToasts] = useState<Toast[]>([])
 
@@ -123,7 +135,6 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     const duration = toast.duration ?? 5000
 
     setToasts((prev) => {
-      // Limit to 5 toasts max
       const limited = prev.length >= 5 ? prev.slice(1) : prev
       return [...limited, { ...toast, id, duration }]
     })
@@ -138,12 +149,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   }, [addToast])
 
   const error = useCallback((title: string, message?: string) => {
-    // Para errores de servidor, mostrar mensaje genérico
-    const safeMessage = message?.toLowerCase().includes('server') ||
-                        message?.toLowerCase().includes('500') ||
-                        message?.toLowerCase().includes('network')
-      ? undefined
-      : message
+    const safeMessage = isServerError(message) ? undefined : message
     addToast({ type: 'error', title, message: safeMessage, duration: 6000 })
   }, [addToast])
 
@@ -155,12 +161,14 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     addToast({ type: 'warning', title, message, duration: 5000 })
   }, [addToast])
 
+  const toastContainerWrapperClasses = 'fixed top-4 right-4 z-[100] flex flex-col gap-2 w-full max-w-sm sm:max-w-md pointer-events-none px-4 sm:px-0'
+
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast, success, error, info, warning }}>
       {children}
 
       {/* Toast Container - TOP RIGHT */}
-      <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 w-full max-w-sm sm:max-w-md pointer-events-none px-4 sm:px-0">
+      <div className={toastContainerWrapperClasses}>
         {toasts.map((toast) => (
           <div key={toast.id} className="pointer-events-auto">
             <ToastItem toast={toast} onRemove={() => removeToast(toast.id)} />

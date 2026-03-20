@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function, complexity */
 import { useState, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { UserPlus, Mail, Lock, User, Zap, ArrowRight, Check } from 'lucide-react'
@@ -18,9 +19,9 @@ export const RegisterPage = () => {
   const [error, setError] = useState('')
 
   const passwordRequirements = [
-    { text: 'Al menos 8 caracteres', met: formData.password.length >= 8 },
-    { text: 'Al menos una mayuscula', met: /[A-Z]/.test(formData.password) },
-    { text: 'Al menos un numero', met: /[0-9]/.test(formData.password) },
+    { text: 'At least 8 characters', met: formData.password.length >= 8 },
+    { text: 'At least one uppercase letter', met: /[A-Z]/.test(formData.password) },
+    { text: 'At least one number', met: /[0-9]/.test(formData.password) },
   ]
 
   const handleSubmit = async (e: FormEvent) => {
@@ -28,17 +29,17 @@ export const RegisterPage = () => {
     setError('')
 
     if (!formData.username || !formData.email || !formData.password) {
-      setError('Por favor completa todos los campos')
+      setError('Please complete all fields')
       return
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Las contrasenas no coinciden')
+      setError('Passwords do not match')
       return
     }
 
     if (formData.password.length < 8) {
-      setError('La contrasena debe tener al menos 8 caracteres')
+      setError('Password must be at least 8 characters')
       return
     }
 
@@ -49,7 +50,7 @@ export const RegisterPage = () => {
       if (err instanceof ApiException) {
         setError(err.message)
       } else {
-        setError('Error al crear la cuenta. Intenta nuevamente.')
+        setError('Error creating account. Please try again.')
       }
     }
   }
@@ -64,10 +65,10 @@ export const RegisterPage = () => {
               <Zap className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Crear cuenta
+              Create account
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Registrate para gestionar tus sesiones de Telegram
+              Register to manage your Telegram sessions
             </p>
           </div>
 
@@ -82,9 +83,9 @@ export const RegisterPage = () => {
               <div className="relative">
                 <User className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
                 <Input
-                  label="Usuario"
+                  label="Username"
                   type="text"
-                  placeholder="tu_usuario"
+                  placeholder="your_username"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   disabled={isLoading}
@@ -98,7 +99,7 @@ export const RegisterPage = () => {
                 <Input
                   label="Email"
                   type="email"
-                  placeholder="tu@email.com"
+                  placeholder="your@email.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   disabled={isLoading}
@@ -110,7 +111,7 @@ export const RegisterPage = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
                 <Input
-                  label="Contrasena"
+                  label="Password"
                   type="password"
                   placeholder="••••••••"
                   value={formData.password}
@@ -142,7 +143,7 @@ export const RegisterPage = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
                 <Input
-                  label="Confirmar contrasena"
+                  label="Confirm password"
                   type="password"
                   placeholder="••••••••"
                   value={formData.confirmPassword}
@@ -161,15 +162,15 @@ export const RegisterPage = () => {
                 className="h-12 text-base"
               >
                 <UserPlus className="w-5 h-5 mr-2" />
-                Crear cuenta
+                Create account
               </Button>
             </form>
           </Card>
 
           <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            Ya tienes cuenta?{' '}
+            Already have an account?{' '}
             <Link to="/login" className="font-semibold text-primary-600 hover:text-primary-500 transition-colors">
-              Inicia sesion
+              Login
               <ArrowRight className="w-4 h-4 inline ml-1" />
             </Link>
           </p>
@@ -180,14 +181,14 @@ export const RegisterPage = () => {
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary-600 to-primary-800 p-12 items-center justify-center">
         <div className="max-w-md text-white space-y-8">
           <h2 className="text-3xl font-bold">
-            Potencia tu comunicacion con Telegram
+            Power up your communication with Telegram
           </h2>
           <div className="space-y-6">
             {[
-              { title: 'Multi-sesion', desc: 'Gestiona multiples cuentas de Telegram simultaneamente' },
-              { title: 'Mensajes masivos', desc: 'Envia mensajes a multiples destinatarios con delay' },
-              { title: 'Webhooks', desc: 'Recibe eventos en tiempo real via webhooks' },
-              { title: 'API REST', desc: 'Integracion facil con cualquier sistema' },
+              { title: 'Multi-session', desc: 'Manage multiple Telegram accounts simultaneously' },
+              { title: 'Bulk messages', desc: 'Send messages to multiple recipients with delay' },
+              { title: 'Webhooks', desc: 'Receive real-time events via webhooks' },
+              { title: 'REST API', desc: 'Easy integration with any system' },
             ].map((feature, i) => (
               <div key={i} className="flex items-start gap-4">
                 <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">

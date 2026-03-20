@@ -77,11 +77,11 @@ export const Layout = ({ children }: LayoutProps) => {
   )
 }
 
-// Layout simple sin sidebar (para auth pages)
+// Simple layout without sidebar (for auth pages)
 export const AuthLayout = ({ children }: LayoutProps) => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      {children}
-    </div>
-  )
+  const AUTH_LAYOUT_BASE = 'min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50'
+
+  const AUTH_LAYOUT_DARK = 'dark:from-gray-950 dark:via-gray-900 dark:to-gray-950'
+
+  return <div className={`${AUTH_LAYOUT_BASE} ${AUTH_LAYOUT_DARK}`}>{children}</div>
 }

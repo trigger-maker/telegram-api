@@ -15,20 +15,20 @@ import (
 
 var (
 	// ErrInvalidKey represents an invalid encryption key error.
-	ErrInvalidKey = errors.New("clave de encriptación inválida")
+	ErrInvalidKey = errors.New("invalid encryption key: must be a 64-character hex string (32 bytes for AES-256)")
 	// ErrDecryptionFailed represents a decryption failure error.
-	ErrDecryptionFailed = errors.New("fallo al desencriptar datos")
+	ErrDecryptionFailed = errors.New("decryption failed")
 	// ErrCiphertextTooShort represents a ciphertext too short error.
-	ErrCiphertextTooShort = errors.New("texto cifrado muy corto")
+	ErrCiphertextTooShort = errors.New("ciphertext too short")
 )
 
-// Crypter maneja operaciones de encriptación/desencriptación.
+// Crypter handles encryption/decryption operations.
 type Crypter struct {
 	key []byte
 }
 
-// NewCrypter crea una nueva instancia de Crypter.
-// key debe ser una cadena hexadecimal de 64 caracteres (32 bytes para AES-256).
+// NewCrypter creates a new instance of Crypter.
+// key must be a hexadecimal string of 64 characters (32 bytes for AES-256).
 func NewCrypter(hexKey string) (*Crypter, error) {
 	key, err := hex.DecodeString(hexKey)
 	if err != nil {
@@ -42,7 +42,7 @@ func NewCrypter(hexKey string) (*Crypter, error) {
 	return &Crypter{key: key}, nil
 }
 
-// Encrypt encripta datos usando AES-256-GCM.
+// Encrypt encrypts data using AES-256-GCM.
 func (c *Crypter) Encrypt(plaintext []byte) ([]byte, error) {
 	block, err := aes.NewCipher(c.key)
 	if err != nil {
@@ -54,18 +54,18 @@ func (c *Crypter) Encrypt(plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	// Generar nonce aleatorio
+	// Generate random nonce.
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		return nil, err
 	}
 
-	// Encriptar: nonce + ciphertext + tag
+	// Encrypt: nonce + ciphertext + tag.
 	ciphertext := gcm.Seal(nonce, nonce, plaintext, nil)
 	return ciphertext, nil
 }
 
-// Decrypt desencripta datos encriptados con AES-256-GCM.
+// Decrypt decrypts data encrypted with AES-256-GCM.
 func (c *Crypter) Decrypt(ciphertext []byte) ([]byte, error) {
 	block, err := aes.NewCipher(c.key)
 	if err != nil {

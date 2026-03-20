@@ -1,3 +1,5 @@
+/* global File, FileReader, URL */
+/* eslint-disable complexity */
 import { ALLOWED_FILE_TYPES, MAX_FILE_SIZES } from '@/config/constants'
 
 export type FileType = 'image' | 'video' | 'audio' | 'file'
@@ -10,7 +12,7 @@ interface UploadResult {
 }
 
 /**
- * Valida el archivo antes de subir
+ * Validates the file before uploading
  */
 export const validateFile = (file: File, type: FileType): { valid: boolean; error?: string } => {
   const allowedTypes = ALLOWED_FILE_TYPES[type]
@@ -19,7 +21,7 @@ export const validateFile = (file: File, type: FileType): { valid: boolean; erro
   if (!allowedTypes.includes(file.type)) {
     return {
       valid: false,
-      error: `Tipo de archivo no permitido. Tipos permitidos: ${allowedTypes.join(', ')}`,
+      error: `File type not allowed. Allowed types: ${allowedTypes.join(', ')}`,
     }
   }
 
@@ -27,7 +29,7 @@ export const validateFile = (file: File, type: FileType): { valid: boolean; erro
     const maxMB = Math.round(maxSize / (1024 * 1024))
     return {
       valid: false,
-      error: `El archivo excede el tamaño máximo permitido (${maxMB}MB)`,
+      error: `File exceeds maximum allowed size (${maxMB}MB)`,
     }
   }
 
@@ -35,7 +37,7 @@ export const validateFile = (file: File, type: FileType): { valid: boolean; erro
 }
 
 /**
- * Genera un nombre único para el archivo
+ * Generates a unique name for the file
  */
 const generateUniqueFilename = (originalName: string): string => {
   const timestamp = Date.now()
@@ -46,7 +48,7 @@ const generateUniqueFilename = (originalName: string): string => {
 }
 
 /**
- * Convierte un archivo a Base64
+ * Converts a file to Base64
  */
 export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -58,58 +60,58 @@ export const fileToBase64 = (file: File): Promise<string> => {
 }
 
 /**
- * Simula la subida de archivo y devuelve la URL pública
- * En producción, esto debería subir al servidor
+ * Simulates file upload and returns the public URL
+ * In production, this should upload to the server
  */
 export const uploadFile = async (file: File, type: FileType): Promise<UploadResult> => {
   try {
-    // Validar archivo
+    // Validate file
     const validation = validateFile(file, type)
     if (!validation.valid) {
       return { success: false, error: validation.error }
     }
 
-    // Generar nombre único
+    // Generate unique name
     const filename = generateUniqueFilename(file.name)
 
-    // Determinar la carpeta según el tipo
+    // Determine the folder based on the type
     const folder = type === 'image' ? 'images' : type === 'video' ? 'videos' : type === 'audio' ? 'audio' : 'files'
+    
+    // In this case, since we don't have an upload endpoint in the backend,
+    // we'll use a base64 strategy for small files
+    // or the public URL if the file is already online
 
-    // En este caso, como no tenemos un endpoint de upload en el backend,
-    // usaremos una estrategia de base64 para archivos pequeños
-    // o la URL pública si el archivo ya está en línea
-
-    // Para desarrollo: convertir a base64 data URL (funciona para archivos pequeños)
-    // En producción deberías implementar un endpoint de upload real
+    // For development: convert to base64 data URL (works for small files)
+    // In production you should implement a real upload endpoint
     const base64 = await fileToBase64(file)
 
-    // Si el archivo es muy grande para base64, retornar error con instrucción
-    if (base64.length > 5 * 1024 * 1024) { // 5MB en base64
+    // If the file is too large for base64, return error with instruction
+    if (base64.length > 5 * 1024 * 1024) { // 5MB in base64
       return {
         success: false,
-        error: 'Archivo muy grande. Por favor, sube el archivo a un servidor externo y usa la URL directa.',
+        error: 'File too large. Please upload the file to an external server and use the direct URL.',
       }
     }
 
-    // Para archivos pequeños, podemos usar el data URL
-    // En producción, esto sería la URL del servidor con la carpeta correspondiente
+    // For small files, we can use the data URL
+    // In production, this would be the server URL with the corresponding folder
     void folder // Acknowledge folder for future server upload implementation
 
     return {
       success: true,
-      url: base64, // Usar base64 como fallback
+      url: base64, // Use base64 as fallback
       filename,
     }
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Error al subir el archivo',
+      error: error instanceof Error ? error.message : 'Error uploading file',
     }
   }
 }
 
 /**
- * Formatea el tamaño del archivo para mostrar
+ * Formats the file size for display
  */
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes'
@@ -120,7 +122,7 @@ export const formatFileSize = (bytes: number): string => {
 }
 
 /**
- * Obtiene el icono apropiado para el tipo de archivo
+ * Gets the appropriate icon for the file type
  */
 export const getFileTypeIcon = (mimeType: string): string => {
   if (mimeType.startsWith('image/')) return 'Image'
@@ -131,7 +133,7 @@ export const getFileTypeIcon = (mimeType: string): string => {
 }
 
 /**
- * Verifica si una URL es válida
+ * Checks if a URL is valid
  */
 export const isValidUrl = (url: string): boolean => {
   try {
@@ -143,7 +145,7 @@ export const isValidUrl = (url: string): boolean => {
 }
 
 /**
- * Extrae la extensión de un archivo de una URL
+ * Extracts the file extension from a URL
  */
 export const getFileExtension = (url: string): string => {
   try {

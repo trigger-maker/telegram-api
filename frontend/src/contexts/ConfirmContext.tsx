@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 import { AlertTriangle, Trash2, Info, HelpCircle, X } from 'lucide-react'
 import { Button } from '@/components/common'
@@ -58,8 +59,8 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
     title: '',
     message: '',
     variant: 'default',
-    confirmText: 'Confirmar',
-    cancelText: 'Cancelar',
+    confirmText: 'Confirm',
+    cancelText: 'Cancel',
     resolve: null,
   })
 
@@ -70,8 +71,8 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
         title: options.title,
         message: options.message,
         variant: options.variant ?? 'default',
-        confirmText: options.confirmText ?? 'Confirmar',
-        cancelText: options.cancelText ?? 'Cancelar',
+        confirmText: options.confirmText ?? 'Confirm',
+        cancelText: options.cancelText ?? 'Cancel',
         icon: options.icon,
         resolve,
       })
@@ -80,26 +81,36 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
 
   const confirmDelete = useCallback((itemName: string): Promise<boolean> => {
     return confirm({
-      title: 'Eliminar',
-      message: `¿Estás seguro de que deseas eliminar "${itemName}"? Esta acción no se puede deshacer.`,
+      title: 'Delete',
+      message: `Are you sure you want to delete "${itemName}"? This action cannot be undone.`,
       variant: 'danger',
-      confirmText: 'Eliminar',
-      cancelText: 'Cancelar',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
     })
   }, [confirm])
 
   const handleConfirm = useCallback(() => {
     state.resolve?.(true)
     setState((prev) => ({ ...prev, isOpen: false, resolve: null }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.resolve])
 
   const handleCancel = useCallback(() => {
     state.resolve?.(false)
     setState((prev) => ({ ...prev, isOpen: false, resolve: null }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.resolve])
 
   const config = variantConfig[state.variant ?? 'default']
   const Icon = state.icon ? () => <>{state.icon}</> : config.icon
+
+  const modalOverlayClasses = 'fixed inset-0 z-[110] flex items-center justify-center p-4 animate-fade-in'
+  const modalClasses = 'relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in'
+  const closeButtonClasses = 'absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10'
+  const iconContainerBaseClasses = 'w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5'
+  const iconContainerClasses = `${iconContainerBaseClasses} ${config.iconBg}`
+  const iconClasses = `w-7 h-7 sm:w-8 sm:h-8 ${config.iconColor}`
+  const actionsContainerClasses = 'flex flex-col-reverse sm:flex-row gap-3 p-4 sm:p-6 pt-0 sm:pt-0'
 
   return (
     <ConfirmContext.Provider value={{ confirm, confirmDelete }}>
@@ -108,7 +119,7 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
       {/* Confirm Modal */}
       {state.isOpen && (
         <div
-          className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-fade-in"
+          className={modalOverlayClasses}
           onClick={handleCancel}
         >
           {/* Backdrop */}
@@ -116,13 +127,13 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
 
           {/* Modal */}
           <div
-            className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in"
+            className={modalClasses}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             <button
               onClick={handleCancel}
-              className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10"
+              className={closeButtonClasses}
             >
               <X className="w-5 h-5 text-gray-400" />
             </button>
@@ -130,8 +141,8 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
             {/* Content */}
             <div className="p-6 sm:p-8">
               {/* Icon */}
-              <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full ${config.iconBg} flex items-center justify-center mx-auto mb-4 sm:mb-5`}>
-                <Icon className={`w-7 h-7 sm:w-8 sm:h-8 ${config.iconColor}`} />
+              <div className={iconContainerClasses}>
+                <Icon className={iconClasses} />
               </div>
 
               {/* Title */}
@@ -146,7 +157,7 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col-reverse sm:flex-row gap-3 p-4 sm:p-6 pt-0 sm:pt-0">
+            <div className={actionsContainerClasses}>
               <Button
                 variant="secondary"
                 onClick={handleCancel}

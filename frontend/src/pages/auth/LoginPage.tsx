@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { useState, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { LogIn, Lock, User, Zap, ArrowRight, Shield, Smartphone, Globe } from 'lucide-react'
@@ -18,7 +19,7 @@ export const LoginPage = () => {
     setError('')
 
     if (!username || !password) {
-      setError('Por favor completa todos los campos')
+      setError('Please complete all fields')
       return
     }
 
@@ -29,7 +30,7 @@ export const LoginPage = () => {
       if (err instanceof ApiException) {
         setError(err.message)
       } else {
-        setError('Error al iniciar sesion. Intenta nuevamente.')
+        setError('Error logging in. Please try again.')
       }
     }
   }
@@ -50,15 +51,15 @@ export const LoginPage = () => {
               Telegram API Manager
             </h2>
             <p className="text-lg text-primary-100">
-              La forma mas facil de gestionar multiples sesiones de Telegram desde una sola interfaz.
+              The easiest way to manage multiple Telegram sessions from a single interface.
             </p>
           </div>
 
           <div className="space-y-6">
             {[
-              { icon: Shield, title: 'Seguro', desc: 'Datos cifrados con AES-256' },
-              { icon: Smartphone, title: 'Multi-sesion', desc: 'Gestiona multiples cuentas' },
-              { icon: Globe, title: 'API REST', desc: 'Integracion con cualquier sistema' },
+              { icon: Shield, title: 'Secure', desc: 'Data encrypted with AES-256' },
+              { icon: Smartphone, title: 'Multi-session', desc: 'Manage multiple accounts' },
+              { icon: Globe, title: 'API REST', desc: 'Integration with any system' },
             ].map((feature, i) => (
               <div key={i} className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-4">
                 <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
@@ -82,10 +83,10 @@ export const LoginPage = () => {
               <Zap className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Bienvenido
+              Welcome
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Inicia sesion para acceder a tu cuenta
+              Login to access your account
             </p>
           </div>
 
@@ -100,9 +101,9 @@ export const LoginPage = () => {
               <div className="relative">
                 <User className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
                 <Input
-                  label="Usuario"
+                  label="Username"
                   type="text"
-                  placeholder="tu_usuario"
+                  placeholder="your_username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={isLoading}
@@ -114,7 +115,7 @@ export const LoginPage = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-9 w-5 h-5 text-gray-400" />
                 <Input
-                  label="Contrasena"
+                  label="Password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
@@ -131,10 +132,10 @@ export const LoginPage = () => {
                     type="checkbox"
                     className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
-                  <span className="text-gray-600 dark:text-gray-400">Recorder</span>
+                  <span className="text-gray-600 dark:text-gray-400">Remember</span>
                 </label>
                 <a href="#" className="text-primary-600 hover:text-primary-500 font-medium">
-                  Olvidaste tu contrasena?
+                  Forgot your password?
                 </a>
               </div>
 
@@ -146,15 +147,15 @@ export const LoginPage = () => {
                 className="h-12 text-base"
               >
                 <LogIn className="w-5 h-5 mr-2" />
-                Iniciar Sesion
+                Login
               </Button>
             </form>
           </Card>
 
           <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            No tienes cuenta?{' '}
+            Don't have an account?{' '}
             <Link to="/register" className="font-semibold text-primary-600 hover:text-primary-500 transition-colors">
-              Registrate gratis
+              Register for free
               <ArrowRight className="w-4 h-4 inline ml-1" />
             </Link>
           </p>

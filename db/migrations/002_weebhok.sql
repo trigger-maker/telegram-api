@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS webhooks (
 CREATE INDEX IF NOT EXISTS idx_webhooks_active ON webhooks(is_active) WHERE is_active = true;
 CREATE INDEX IF NOT EXISTS idx_webhooks_session ON webhooks(session_id);
 
--- Trigger para updated_at
+-- Trigger for updated_at
 DROP TRIGGER IF EXISTS trg_webhooks_updated ON webhooks;
 CREATE TRIGGER trg_webhooks_updated BEFORE UPDATE ON webhooks
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();

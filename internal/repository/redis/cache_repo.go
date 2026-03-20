@@ -13,27 +13,27 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// Prefijos de claves para organización.
+// Key prefixes for organization.
 const (
-	PrefixSession    = "session:"    // Sesiones de usuario (JWT blacklist)
+	PrefixSession    = "session:"    // User sessions (JWT blacklist)
 	PrefixRateLimit  = "rate:"       // Rate limiting
-	PrefixTelegram   = "tg:session:" // Datos temporales de sesión Telegram
-	PrefixVerifyCode = "verify:"     // Códigos de verificación temporales
-	PrefixCache      = "cache:"      // Caché general
+	PrefixTelegram   = "tg:session:" // Temporary Telegram session data
+	PrefixVerifyCode = "verify:"     // Temporary verification codes
+	PrefixCache      = "cache:"      // General cache
 )
 
-// CacheRepository implementa domain.CacheRepository usando Redis.
-// Single Responsibility: Solo maneja operaciones de caché.
+// CacheRepository implements domain.CacheRepository using Redis.
+// Single Responsibility: Only handles cache operations.
 type CacheRepository struct {
 	client *redis.Client
 }
 
-// NewCacheRepository crea una nueva instancia del repositorio de caché.
+// NewCacheRepository creates a new instance of the cache repository.
 func NewCacheRepository(client *redis.Client) *CacheRepository {
 	return &CacheRepository{client: client}
 }
 
-// Set guarda un valor string con TTL.
+// Set stores a string value with TTL.
 func (r *CacheRepository) Set(ctx context.Context, key string, value interface{}, ttlSeconds int) error {
 	var strValue string
 	switch v := value.(type) {
@@ -53,7 +53,7 @@ func (r *CacheRepository) Set(ctx context.Context, key string, value interface{}
 	return nil
 }
 
-// Get obtiene un valor string.
+// Get gets a string value.
 func (r *CacheRepository) Get(ctx context.Context, key string) (string, error) {
 	val, err := r.client.Get(ctx, key).Result()
 	if err != nil {
@@ -65,7 +65,7 @@ func (r *CacheRepository) Get(ctx context.Context, key string) (string, error) {
 	return val, nil
 }
 
-// Delete elimina una o más claves.
+// Delete deletes one or more keys.
 func (r *CacheRepository) Delete(ctx context.Context, keys ...string) error {
 	if len(keys) == 0 {
 		return nil
@@ -77,7 +77,7 @@ func (r *CacheRepository) Delete(ctx context.Context, keys ...string) error {
 	return nil
 }
 
-// Exists verifica si una clave existe.
+// Exists checks if a key exists.
 func (r *CacheRepository) Exists(ctx context.Context, key string) (bool, error) {
 	count, err := r.client.Exists(ctx, key).Result()
 	if err != nil {
@@ -86,7 +86,7 @@ func (r *CacheRepository) Exists(ctx context.Context, key string) (bool, error) 
 	return count > 0, nil
 }
 
-// SetJSON guarda un objeto como JSON con TTL.
+// SetJSON stores an object as JSON with TTL.
 func (r *CacheRepository) SetJSON(ctx context.Context, key string, value interface{}, ttlSeconds int) error {
 	data, err := json.Marshal(value)
 	if err != nil {
@@ -101,7 +101,7 @@ func (r *CacheRepository) SetJSON(ctx context.Context, key string, value interfa
 	return nil
 }
 
-// GetJSON obtiene un objeto JSON y lo deserializa.
+// GetJSON gets a JSON object and deserializes it.
 func (r *CacheRepository) GetJSON(ctx context.Context, key string, dest interface{}) error {
 	val, err := r.client.Get(ctx, key).Bytes()
 	if err != nil {
@@ -117,15 +117,15 @@ func (r *CacheRepository) GetJSON(ctx context.Context, key string, dest interfac
 	return nil
 }
 
-// IncrementRateLimit incrementa un contador para rate limiting.
-// Retorna el nuevo valor del contador.
+// IncrementRateLimit increments a counter for rate limiting.
+// Returns the new counter value.
 func (r *CacheRepository) IncrementRateLimit(ctx context.Context, key string, windowSeconds int) (int64, error) {
 	pipe := r.client.Pipeline()
 
-	// Incrementar contador
+	// Increment counter.
 	incr := pipe.Incr(ctx, key)
 
-	// Set TTL only if first time (new key)
+	// Set TTL only if first time (new key).
 	pipe.Expire(ctx, key, time.Duration(windowSeconds)*time.Second)
 
 	_, err := pipe.Exec(ctx)
@@ -136,7 +136,7 @@ func (r *CacheRepository) IncrementRateLimit(ctx context.Context, key string, wi
 	return incr.Val(), nil
 }
 
-// GetRateLimitCount obtiene el contador actual de rate limiting.
+// GetRateLimitCount gets the current rate limiting counter.
 func (r *CacheRepository) GetRateLimitCount(ctx context.Context, key string) (int64, error) {
 	val, err := r.client.Get(ctx, key).Int64()
 	if err != nil {
@@ -163,7 +163,7 @@ func (r *CacheRepository) SetWithNX(ctx context.Context, key string, value inter
 	return result == "OK", nil
 }
 
-// GetTTL obtiene el tiempo restante de vida de una clave.
+// GetTTL gets the remaining time to live of a key.
 func (r *CacheRepository) GetTTL(ctx context.Context, key string) (time.Duration, error) {
 	ttl, err := r.client.TTL(ctx, key).Result()
 	if err != nil {
@@ -238,5 +238,5 @@ func wrapRedisError(err error, operation string) error {
 	return fmt.Errorf("%s: %w (redis: %v)", operation, domain.ErrCache, err)
 }
 
-// Verificación en tiempo de compilación.
+// Compile-time verification.
 var _ domain.CacheRepository = (*CacheRepository)(nil)

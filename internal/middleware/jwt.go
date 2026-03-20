@@ -33,13 +33,13 @@ func JWTMiddleware(authService *service.AuthService) fiber.Handler {
 			})
 		}
 
-		// Extraer token: acepta "Bearer <token>" o solo "<token>"
+		// Extract token: accepts "Bearer <token>" or just "<token>"
 		token := authHeader
 		if strings.HasPrefix(strings.ToLower(authHeader), "bearer ") {
 			token = authHeader[7:]
 		}
 
-		// Validar token
+		// Validate token
 		claims, err := authService.ValidateToken(token)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -51,7 +51,7 @@ func JWTMiddleware(authService *service.AuthService) fiber.Handler {
 			})
 		}
 
-		// Parsear UUID
+		// Parse UUID
 		userID, err := uuid.Parse(claims.UserID)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -59,6 +59,27 @@ func JWTMiddleware(authService *service.AuthService) fiber.Handler {
 				"error": fiber.Map{
 					"code":    "INVALID_TOKEN",
 					"message": "Malformed token",
+				},
+			})
+		}
+
+		// Verify user exists in database
+		user, err := authService.GetUserByID(c.Context(), userID)
+		if err != nil {
+			return c.Status(401).JSON(fiber.Map{
+				"success": false,
+				"error": fiber.Map{
+					"code":    "USER_NOT_FOUND",
+					"message": "User not found or deleted",
+				},
+			})
+		}
+		if !user.IsActive {
+			return c.Status(403).JSON(fiber.Map{
+				"success": false,
+				"error": fiber.Map{
+					"code":    "USER_INACTIVE",
+					"message": "User account is inactive",
 				},
 			})
 		}

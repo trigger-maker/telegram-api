@@ -17,7 +17,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// EventDispatcher envía eventos a webhooks configurados.
+// EventDispatcher sends events to configured webhooks.
 type EventDispatcher struct {
 	webhookRepo domain.WebhookRepository
 	httpClient  *http.Client
@@ -29,17 +29,17 @@ type dispatchJob struct {
 	Event     domain.WebhookEvent
 }
 
-// NewEventDispatcher crea el dispatcher.
+// NewEventDispatcher creates the dispatcher.
 func NewEventDispatcher(webhookRepo domain.WebhookRepository) *EventDispatcher {
 	d := &EventDispatcher{
 		webhookRepo: webhookRepo,
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
-		eventChan: make(chan *dispatchJob, 1000), // Buffer para 1000 eventos
+		eventChan: make(chan *dispatchJob, 1000), // Buffer for 1000 events.
 	}
 
-	// Workers para enviar eventos
+	// Workers to send events.
 	for i := 0; i < 10; i++ {
 		go d.worker()
 	}
@@ -63,7 +63,7 @@ func (d *EventDispatcher) Dispatch(sessionID uuid.UUID, eventType domain.EventTy
 		logger.Warn().
 			Str("session_id", sessionID.String()).
 			Str("event_type", string(eventType)).
-			Msg("⚠️ Buffer de eventos lleno, evento descartado")
+			Msg("⚠️ Event buffer full, event discarded.")
 	}
 }
 
@@ -122,7 +122,7 @@ func (d *EventDispatcher) sendWebhookWithRetry(req *http.Request, maxRetries int
 				Str("session_id", job.SessionID.String()).
 				Str("event_type", string(job.Event.Type)).
 				Int("status", resp.StatusCode).
-				Msg("✅ Evento enviado a webhook")
+				Msg("✅ Event sent to webhook")
 			return nil
 		}
 
@@ -163,14 +163,14 @@ func (d *EventDispatcher) sendToWebhook(job *dispatchJob) {
 			Err(lastErr).
 			Str("session_id", job.SessionID.String()).
 			Str("url", webhook.URL).
-			Msg("❌ Webhook falló después de reintentos")
+			Msg("❌ Webhook failed after retries")
 		go d.updateWebhookError(job.SessionID, lastErr.Error())
 	}
 }
 
 func (d *EventDispatcher) shouldSendEvent(events []string, eventType domain.EventType) bool {
 	if len(events) == 0 {
-		return true // Si no hay filtro, enviar todos
+		return true // If no filter, send all
 	}
 	for _, e := range events {
 		if e == string(eventType) || e == "*" {

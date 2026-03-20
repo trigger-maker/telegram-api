@@ -51,9 +51,9 @@ services:
       - DB_URL=postgres://admin:password123@tg_postgres:5432/telegram_db?sslmode=disable
       - REDIS_ADDR=tg_redis:6379
       - REDIS_PASSWORD=
-      - JWT_SECRET=${JWT_SECRET:-tu_jwt_secret_32_caracteres_min!}
+      - JWT_SECRET=${JWT_SECRET:-your_jwt_secret_32_characters_min!}
       - JWT_EXPIRY=24h
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-clave_32_caracteres_exactos!!}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
     depends_on:
       postgres:
         condition: service_healthy

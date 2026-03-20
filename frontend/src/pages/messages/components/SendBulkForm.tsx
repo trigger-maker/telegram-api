@@ -1,3 +1,5 @@
+/* global React */
+/* eslint-disable max-lines-per-function */
 import { useState } from 'react'
 import { Button, Input, Alert } from '@/components/common'
 import { useSendBulkMessage } from '@/hooks'
@@ -39,7 +41,7 @@ export const SendBulkForm = ({ sessionId }: SendBulkFormProps) => {
     const validRecipients = recipients.filter((r) => r.trim())
 
     if (validRecipients.length === 0 || !text.trim()) {
-      setError('Debes agregar al menos un destinatario y un mensaje')
+      setError('You must add at least one recipient and a message')
       return
     }
 
@@ -53,7 +55,7 @@ export const SendBulkForm = ({ sessionId }: SendBulkFormProps) => {
         },
       })
 
-      setSuccess(`Mensajes masivos enviados: ${response.length} mensajes en cola`)
+      setSuccess(`Bulk messages sent: ${response.length} messages queued`)
       setRecipients([''])
       setText('')
       setDelayMs('3000')
@@ -61,7 +63,7 @@ export const SendBulkForm = ({ sessionId }: SendBulkFormProps) => {
       if (err instanceof ApiException) {
         setError(err.message)
       } else {
-        setError('Error al enviar los mensajes')
+        setError('Error sending messages')
       }
     }
   }
@@ -81,7 +83,7 @@ export const SendBulkForm = ({ sessionId }: SendBulkFormProps) => {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Destinatarios
+            Recipients
           </label>
           <button
             type="button"
@@ -89,7 +91,7 @@ export const SendBulkForm = ({ sessionId }: SendBulkFormProps) => {
             className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 flex items-center gap-1"
           >
             <Plus className="w-4 h-4" />
-            Agregar
+            Add
           </button>
         </div>
 
@@ -97,7 +99,7 @@ export const SendBulkForm = ({ sessionId }: SendBulkFormProps) => {
           <div key={index} className="flex gap-2">
             <Input
               type="text"
-              placeholder="@username o +573001234567"
+              placeholder="@username or +573001234567"
               value={recipient}
               onChange={(e) => handleRecipientChange(index, e.target.value)}
               disabled={sendMessage.isPending}
@@ -118,12 +120,12 @@ export const SendBulkForm = ({ sessionId }: SendBulkFormProps) => {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Mensaje
+          Message
         </label>
         <textarea
           className="input"
           rows={6}
-          placeholder="Mensaje que se enviará a todos los destinatarios..."
+          placeholder="Message to be sent to all recipients..."
           value={text}
           onChange={(e) => setText(e.target.value)}
           disabled={sendMessage.isPending}
@@ -131,7 +133,7 @@ export const SendBulkForm = ({ sessionId }: SendBulkFormProps) => {
       </div>
 
       <Input
-        label="Delay entre mensajes (ms)"
+        label="Delay between messages (ms)"
         type="number"
         placeholder="3000"
         value={delayMs}
@@ -141,8 +143,8 @@ export const SendBulkForm = ({ sessionId }: SendBulkFormProps) => {
 
       <Alert variant="warning">
         <p className="text-sm">
-          Los mensajes se enviarán con un delay de {parseInt(delayMs) / 1000} segundos entre cada uno
-          para evitar límites de Telegram.
+          Messages will be sent with a delay of {parseInt(delayMs) / 1000} seconds between each one
+          to avoid Telegram limits.
         </p>
       </Alert>
 
@@ -153,7 +155,7 @@ export const SendBulkForm = ({ sessionId }: SendBulkFormProps) => {
         className="flex items-center gap-2"
       >
         <Users className="w-4 h-4" />
-        Enviar a {recipients.filter((r) => r.trim()).length} Destinatarios
+        Send to {recipients.filter((r) => r.trim()).length} Recipients
       </Button>
     </form>
   )

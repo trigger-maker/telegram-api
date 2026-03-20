@@ -176,7 +176,8 @@ func TestRegression_SMSAuthorization(t *testing.T) {
 			AuthState:   domain.SessionCodeSent,
 		}, "phone_code_hash_123", nil)
 
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	assert.NoError(t, err)
 	httpReq := httptest.NewRequest("POST", "/test", bytes.NewReader(body))
 	httpReq.Header.Set("Content-Type", "application/json")
 
@@ -221,7 +222,8 @@ func TestRegression_QRAuthorization(t *testing.T) {
 			AuthState: domain.SessionPending,
 		}, "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==", nil)
 
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	assert.NoError(t, err)
 	httpReq := httptest.NewRequest("POST", "/test", bytes.NewReader(body))
 	httpReq.Header.Set("Content-Type", "application/json")
 
@@ -372,7 +374,8 @@ func testMediaType(t *testing.T, tt mediaTestCase, mockService *MockMessageServi
 		SendAt: time.Now(),
 	}, nil)
 
-	body, _ := json.Marshal(tt.req)
+	body, err := json.Marshal(tt.req)
+	assert.NoError(t, err)
 	httpReq := httptest.NewRequest("POST", "/test/"+sessionID.String(), bytes.NewReader(body))
 	httpReq.Header.Set("Content-Type", "application/json")
 
@@ -380,7 +383,8 @@ func testMediaType(t *testing.T, tt mediaTestCase, mockService *MockMessageServi
 	assert.NoError(t, err)
 	if resp.StatusCode != 202 {
 		var errorResp Response
-		bodyBytes, _ := json.Marshal(resp.Body)
+		bodyBytes, err := json.Marshal(resp.Body)
+		assert.NoError(t, err)
 		t.Logf("Response body: %s", string(bodyBytes))
 		if err := json.NewDecoder(resp.Body).Decode(&errorResp); err != nil {
 			t.Logf("Decode error: %v", err)
@@ -438,7 +442,8 @@ func TestRegression_BulkSend(t *testing.T) {
 		{JobID: jobID2, Status: domain.MessageStatusPending, SendAt: time.Now()},
 	}, nil)
 
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	assert.NoError(t, err)
 	httpReq := httptest.NewRequest("POST", "/test/"+sessionID.String(), bytes.NewReader(body))
 	httpReq.Header.Set("Content-Type", "application/json")
 
@@ -486,7 +491,8 @@ func TestRegression_WebhookDelivery(t *testing.T) {
 	})).Return(nil)
 
 	// #nosec G117 -- Test code, not exposing secrets
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	assert.NoError(t, err)
 	httpReq := httptest.NewRequest("POST", "/test/"+sessionID.String(), bytes.NewReader(body))
 	httpReq.Header.Set("Content-Type", "application/json")
 
